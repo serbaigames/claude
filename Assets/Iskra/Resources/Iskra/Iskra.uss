@@ -1644,3 +1644,24 @@ Button {
 .bfoot > .btn {
     min-width: 120px;
 }
+
+/* в UI Toolkit элементы по умолчанию сжимаются ниже своего содержимого — текст в окнах налезал бы друг на друга */
+.p,
+.h2,
+.h3,
+.note,
+.btn,
+.facts,
+.kv,
+.kv-row,
+.bstatus,
+.fighters,
+.bfoot,
+.bactions,
+.jcols,
+.list-item,
+.eli,
+.tabs,
+.tab {
+    flex-shrink: 0;
+}

@@ -36,6 +36,10 @@ namespace Iskra.UI
         {
             g = game;
             root = rootElement;
+            // Контейнер UIDocument по умолчанию не растягивается — без этого высота всего интерфейса нулевая
+            root.style.position = Position.Absolute;
+            root.style.left = 0; root.style.top = 0; root.style.right = 0; root.style.bottom = 0;
+            root.style.flexGrow = 1;
             app = Q("app");
             quick = Q("quick");
             colA = Q("colA");
