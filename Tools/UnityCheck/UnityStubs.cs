@@ -383,5 +383,6 @@ namespace UnityEditor.SceneManagement
         public static bool SaveScene(Scene s, string p) => true;
         public static bool CloseScene(Scene s, bool r) => true;
         public static Scene OpenScene(string p, OpenSceneMode m) => default;
+        public static bool SaveCurrentModifiedScenesIfUserWantsTo() => true;
     }
 }

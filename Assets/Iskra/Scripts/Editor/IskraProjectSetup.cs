@@ -49,7 +49,10 @@ namespace Iskra.Editor
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
                 var active = SceneManager.GetActiveScene();
-                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+                // Рядом с несохранённой безымянной сценой Unity не создаёт вторую — тогда заменяем её
+                bool untitled = string.IsNullOrEmpty(active.path);
+                if (untitled && active.isDirty && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, untitled ? NewSceneMode.Single : NewSceneMode.Additive);
                 var cam = new GameObject("Camera").AddComponent<Camera>();
                 cam.tag = "MainCamera";
                 cam.clearFlags = CameraClearFlags.SolidColor;
@@ -61,10 +64,7 @@ namespace Iskra.Editor
                 go.AddComponent<IskraApp>();
                 SceneManager.MoveGameObjectToScene(go, scene);
                 EditorSceneManager.SaveScene(scene, ScenePath);
-                EditorSceneManager.CloseScene(scene, true);
-                // Пустую безымянную сцену заменяем на Main, чтобы сразу можно было нажать Play
-                if (string.IsNullOrEmpty(active.path) && active.rootCount <= 2 && !active.isDirty)
-                    EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+                if (!untitled) EditorSceneManager.CloseScene(scene, true);
             }
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
             if (PlayerSettings.productName == "claude" || PlayerSettings.productName == "New Unity Project" || verbose)
