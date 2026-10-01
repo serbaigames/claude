@@ -135,7 +135,7 @@ namespace UnityEngine
         public static bool isMobilePlatform;
         public static string persistentDataPath;
     }
-    public static class Screen { public static int width, height; public static float dpi; }
+    public static class Screen { public static int width, height; public static float dpi; public static Rect safeArea; }
     public static class Time { public static float unscaledDeltaTime; public static double realtimeSinceStartupAsDouble; }
     public static class PlayerPrefs
     {
@@ -209,6 +209,10 @@ namespace UnityEngine.UIElements
         StyleColor unityTextOutlineColor { get; set; }
         StyleFloat unityTextOutlineWidth { get; set; }
         StyleFloat flexGrow { get; set; }
+        StyleLength paddingTop { get; set; }
+        StyleLength paddingBottom { get; set; }
+        StyleLength paddingLeft { get; set; }
+        StyleLength paddingRight { get; set; }
         StyleEnum<DisplayStyle> display { get; set; }
         StyleEnum<Position> position { get; set; }
         StyleTranslate translate { get; set; }
@@ -237,7 +241,7 @@ namespace UnityEngine.UIElements
     public class EventBase { public void StopPropagation() { } }
     public class EventBase<T> : EventBase { }
     public class PointerEventBase<T> : EventBase<T> { public int pointerId; public Vector3 localPosition, position; }
-    public sealed class PointerDownEvent : PointerEventBase<PointerDownEvent> { }
+    public sealed class PointerDownEvent : PointerEventBase<PointerDownEvent> { public IEventHandler target; }
     public sealed class PointerMoveEvent : PointerEventBase<PointerMoveEvent> { }
     public sealed class PointerUpEvent : PointerEventBase<PointerUpEvent> { }
     public sealed class PointerCancelEvent : PointerEventBase<PointerCancelEvent> { }

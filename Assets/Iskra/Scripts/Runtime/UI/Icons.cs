@@ -67,6 +67,7 @@ namespace Iskra.UI
             P.lineWidth = w * S;
             P.lineCap = LineCap.Round;
             P.BeginPath();
+            P.MoveTo(Draw.Polar(C, a0Deg * Mathf.Deg2Rad, r * S));
             P.Arc(C, r * S, Angle.Degrees(a0Deg), Angle.Degrees(a1Deg), ccw ? ArcDirection.CounterClockwise : ArcDirection.Clockwise);
             P.Stroke();
             P.lineCap = LineCap.Butt;
@@ -177,7 +178,7 @@ namespace Iskra.UI
             {
                 g.Ring(9, 1.6f);
                 g.P.fillColor = Draw.A(g.Cur, g.Cur.a * .75f);
-                g.P.BeginPath(); g.P.Arc(g.C, 9 * g.S, Angle.Degrees(-90), Angle.Degrees(90)); g.P.ClosePath(); g.P.Fill();
+                g.P.BeginPath(); g.P.MoveTo(g.V(0, -9)); g.P.Arc(g.C, 9 * g.S, Angle.Degrees(-90), Angle.Degrees(90)); g.P.ClosePath(); g.P.Fill();
                 g.Dot(2, true);
             },
             ["bolt"] = g => { g.Fill(g.Pts(2, -11, -6, 1, -.5f, 1, -3, 11, 6, -2, .5f, -2, 4, -11)); g.Fill(g.Pts(1.5f, -8, -3, .5f, .5f, .5f), true, .8f); },

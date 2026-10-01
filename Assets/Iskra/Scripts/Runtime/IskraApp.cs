@@ -60,15 +60,26 @@ namespace Iskra
                 RequestSave = Save,
                 WipeSave = SaveStore.Delete,
             };
+            ApplySafeArea();
         }
 
-        // Телефон: короткая сторона ≈ 420 логических точек; компьютер — по плотности экрана
+        // Телефон (и симулятор телефона): короткая сторона ≈ 390 точек, как у iPhone в браузере;
+        // компьютер — по плотности экрана
         static float ComputeScale()
         {
             float minSide = Mathf.Min(Screen.width, Screen.height);
-            if (Application.isMobilePlatform) return Mathf.Max(1f, minSide / 420f);
+            bool phone = Application.isMobilePlatform || Screen.dpi > 0 && minSide / Screen.dpi < 4.5f;
+            if (phone) return Mathf.Max(1f, minSide / 390f);
             float s = Screen.dpi > 0 ? Screen.dpi / 96f : 1f;
             return Mathf.Clamp(s, 1f, Mathf.Max(1f, minSide / 560f));
+        }
+
+        // Вырез экрана и полоска жестов: отступы в логических точках панели
+        void ApplySafeArea()
+        {
+            var sa = Screen.safeArea;
+            float s = Mathf.Max(0.01f, panel.scale);
+            ui.SetSafeArea((Screen.height - sa.yMax) / s, sa.yMin / s, sa.xMin / s, (Screen.width - sa.xMax) / s);
         }
 
         void Update()
@@ -78,6 +89,7 @@ namespace Iskra
             {
                 screen = new Vector2Int(Screen.width, Screen.height);
                 panel.scale = ComputeScale();
+                ApplySafeArea();
             }
             float dt = Mathf.Min(0.25f, Time.unscaledDeltaTime);
             ui.Frame(dt, Time.realtimeSinceStartupAsDouble);

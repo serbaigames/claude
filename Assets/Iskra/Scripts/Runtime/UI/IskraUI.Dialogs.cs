@@ -62,6 +62,9 @@ namespace Iskra.UI
         {
             public Button B;
             public Label Cost, Cdt;
+            public RingIcon Ring;
+            public string Icon;
+            public Color Col;
             public int Idx;
         }
 
@@ -75,7 +78,12 @@ namespace Iskra.UI
             Q("arenaHost").Insert(0, arena);
             Q<Button>("bStart").clicked += StartFight;
             Q<Button>("bFlee").clicked += CloseBattle;
-            Q<Button>("bLogToggle").clicked += () => Q("bLogScroll").ToggleInClassList("hidden");
+            Q<Button>("bLogToggle").clicked += () =>
+            {
+                var lg = Q("bLogScroll");
+                lg.ToggleInClassList("hidden");
+                Q<Button>("bLogToggle").text = lg.ClassListContains("hidden") ? "› Ход боя" : "Ход боя — новые записи сверху";
+            };
             jumpDrag = new DragScroll(Q("jumpContent"));
             Q("jumpBox").AddManipulator(jumpDrag);
         }
@@ -136,23 +144,33 @@ namespace Iskra.UI
                 cdt.AddToClassList("cdt");
                 var name = new Label(a.Empty ? "пусто" : Defs.Abilities[a.id].Name);
                 name.AddToClassList("nm");
+                // кольцо отката вокруг иконки, цвет — ранг способности
+                var ring = new RingIcon();
+                ring.style.position = Position.Absolute;
+                ring.style.left = 0; ring.style.top = 0; ring.style.right = 0; ring.style.bottom = 0;
+                dial.Add(ring);
+                string icon = null;
+                Color col = Draw.Hex("#342b55");
                 if (!a.Empty)
                 {
                     var d = Defs.Abilities[a.id];
-                    var ic = new IconElement(d.Icon);
-                    ic.style.color = Draw.Hex(Game.TierCol[d.Tier]);
-                    dial.Add(ic);
+                    icon = d.Icon;
+                    col = Draw.Hex(Game.TierCol[d.Tier]);
+                }
+                ring.Set(a.Empty ? 0 : 1, icon, col);
+                dial.Add(cdt);
+                if (!a.Empty)
+                {
                     var kk = new Label((i + 1).ToString());
                     kk.AddToClassList("kk");
                     dial.Add(kk);
                 }
-                dial.Add(cdt);
                 b.Add(cost);
                 b.Add(dial);
                 b.Add(name);
                 if (a.Empty) b.SetEnabled(false);
                 acts.Add(b);
-                tiles.Add(new AbTile { B = b, Cost = cost, Cdt = cdt, Idx = i });
+                tiles.Add(new AbTile { B = b, Cost = cost, Cdt = cdt, Ring = ring, Icon = icon, Col = col, Idx = i });
             }
         }
 
@@ -228,6 +246,7 @@ namespace Iskra.UI
                 t.B.EnableInClassList("poor", g.S.matter < info.Cost);
                 t.B.EnableInClassList("cooling", !info.Ready);
                 SetText(t.Cdt, info.Ready ? "" : Fmt.X(left));
+                t.Ring.Set(info.Ready ? 1 : (float)Math.Max(0, 1 - left / tot), info.Ready ? t.Icon : null, t.Col);
                 bool en = !B.Over && B.Started && info.Ready && g.S.matter >= info.Cost;
                 if (t.B.enabledSelf != en) t.B.SetEnabled(en);
             }

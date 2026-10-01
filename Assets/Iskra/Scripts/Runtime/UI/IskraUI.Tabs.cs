@@ -291,7 +291,7 @@ namespace Iskra.UI
             var ob = g.OpBuyInfo();
             var row = ui.El("oprow");
             row.Add(ui.I("spark"));
-            row.Add(ui.L(g.S.op.ToString(), "b"));
+            row.Add(ui.L(g.S.op.ToString(), "opn"));
             row.Add(ui.L("ОП"));
             row.Add(ui.L("· купить", "muted"));
             row.Add(ui.Btn(Game.MultLabel(g.M["opBuy"]), "mcyc:opBuy", "qup qcyc"));
@@ -312,7 +312,7 @@ namespace Iskra.UI
                 var lab = ui.El("rlab");
                 lab.style.left = Length.Percent(50 + 40 * Mathf.Cos(an));
                 lab.style.top = Length.Percent(50 + 41 * Mathf.Sin(an));
-                var nm = ui.L(pd.Name);
+                var nm = ui.L(pd.Name, "rn");
                 nm.style.color = Draw.Hex(RadarChart.ParamCol[i]);
                 lab.Add(nm);
                 lab.Add(ui.L(g.S.chr[pd.Id] + (e.Pen > 0 ? $"  −{Game.JsRound(e.Pen * 100)}%" : ""), "rlv" + (e.Pen > 0 ? " pen" : "")));
@@ -320,7 +320,7 @@ namespace Iskra.UI
                 lab.Add(ui.L(Fmt.N(pi.Cost) + " ОП", "muted"));
                 radar.Add(lab);
             }
-            var note = ui.L("Пунктир — общие пороги штрафа: параметр выше 2×, 3×, 4× среднего теряет 10%, 20%, 30% силы.", "qe");
+            var note = ui.L("Пунктир — общие пороги штрафа: параметр выше 2×, 3×, 4× среднего теряет 10%, 20%, 30% силы.", "rnote");
             return new List<VisualElement> { row, radar, note };
         }
 
@@ -351,7 +351,7 @@ namespace Iskra.UI
         List<VisualElement> QuickAbil()
         {
             var ob = g.OsBuyInfo();
-            var side = ui.Q("artifact", g.S.os.ToString(), $"купить: {Fmt.N(ob.Cost)} материи", "wide", "ОС",
+            var side = ui.Q("artifact", g.S.os.ToString(), $"купить: {Fmt.N(ob.Cost)} материи", "qside", "ОС",
                 ui.Btn(Game.MultLabel(g.M["osBuy"]), "mcyc:osBuy", "qup qcyc"),
                 ui.Btn("+" + ob.N, "os", "qup primary grow", ob.N < 1 || g.S.matter < ob.Cost));
             side.Add(ui.L("уровней за раз", "qe"));
@@ -379,7 +379,7 @@ namespace Iskra.UI
                 ic.style.color = col;
                 row.Add(ic);
                 row.Add(ui.El("ab-text",
-                    ui.El("row", ui.L(d.Name, "b"), ui.L($"  ур. {a.lvl}", "muted")),
+                    ui.El("row", ui.L(d.Name, "ab-name"), ui.L($"  ур. {a.lvl}", "muted b")),
                     ui.L($"{g.AbDesc(a)} · {Game.AbCost(a)} мат. за применение, откат {Fmt.X(d.Cd)} с · {Fmt.N(up.Cost)} ОС", "qe")));
                 row.Add(ui.Btn("+" + up.N, "abup:" + i, "qup", up.N < 1 || g.S.os < up.Cost));
                 list.Add(row);
@@ -418,19 +418,19 @@ namespace Iskra.UI
         List<VisualElement> QuickTech()
         {
             var tree = ui.El("ttree");
-            tree.Add(ui.El("row", ui.I("pulsar"), ui.L(" " + g.S.pulsars, "b"), ui.L(" пульсаров")));
+            tree.Add(ui.El("tpbar", ui.I("pulsar"), ui.L(g.S.pulsars.ToString(), "b"), ui.L("  пульсаров")));
             foreach (int lvl in new[] { 1, 2 })
             {
-                tree.Add(ui.L($"Уровень {lvl}", "muted small"));
+                tree.Add(ui.L($"Уровень {lvl}", "tl1"));
                 var row = ui.El("tlvl");
                 foreach (var t in Defs.Tech.Where(x => x.Lvl == lvl))
                 {
                     bool done = g.HasTech(t.Id), open = g.TechOpen(t), can = !t.Soon && !done && open && g.S.pulsars >= t.Cost;
                     string st = done ? "done" : t.Soon ? "soon" : open ? "open" : "locked";
                     var n = ui.El("tnode " + st, ui.I(t.Soon ? "target" : t.Icon), ui.L(t.Name, "b"), ui.L(t.Desc, "qe"));
-                    if (done) n.Add(ui.L("изучено", "good"));
-                    else if (t.Soon) n.Add(ui.L("скоро", "muted"));
-                    else if (!open) n.Add(ui.L("закрыто", "muted"));
+                    if (done) n.Add(ui.L("изучено", "tst"));
+                    else if (t.Soon) n.Add(ui.L("скоро", "tst"));
+                    else if (!open) n.Add(ui.L("закрыто", "tst"));
                     else n.Add(ui.Btn($"Изучить · {t.Cost} пульсар", "tech:" + t.Id, "qup primary", !can));
                     row.Add(n);
                 }

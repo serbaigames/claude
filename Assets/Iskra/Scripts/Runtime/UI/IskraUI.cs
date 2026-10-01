@@ -11,7 +11,7 @@ namespace Iskra.UI
     public sealed partial class IskraUI
     {
         readonly Game g;
-        readonly VisualElement root, app, stage, menu, quick, colA, colB, feed, actbar;
+        readonly VisualElement root, app, quick, colA, colB, feed, actbar;
         readonly DragScroll menuDrag;
         readonly Label sheetTitle;
         readonly HexMap map;
@@ -37,8 +37,6 @@ namespace Iskra.UI
             g = game;
             root = rootElement;
             app = Q("app");
-            stage = Q("stage");
-            menu = Q("menu");
             quick = Q("quick");
             colA = Q("colA");
             colB = Q("colB");
@@ -57,7 +55,7 @@ namespace Iskra.UI
             {
                 g.S.sel = k ?? "";
                 pending = null;
-                tab = "main";
+                if (SheetOpen) tab = "main";
                 RenderPanel(true);
                 app.Focus();
             };
@@ -76,16 +74,15 @@ namespace Iskra.UI
             // Кнопки не забирают фокус: клавиши (пробел, 1–4, Esc) ловит корневой элемент
             root.Query<Button>().ForEach(b => b.focusable = false);
             app.RegisterCallback<KeyDownEvent>(OnKey, TrickleDown.TrickleDown);
-            app.RegisterCallback<GeometryChangedEvent>(_ => Layout());
 
             // Пока палец/мышь на меню, оно не перестраивается — иначе нажатие может «потеряться»
-            menu.RegisterCallback<PointerDownEvent>(_ => touching = true, TrickleDown.TrickleDown);
+            Q("sheetBox").RegisterCallback<PointerDownEvent>(_ => touching = true, TrickleDown.TrickleDown);
             root.RegisterCallback<PointerUpEvent>(_ =>
             {
                 if (touching) { touching = false; busyUntil = now + 0.4; }
                 app.Focus();
             }, TrickleDown.TrickleDown);
-            menu.RegisterCallback<WheelEvent>(_ => busyUntil = now + 0.5, TrickleDown.TrickleDown);
+            Q("sheetBox").RegisterCallback<WheelEvent>(_ => busyUntil = now + 0.5, TrickleDown.TrickleDown);
 
             g.Logged += AddFeed;
             g.DefendRequested += OpenDefend;
@@ -125,24 +122,13 @@ namespace Iskra.UI
             if (g.B != null) g.B.Fx.RemoveAll(e => t - e.T0 > e.Dur + 0.1);
         }
 
-        /* ---------- раскладка: портрет — поле сверху, альбом — слева ---------- */
-        void Layout()
+        /* ---------- безопасная зона: вырез экрана и полоска жестов ---------- */
+        public void SetSafeArea(float top, float bottom, float left, float right)
         {
-            float W = app.layout.width, H = app.layout.height;
-            if (W < 10 || H < 10) return;
-            bool land = W > H * 1.1f;
-            app.EnableInClassList("landscape", land);
-            float topH = Q("top").layout.height;
-            if (land)
-            {
-                stage.style.width = Mathf.Min(H - topH, W * 0.6f);
-                stage.style.height = StyleKeyword.Auto;
-            }
-            else
-            {
-                stage.style.width = StyleKeyword.Auto;
-                stage.style.height = Mathf.Min(W, (H - topH) * 0.58f);
-            }
+            app.style.paddingTop = top;
+            app.style.paddingBottom = bottom;
+            app.style.paddingLeft = left;
+            app.style.paddingRight = right;
         }
 
         /* ---------- верхняя панель ---------- */
@@ -312,6 +298,7 @@ namespace Iskra.UI
             else if (g.B == null)
             {
                 if (k == KeyCode.Space) SetPaused(!g.S.paused);
+                else if (k == KeyCode.Escape && SheetOpen) CloseSheet();
                 else handled = false;
             }
             else if (k == KeyCode.Escape) CloseBattle();
@@ -334,6 +321,7 @@ namespace Iskra.UI
             if (IntroOpen) { g.S.introSeen = true; Q("intro").AddToClassList("hidden"); return true; }
             if (BattleOpen) { CloseBattle(); return true; }
             if (JumpOpen && !jumpDefeat) { CloseJump(); return true; }
+            if (SheetOpen) { CloseSheet(); return true; }
             return false;
         }
 
@@ -353,8 +341,8 @@ namespace Iskra.UI
             string x = a.Length > 1 ? a[1] : null, y = a.Length > 2 ? a[2] : null;
             switch (a[0])
             {
-                case "fight": g.Fight(x); if (g.B != null) OpenBattle(); break;
-                case "cap": g.Capture(x); break;
+                case "fight": g.Fight(x); if (g.B != null) { Q("sheet").AddToClassList("hidden"); OpenBattle(); } break;
+                case "cap": g.Capture(x); Q("sheet").AddToClassList("hidden"); break;
                 case "build": g.Build(x, y); break;
                 case "lower":
                     if (Armed("lower:" + x + ":" + y)) { g.Lower(x, y); pending = null; }
@@ -391,11 +379,21 @@ namespace Iskra.UI
             RenderPanel(true);
         }
 
+        bool SheetOpen => !Q("sheet").ClassListContains("hidden");
+
+        // Раздел открывается во всплывающем окне над полем; строка вкладок остаётся нажимаемой
         void OpenTab(string t)
         {
             tab = t;
             pending = null;
+            Q("sheet").RemoveFromClassList("hidden");
             menuDrag.ToTop();
+            RenderPanel(true);
+        }
+
+        void CloseSheet()
+        {
+            Q("sheet").AddToClassList("hidden");
             RenderPanel(true);
         }
 
@@ -408,13 +406,18 @@ namespace Iskra.UI
         /* ---------- меню ---------- */
         void WireMenu()
         {
-            foreach (var t in new[] { "main", "char", "abil", "tech", "art", "era", "stats" })
+            foreach (var t in new[] { "char", "abil", "tech", "art", "stats" })
             {
                 var b = Q<Button>("tab-" + t);
                 tabs[t] = b;
                 string id = t;
-                b.clicked += () => OpenTab(id);
+                b.clicked += () => { if (SheetOpen && tab == id) CloseSheet(); else OpenTab(id); };
             }
+            var x = Q<Button>("sheetClose");
+            x.Add(new IconElement("close"));
+            x.clicked += CloseSheet;
+            // нажатие на затемнение вокруг окна закрывает его
+            Q("sheet").RegisterCallback<PointerDownEvent>(e => { if (e.target == Q("sheet")) CloseSheet(); });
         }
 
         bool MenuBusy => touching || menuDrag.Dragging || now < busyUntil;
@@ -434,9 +437,11 @@ namespace Iskra.UI
 
         public void RenderPanel(bool force)
         {
-            foreach (var kv in tabs) kv.Value.EnableInClassList("on", kv.Key == tab);
+            bool open = SheetOpen;
+            foreach (var kv in tabs) kv.Value.EnableInClassList("on", open && kv.Key == tab);
             SetText(sheetTitle, SheetTitle());
             RenderActbar(force);
+            if (!open) { lastQuick = lastCols = null; previews.Clear(); return; }
             if (!force && MenuBusy) return;
 
             ui.Reset();

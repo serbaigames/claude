@@ -52,9 +52,12 @@ namespace Iskra.UI
         // Кнопка с действием: «build:3,-1:mine» и т. п., разбирается в IskraUI.OnAct
         public Button Btn(string text, string action, string cls = "btn", bool disabled = false, params VisualElement[] kids)
         {
-            var b = new Button(() => act(action)) { text = text ?? "", focusable = false };
+            var b = new Button(() => act(action)) { focusable = false };
             Cls(b, cls);
             foreach (var k in kids) if (k != null) b.Add(k);
+            // текст рядом с иконкой — отдельной меткой, иначе текст кнопки рисуется поверх иконки
+            if (kids.Length > 0 && !string.IsNullOrEmpty(text)) b.Add(new Label(text));
+            else b.text = text ?? "";
             b.SetEnabled(!disabled);
             Sig.Append("(b:").Append(action).Append('|').Append(text).Append('|').Append(cls).Append(disabled ? "-" : "+").Append(')');
             return b;

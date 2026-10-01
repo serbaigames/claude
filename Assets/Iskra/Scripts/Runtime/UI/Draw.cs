@@ -38,6 +38,7 @@ namespace Iskra.UI
             if (r <= 0.05f || col.a <= 0.003f) return;
             p.fillColor = col;
             p.BeginPath();
+            p.MoveTo(new Vector2(c.x + r, c.y));   // без MoveTo дуга тянет линию из (0,0)
             p.Arc(c, r, Angle.Degrees(0), Angle.Degrees(360));
             p.ClosePath();
             p.Fill();
@@ -49,6 +50,7 @@ namespace Iskra.UI
             p.strokeColor = col;
             p.lineWidth = w;
             p.BeginPath();
+            p.MoveTo(new Vector2(c.x + r, c.y));   // без MoveTo дуга тянет линию из (0,0)
             p.Arc(c, r, Angle.Degrees(0), Angle.Degrees(360));
             p.ClosePath();
             p.Stroke();
@@ -62,6 +64,7 @@ namespace Iskra.UI
             p.lineWidth = w;
             p.lineCap = cap;
             p.BeginPath();
+            p.MoveTo(Polar(c, a0, r));
             p.Arc(c, r, Angle.Radians(a0), Angle.Radians(a1));
             p.Stroke();
             p.lineCap = LineCap.Butt;
@@ -81,6 +84,7 @@ namespace Iskra.UI
             {
                 float a = offset + i * step;
                 p.BeginPath();
+                p.MoveTo(Polar(c, a, r));
                 p.Arc(c, r, Angle.Radians(a), Angle.Radians(a + len));
                 p.Stroke();
             }

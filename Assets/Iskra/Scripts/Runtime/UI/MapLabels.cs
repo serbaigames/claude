@@ -69,11 +69,6 @@ namespace Iskra.UI
                 if (s.Last.Pos != it.Pos) { lb.style.left = it.Pos.x; lb.style.top = it.Pos.y; }
                 if (s.Last.Size != it.Size) lb.style.fontSize = it.Size;
                 if (s.Last.Col != it.Col) lb.style.color = it.Col;
-                if (s.Last.Outline != it.Outline)
-                {
-                    lb.style.unityTextOutlineColor = it.Outline;
-                    lb.style.unityTextOutlineWidth = it.Outline.a > 0 ? 1.2f : 0;
-                }
                 if (s.Last.Pill != it.Pill)
                 {
                     lb.style.backgroundColor = it.Pill;
