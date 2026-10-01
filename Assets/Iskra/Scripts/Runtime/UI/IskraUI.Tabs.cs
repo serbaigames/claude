@@ -311,26 +311,31 @@ namespace Iskra.UI
                 float wd = Mathf.Round(radar.layout.width);
                 if (wd > 10 && Mathf.Abs(radar.layout.height - wd) > 1) radar.style.height = wd;
             });
+            var pbtns = new List<VisualElement>();
             for (int i = 0; i < Defs.Params.Length; i++)
             {
                 var pd = Defs.Params[i];
                 float an = (-90 + 60 * i) * Mathf.Deg2Rad;
                 var e = g.EffOf(pd.Id);
                 var pi = g.ParInfo(pd.Id);
+                var col = Draw.Hex(RadarChart.ParamCol[i]);
+                // у круга — имя и уровень
                 var lab = ui.El("rlab");
-                lab.style.left = Length.Percent(50 + 40 * Mathf.Cos(an));
-                lab.style.top = Length.Percent(50 + 41 * Mathf.Sin(an));
+                lab.style.left = Length.Percent(50 + 44 * Mathf.Cos(an));
+                lab.style.top = Length.Percent(50 + 44 * Mathf.Sin(an));
                 var nm = ui.L(pd.Name, "rn");
-                nm.style.color = Draw.Hex(RadarChart.ParamCol[i]);
+                nm.style.color = col;
                 lab.Add(nm);
-                var lv = ui.El("rlvrow", ui.L(g.S.chr[pd.Id].ToString(), "rlv"), e.Pen > 0 ? ui.L($"−{Game.JsRound(e.Pen * 100)}%", "rpen") : null);
-                lab.Add(lv);
-                lab.Add(ui.Btn("+" + pi.N, "par:" + pd.Id, "qup", pi.N < 1 || g.S.op < pi.Cost));
-                lab.Add(ui.L(Fmt.N(pi.Cost) + " ОП", "rcost"));
+                lab.Add(ui.El("rlvrow", ui.L(g.S.chr[pd.Id].ToString(), "rlv"), e.Pen > 0 ? ui.L($"−{Game.JsRound(e.Pen * 100)}%", "rpen") : null));
                 radar.Add(lab);
+                // под кругом — кнопка прокачки
+                var pn = ui.L($"{pd.Name} +{pi.N}", "pn");
+                pn.style.color = col;
+                pbtns.Add(ui.Btn(null, "par:" + pd.Id, "qup parbtn", pi.N < 1 || g.S.op < pi.Cost, pn, ui.L(Fmt.N(pi.Cost) + " ОП", "pc")));
             }
+            var pgrid = ui.Grid(3, pbtns, "pargrid");
             var note = ui.El("rnote", ui.El("dash"), ui.L("общие пороги штрафа: параметр выше 2×, 3×, 4× среднего теряет 10%, 20%, 30% силы", "rnote-t"));
-            return new List<VisualElement> { row, radar, note };
+            return new List<VisualElement> { row, radar, pgrid, note };
         }
 
         void ColsChar(List<VisualElement> a, List<VisualElement> b)
@@ -361,10 +366,7 @@ namespace Iskra.UI
             var side = ui.Q("artifact", g.S.os.ToString(), $"купить: {Fmt.N(ob.Cost)} материи", "qside", "ОС",
                 ui.Btn(Game.MultLabel(g.M["osBuy"]), "mcyc:osBuy", "qup qcyc"),
                 ui.Btn("+" + ob.N, "os", "qup primary grow", ob.N < 1 || g.S.matter < ob.Cost));
-            side.Add(ui.L("уровней за раз", "qe"));
-            var r2 = ui.El("qb");
-            r2.Add(ui.Btn(Game.MultLabel(g.M["ab"]), "mcyc:ab", "qup qcyc"));
-            side.Add(r2);
+            side.Add(ui.El("qb qlv", ui.L("уровней за раз", "qe"), ui.Btn(Game.MultLabel(g.M["ab"]), "mcyc:ab", "qcyc")));
             var rows = ui.El("qrows");
             var list = new List<VisualElement> { ui.El("abwrap", side, rows) };
             for (int i = 0; i < g.S.abilities.Length; i++)

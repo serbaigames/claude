@@ -11,7 +11,7 @@ namespace Iskra.UI
     {
         public static readonly string[] ParamCol = { "#ef6b90", "#5fb2e6", "#ff8a3d", "#b98bff", "#7be0a8", "#f2b441" };
         // Доля короткой стороны элемента под радиус круга: подписи параметров стоят снаружи
-        public const float RadiusK = 0.22f;
+        public const float RadiusK = 0.29f;
 
         readonly Game g;
         readonly Label[] ringLabels = new Label[3];

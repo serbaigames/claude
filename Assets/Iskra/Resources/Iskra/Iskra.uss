@@ -1974,3 +1974,71 @@ Label {
 .narrow .abwrap > .qside {
     width: auto;
 }
+
+/* блоки окна идут колонкой: ни растягиваться по высоте, ни сжиматься им нельзя */
+.quick > * {
+    flex-basis: auto;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.narrow .abwrap > .qside,
+.narrow .abwrap > .qrows {
+    flex-basis: auto;
+    flex-shrink: 0;
+}
+
+.oprow {
+    flex-basis: auto;
+}
+
+/* диаграмма крупнее; у круга только имя и уровень, кнопки — под ней */
+.radar {
+    height: 330px;
+    max-width: 440px;
+    margin: 0;
+}
+
+.rlab {
+    width: 22%;
+}
+
+.pargrid {
+    margin-top: 2px;
+}
+
+.parbtn {
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 2px;
+    padding: 4px 4px;
+    height: auto;
+    min-height: 44px;
+    border-radius: 12px;
+}
+
+.parbtn > .pn {
+    font-size: 12px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.parbtn > .pc {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.parbtn:disabled {
+    opacity: 0.5;
+}
+
+.qside .qb.qlv {
+    justify-content: space-between;
+}
+
+.qside .qb.qlv > .qcyc {
+    flex-grow: 0;
+    flex-basis: auto;
+    margin-right: 0;
+}
