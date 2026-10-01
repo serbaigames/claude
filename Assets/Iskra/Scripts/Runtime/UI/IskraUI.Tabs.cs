@@ -358,7 +358,8 @@ namespace Iskra.UI
             var r2 = ui.El("qb");
             r2.Add(ui.Btn(Game.MultLabel(g.M["ab"]), "mcyc:ab", "qup qcyc"));
             side.Add(r2);
-            var list = new List<VisualElement> { side };
+            var rows = ui.El("qrows");
+            var list = new List<VisualElement> { side, rows };
             for (int i = 0; i < g.S.abilities.Length; i++)
             {
                 var a = g.S.abilities[i];
@@ -367,7 +368,7 @@ namespace Iskra.UI
                     var e = ui.El("ab-row empty");
                     e.Add(ui.I("target"));
                     e.Add(ui.El("ab-text", ui.L($"Ячейка {i + 1} пуста", "muted"), ui.L("способность выпадет в бою", "qe")));
-                    list.Add(e);
+                    rows.Add(e);
                     continue;
                 }
                 var d = Defs.Abilities[a.id];
@@ -380,9 +381,9 @@ namespace Iskra.UI
                 row.Add(ic);
                 row.Add(ui.El("ab-text",
                     ui.El("row", ui.L(d.Name, "ab-name"), ui.L($"  ур. {a.lvl}", "muted b")),
-                    ui.L($"{g.AbDesc(a)} · {Game.AbCost(a)} мат. за применение, откат {Fmt.X(d.Cd)} с · {Fmt.N(up.Cost)} ОС", "qe")));
+                    ui.L($"{g.AbDesc(a)} · {Fmt.N(up.Cost)} ОС", "qe")));
                 row.Add(ui.Btn("+" + up.N, "abup:" + i, "qup", up.N < 1 || g.S.os < up.Cost));
-                list.Add(row);
+                rows.Add(row);
             }
             return list;
         }
@@ -525,7 +526,7 @@ namespace Iskra.UI
                 var e = Defs.Eras[i];
                 bool cur = g.S.era.i == i;
                 to.Add(ui.El("eli " + e.Kind + (cur ? " now" : ""), ui.I(e.Icon), ui.El("eli-text",
-                    ui.El("row", ui.L(e.Name, "b"), cur ? ui.L("  сейчас", "good small") : null), ui.L(e.Desc, "qe"))));
+                    ui.El("row", ui.L(e.Name, "b"), cur ? ui.L("сейчас", "nowtag small") : null), ui.L(e.Desc, "qe"))));
             }
         }
 

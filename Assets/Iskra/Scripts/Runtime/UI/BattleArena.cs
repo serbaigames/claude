@@ -171,7 +171,7 @@ namespace Iskra.UI
                         p.strokeColor = Draw.A(col, 1 - pr);
                         p.lineWidth = 6 * (1 - pr) + 1;
                         p.lineCap = LineCap.Round;
-                        p.BeginPath(); p.MoveTo(A); p.QuadraticCurveTo(new Vector2((A.x + Z.x) / 2, A.y - R * 0.6f), Z); p.Stroke();
+                        p.BeginPath(); p.MoveTo(A); Draw.QuadTo(p, A, new Vector2((A.x + Z.x) / 2, A.y - R * 0.6f), Z, 16); p.Stroke();
                         p.lineCap = LineCap.Butt;
                         break;
                     }

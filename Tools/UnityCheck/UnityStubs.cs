@@ -35,7 +35,7 @@ namespace UnityEngine
     }
     public struct Rect
     {
-        public float width, height, xMin, xMax, yMin, yMax;
+        public float x, y, width, height, xMin, xMax, yMin, yMax;
         public Vector2 center => default;
     }
     public struct Color

@@ -64,6 +64,13 @@ namespace Iskra.UI
                 app.Focus();
             };
 
+            // колонки окна рядом или друг под другом — от этого зависит, какая черта их разделяет
+            Q("cols").RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                bool split = colB.layout.y < colA.layout.y + 1;
+                Q("cols").EnableInClassList("split", split);
+                Q("cols").EnableInClassList("stacked", !split);
+            });
             BuildTop();
             WireStage();
             WireMenu();

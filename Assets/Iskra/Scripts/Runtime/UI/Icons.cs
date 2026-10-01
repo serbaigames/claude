@@ -87,8 +87,14 @@ namespace Iskra.UI
         {
             P.fillColor = Col(white, a);
             P.BeginPath();
-            P.MoveTo(V(start[0], start[1]));
-            foreach (var s in segs) P.BezierCurveTo(V(s[0], s[1]), V(s[2], s[3]), V(s[4], s[5]));
+            var cur = V(start[0], start[1]);
+            P.MoveTo(cur);
+            foreach (var s in segs)
+            {
+                var end = V(s[4], s[5]);
+                Draw.CubicTo(P, cur, V(s[0], s[1]), V(s[2], s[3]), end);
+                cur = end;
+            }
             P.ClosePath();
             P.Fill();
         }
@@ -144,7 +150,7 @@ namespace Iskra.UI
             {
                 g.Dot(4.5f, cy: -3.5f);
                 g.P.fillColor = Draw.A(g.Cur, g.Cur.a * .7f);
-                g.P.BeginPath(); g.P.MoveTo(g.V(-9, 10)); g.P.QuadraticCurveTo(g.V(-8, 2), g.V(0, 2)); g.P.QuadraticCurveTo(g.V(8, 2), g.V(9, 10)); g.P.ClosePath(); g.P.Fill();
+                g.P.BeginPath(); g.P.MoveTo(g.V(-9, 10)); Draw.QuadTo(g.P, g.V(-9, 10), g.V(-8, 2), g.V(0, 2)); Draw.QuadTo(g.P, g.V(0, 2), g.V(8, 2), g.V(9, 10)); g.P.ClosePath(); g.P.Fill();
                 g.Dot(1.2f, true, .8f, -1.5f, -5);
             },
             ["rebirth"] = g => { g.Arc(9, -30, 19, 2, 1, true); g.Fill(g.Pts(9.5f, -9, 10, -2, 3.5f, -4)); g.Star(4, 4, 1.2f, white: true); },
@@ -185,7 +191,7 @@ namespace Iskra.UI
             ["fang"] = g =>
             {
                 g.P.fillColor = g.Cur;
-                g.P.BeginPath(); g.P.MoveTo(g.V(-8, -7)); g.P.QuadraticCurveTo(g.V(0, -3), g.V(8, -7));
+                g.P.BeginPath(); g.P.MoveTo(g.V(-8, -7)); Draw.QuadTo(g.P, g.V(-8, -7), g.V(0, -3), g.V(8, -7));
                 foreach (var v in new[] { g.V(5, 2), g.V(3, -3), g.V(0, 7), g.V(-3, -3), g.V(-5, 2) }) g.P.LineTo(v);
                 g.P.ClosePath(); g.P.Fill();
                 g.Dot(1.8f, cy: 9);
@@ -196,7 +202,7 @@ namespace Iskra.UI
             {
                 g.Ring(9.5f, 1.2f, a: .6f);
                 g.Arc(6, -90, 180, 1.8f);
-                g.P.BeginPath(); g.P.MoveTo(g.V(-6, 0)); g.P.QuadraticCurveTo(g.V(-5.5f, -4.5f), g.V(0, -3.5f)); g.P.Stroke();
+                g.P.BeginPath(); g.P.MoveTo(g.V(-6, 0)); Draw.QuadTo(g.P, g.V(-6, 0), g.V(-5.5f, -4.5f), g.V(0, -3.5f)); g.P.Stroke();
                 g.Dot(1.7f, true);
             },
             ["tri"] = g => { g.Ngon(3, 10.5f, a: .4f); g.NgonStroke(3, 10.5f, 1.6f); g.Dot(2.2f, true, 1, 0, 1.5f); },

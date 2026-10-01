@@ -110,10 +110,30 @@ namespace Iskra.UI
             p.fillColor = col;
             p.BeginPath();
             p.MoveTo(x0 + n);
-            p.QuadraticCurveTo(Polar(c, a + 0.08f, r0 + len * 0.6f), x1);
-            p.QuadraticCurveTo(Polar(c, a - 0.08f, r0 + len * 0.6f), x0 - n);
+            QuadTo(p, x0 + n, Polar(c, a + 0.08f, r0 + len * 0.6f), x1, 5);
+            QuadTo(p, x1, Polar(c, a - 0.08f, r0 + len * 0.6f), x0 - n, 5);
             p.ClosePath();
             p.Fill();
+        }
+
+        // Кривые раскладываем в ломаную сами: встроенные QuadraticCurveTo/BezierCurveTo в Unity
+        // при заливке тянут треугольники из угла элемента (0,0) — отсюда были «лучи» через всё поле
+        public static void QuadTo(Painter2D p, Vector2 from, Vector2 ctrl, Vector2 to, int n = 8)
+        {
+            for (int i = 1; i <= n; i++)
+            {
+                float t = i / (float)n, u = 1 - t;
+                p.LineTo(u * u * from + 2 * u * t * ctrl + t * t * to);
+            }
+        }
+
+        public static void CubicTo(Painter2D p, Vector2 from, Vector2 c1, Vector2 c2, Vector2 to, int n = 10)
+        {
+            for (int i = 1; i <= n; i++)
+            {
+                float t = i / (float)n, u = 1 - t;
+                p.LineTo(u * u * u * from + 3 * u * u * t * c1 + 3 * u * t * t * c2 + t * t * t * to);
+            }
         }
 
         public static void Line(Painter2D p, Vector2 a, Vector2 b, float w, Color col, LineCap cap = LineCap.Round)
