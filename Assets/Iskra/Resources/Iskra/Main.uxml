@@ -1,0 +1,121 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Style src="Iskra.uss" />
+  <ui:VisualElement name="app" class="app" focusable="true">
+    <ui:VisualElement name="top" class="top">
+      <ui:VisualElement name="res" class="res" />
+    </ui:VisualElement>
+    <ui:VisualElement name="main" class="main">
+      <ui:VisualElement name="stage" class="stage">
+        <ui:VisualElement name="mapHost" class="map-host" />
+        <ui:VisualElement name="feed" class="feed" picking-mode="Ignore" />
+        <ui:VisualElement name="timeCtl" class="timectl">
+          <ui:Button name="tPlay" class="tbtn tplay" />
+          <ui:Button name="sp1" text="×1" class="tbtn sp" />
+          <ui:Button name="sp2" text="×2" class="tbtn sp" />
+          <ui:Button name="sp3" text="×3" class="tbtn sp" />
+        </ui:VisualElement>
+          <ui:Button name="jumpBtn" class="erabtn jumpbtn">
+            <ui:VisualElement name="jumpRing" class="eraring" />
+            <ui:VisualElement class="eratx">
+              <ui:Label text="Прыжок" class="b eraname" />
+              <ui:Label name="jumpGain" class="erasub" />
+              <ui:Label name="wTrend" class="wtrend" />
+            </ui:VisualElement>
+          </ui:Button>
+          <ui:Button name="eraBtn" class="erabtn erapos">
+            <ui:VisualElement name="eraRing" class="eraring" />
+            <ui:VisualElement class="eratx">
+              <ui:Label name="eraName" class="b eraname" />
+              <ui:Label name="eraDesc" class="erasub" />
+            </ui:VisualElement>
+          </ui:Button>
+        <ui:VisualElement name="zoom" class="zoom">
+          <ui:Button name="zIn" class="zbtn" />
+          <ui:Button name="zOut" class="zbtn" />
+          <ui:Button name="zHome" class="zbtn" />
+        </ui:VisualElement>
+        <ui:VisualElement name="actbar" class="actbar hidden" />
+      </ui:VisualElement>
+      <ui:VisualElement name="menu" class="menu">
+        <ui:VisualElement name="tabs" class="tabs">
+          <ui:Button name="tab-main" text="Клетка" class="tab" />
+          <ui:Button name="tab-char" text="Персонаж" class="tab" />
+          <ui:Button name="tab-abil" text="Способности" class="tab" />
+          <ui:Button name="tab-tech" text="Технологии" class="tab tab-tech" />
+          <ui:Button name="tab-art" text="Артефакты" class="tab" />
+          <ui:Button name="tab-era" text="Эры" class="tab" />
+          <ui:Button name="tab-stats" text="Профиль" class="tab" />
+        </ui:VisualElement>
+        <ui:Label name="sheetTitle" class="sheet-title" />
+        <ui:VisualElement name="menuScroll" class="menu-scroll">
+          <ui:VisualElement name="menuContent" class="scroll-content">
+            <ui:VisualElement name="quick" class="quick" />
+            <ui:VisualElement name="cols" class="cols">
+              <ui:VisualElement name="colA" class="col" />
+              <ui:VisualElement name="colB" class="col" />
+            </ui:VisualElement>
+          </ui:VisualElement>
+        </ui:VisualElement>
+      </ui:VisualElement>
+    </ui:VisualElement>
+
+    <ui:VisualElement name="defend" class="overlay hidden">
+      <ui:VisualElement name="defBox" class="box" />
+    </ui:VisualElement>
+
+    <ui:VisualElement name="battle" class="overlay hidden">
+      <ui:VisualElement name="battleBox" class="box battle-box">
+        <ui:VisualElement class="fighters">
+          <ui:VisualElement class="fighter">
+            <ui:Label text="Искра" class="fname b" />
+            <ui:VisualElement class="bar hp"><ui:VisualElement name="bPhp" class="bar-fill" /></ui:VisualElement>
+            <ui:Label name="bPhpT" class="bnum" />
+            <ui:VisualElement class="bar cd"><ui:VisualElement name="bCd" class="bar-fill" /></ui:VisualElement>
+            <ui:VisualElement name="bFx" class="bfx" />
+          </ui:VisualElement>
+          <ui:Label text="против" class="vs" />
+          <ui:VisualElement class="fighter foe">
+            <ui:VisualElement name="bFoeName" class="fname-row" />
+            <ui:VisualElement class="bar hp foe-hp"><ui:VisualElement name="bFhp" class="bar-fill" /></ui:VisualElement>
+            <ui:Label name="bFhpT" class="bnum" />
+            <ui:VisualElement class="bar cd"><ui:VisualElement name="bFcd" class="bar-fill" /></ui:VisualElement>
+            <ui:VisualElement name="bFfx" class="bfx" />
+          </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="arenaHost" class="arena-host">
+          <ui:VisualElement name="bStartRow" class="bstart">
+            <ui:VisualElement name="bFc" class="fc" />
+            <ui:Button name="bStart" text="Начать бой" class="actbtn" />
+          </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label name="bStatus" class="bstatus" />
+        <ui:VisualElement name="bActions" class="bactions" />
+        <ui:Button name="bLogToggle" text="Ход боя" class="lnk" />
+        <ui:VisualElement name="bLogScroll" class="blog hidden">
+          <ui:Label name="bLog" class="blog-text" />
+        </ui:VisualElement>
+        <ui:VisualElement class="bfoot">
+          <ui:Label name="bMatter" class="muted" />
+          <ui:Button name="bFlee" text="Отступить" class="btn warn" />
+        </ui:VisualElement>
+      </ui:VisualElement>
+    </ui:VisualElement>
+
+    <ui:VisualElement name="jump" class="overlay hidden">
+      <ui:VisualElement name="jumpBox" class="box scroll-box">
+        <ui:VisualElement name="jumpContent" class="scroll-content" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+
+    <ui:VisualElement name="intro" class="overlay hidden">
+      <ui:VisualElement class="box">
+        <ui:Label text="Искра во тьме" class="h2" />
+        <ui:Label class="p" text="Вы — искра в мире шестигранников. Видно только одну клетку вокруг ваших владений, дальше — тьма." />
+        <ui:Label class="p" text="Нажмите на фиолетовую клетку рядом с искрой и атакуйте живущую в ней сущность. Пока идёт бой, мир стоит на паузе. После победы клетку можно захватить за материю, равную её мощи." />
+        <ui:Label class="p" text="Клетки тьмы растут. Если мощь соседа станет выше защиты вашей клетки, тьма заберёт её вместе со строениями. Искру потерять нельзя." />
+        <ui:Label class="p" text="Стройте шахты и заводы, укрепляйте защиту, прокачивайте персонажа и собирайте способности. Когда станет тесно — совершите прыжок искры (кнопка справа вверху) и получите бонус." />
+        <ui:Button name="introGo" text="Начать" class="btn primary center" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

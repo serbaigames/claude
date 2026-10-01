@@ -1,0 +1,16 @@
+{
+    "name": "Iskra.Runtime",
+    "rootNamespace": "Iskra",
+    "references": [
+        "Iskra.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

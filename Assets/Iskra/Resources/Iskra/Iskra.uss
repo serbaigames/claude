@@ -1,0 +1,1469 @@
+:root {
+    --bg: #141026;
+    --panel: #1c1733;
+    --ink: #ece6fa;
+    --muted: #a79fc2;
+    --line: #342b55;
+    --gold: #f2b441;
+    --gold-bg: #3b2e15;
+    --violet: #a88be0;
+    --low: #a49dbd;
+    --rare: #5fb2e6;
+    --epic: #ef6b90;
+    --legend: #ff8a3d;
+    --ok: #5cc28d;
+    --bad: #ef6b90;
+    --warn: #f2b441;
+    --btn: #2a2347;
+    --btn-h: #352c5a;
+}
+
+/* ---------- основа ---------- */
+.app {
+    flex-grow: 1;
+    background-color: var(--bg);
+    color: var(--ink);
+    font-size: 15px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Regular.ttf");
+}
+
+.b {
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.i {
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Italic.ttf");
+}
+
+.hidden {
+    display: none;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.small {
+    font-size: 12.5px;
+}
+
+.good {
+    color: var(--ok);
+}
+
+.bad {
+    color: var(--bad);
+}
+
+.warn {
+    color: var(--warn);
+}
+
+.ok {
+    color: #9fe3b8;
+}
+
+.icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.h2 {
+    -unity-font: url("project://database/Assets/Iskra/Fonts/Philosopher-Bold.ttf");
+    font-size: 19px;
+    color: var(--gold);
+    margin: 4px 0 6px 0;
+    white-space: normal;
+}
+
+.h3 {
+    -unity-font: url("project://database/Assets/Iskra/Fonts/Philosopher-Bold.ttf");
+    font-size: 16px;
+    color: #f6dfa6;
+    margin: 10px 0 4px 0;
+}
+
+.p {
+    white-space: normal;
+    margin: 4px 0;
+}
+
+.note {
+    white-space: normal;
+    margin: 6px 0;
+    padding: 6px 10px;
+    border-left-width: 3px;
+    border-color: var(--gold);
+    background-color: rgba(242, 180, 65, 0.08);
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+.note.bad {
+    border-color: var(--bad);
+    background-color: rgba(239, 107, 144, 0.1);
+    color: var(--ink);
+}
+
+/* ---------- кнопки ---------- */
+Button {
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    color: var(--ink);
+    -unity-text-align: middle-center;
+}
+
+.btn {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 38px;
+    padding: 8px 12px;
+    margin: 3px 0;
+    border-width: 1px;
+    border-color: var(--line);
+    border-radius: 8px;
+    background-color: var(--btn);
+    white-space: normal;
+    -unity-text-align: middle-left;
+    transition-duration: 0.12s;
+}
+
+.btn:hover {
+    background-color: var(--btn-h);
+}
+
+.btn:disabled {
+    opacity: 0.45;
+}
+
+.btn.primary {
+    background-color: var(--gold-bg);
+    border-color: var(--gold);
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.btn.danger {
+    background-color: var(--bad);
+    border-color: var(--bad);
+    color: #ffffff;
+}
+
+.btn.warn {
+    border-color: var(--bad);
+}
+
+.btn.center {
+    justify-content: center;
+    -unity-text-align: middle-center;
+    align-self: center;
+    min-width: 160px;
+    margin-top: 12px;
+}
+
+.btn-col {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.btn-sub {
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: normal;
+}
+
+.lnk {
+    align-self: flex-start;
+    color: var(--violet);
+    padding: 4px 0;
+    margin: 4px 0 0 0;
+    -unity-text-align: middle-left;
+}
+
+.lnk:hover {
+    color: var(--ink);
+}
+
+.qup {
+    height: 28px;
+    min-width: 38px;
+    padding: 0 8px;
+    border-width: 1px;
+    border-color: var(--line);
+    border-radius: 7px;
+    background-color: var(--btn);
+    font-size: 12.5px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+    flex-shrink: 0;
+    transition-duration: 0.12s;
+}
+
+.qup:hover {
+    background-color: var(--btn-h);
+}
+
+.qup:disabled {
+    opacity: 0.45;
+}
+
+.qup.primary {
+    background-color: var(--gold-bg);
+    border-color: var(--gold);
+}
+
+.qup.danger {
+    background-color: var(--bad);
+    border-color: var(--bad);
+    color: #ffffff;
+}
+
+.qup.grow {
+    flex-grow: 1;
+}
+
+.qcyc {
+    color: var(--gold);
+    min-width: 46px;
+}
+
+.qdn {
+    height: 28px;
+    min-width: 30px;
+    margin-left: 4px;
+    border-width: 1px;
+    border-color: var(--line);
+    border-radius: 7px;
+    background-color: var(--btn);
+    color: var(--bad);
+    font-size: 16px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.qdn.armed {
+    background-color: var(--bad);
+    color: #ffffff;
+}
+
+/* ---------- верхняя панель ---------- */
+.top {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    background-color: var(--panel);
+    border-bottom-width: 1px;
+    border-color: var(--line);
+}
+
+.res {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.res-item {
+    margin: 0 10px;
+}
+
+.res-item > .k {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.res-item > .v {
+    font-size: 18px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.res-item > .v.inc {
+    color: var(--ok);
+}
+
+.res-item > .v.paused {
+    color: var(--muted);
+}
+
+/* ---------- поле ---------- */
+.main {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.app.landscape > .main {
+    flex-direction: row;
+}
+
+.stage {
+    flex-shrink: 0;
+    overflow: hidden;
+    background-color: #120e22;
+}
+
+.map-host {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.hexmap {
+    flex-grow: 1;
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.hexmap-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.map-labels {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.map-label {
+    position: absolute;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    padding: 0;
+    margin: 0;
+}
+
+.map-label.map-pill {
+    padding: 1px 7px;
+    border-radius: 9px;
+}
+
+.feed {
+    position: absolute;
+    left: 10px;
+    bottom: 56px;
+    max-width: 420px;
+    right: 64px;
+    flex-direction: column-reverse;
+}
+
+.feed-item {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background-color: rgba(20, 16, 38, 0.88);
+    border-left-width: 3px;
+    border-color: #9a93b3;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    font-size: 13px;
+    white-space: normal;
+    color: #e8e1f7;
+    opacity: 1;
+    transition-duration: 0.6s;
+}
+
+.feed-item.good {
+    border-color: var(--gold);
+}
+
+.feed-item.bad {
+    border-color: var(--bad);
+}
+
+.feed-item.info {
+    border-color: var(--rare);
+}
+
+.feed-item.fade {
+    opacity: 0;
+}
+
+.timectl {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    flex-direction: row;
+    padding: 3px;
+    border-radius: 18px;
+    background-color: rgba(28, 23, 51, 0.85);
+    border-width: 1px;
+    border-color: rgba(242, 180, 65, 0.35);
+}
+
+.tbtn {
+    width: 34px;
+    height: 30px;
+    border-radius: 15px;
+    color: #f2d9a0;
+    font-size: 13px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.tbtn:hover {
+    background-color: rgba(52, 43, 85, 0.95);
+}
+
+.tbtn.on {
+    background-color: var(--gold-bg);
+    color: var(--gold);
+}
+
+.tplay.paused {
+    background-color: var(--bad);
+    color: #ffffff;
+}
+
+.tbtn > .icon {
+    width: 14px;
+    height: 14px;
+    align-self: center;
+}
+
+.erabtn {
+    position: absolute;
+    top: 10px;
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 10px 4px 4px;
+    max-width: 46%;
+    border-radius: 22px;
+    border-width: 1px;
+    border-color: rgba(242, 180, 65, 0.35);
+    background-color: rgba(28, 23, 51, 0.88);
+    -unity-text-align: middle-left;
+}
+
+.erabtn:hover {
+    background-color: rgba(52, 43, 85, 0.95);
+}
+
+.erabtn.good {
+    border-color: var(--ok);
+}
+
+.erabtn.bad {
+    border-color: var(--bad);
+}
+
+.erabtn.mixed {
+    border-color: var(--gold);
+}
+
+.erapos {
+    left: 10px;
+}
+
+.jumpbtn {
+    right: 10px;
+}
+
+.jumpbtn.locked {
+    opacity: 0.7;
+}
+
+.eraring {
+    width: 36px;
+    height: 36px;
+    margin-right: 8px;
+    color: var(--gold);
+    flex-shrink: 0;
+}
+
+.eratx {
+    flex-shrink: 1;
+}
+
+.eraname {
+    font-size: 13.5px;
+    -unity-text-align: middle-left;
+}
+
+.erasub {
+    font-size: 11.5px;
+    color: var(--muted);
+    white-space: normal;
+    -unity-text-align: middle-left;
+}
+
+.wtrend {
+    font-size: 11.5px;
+    -unity-text-align: middle-left;
+}
+
+.wtrend.grow {
+    color: var(--ok);
+}
+
+.wtrend.stall {
+    color: var(--gold);
+}
+
+.wtrend.warn {
+    color: #ff9a5c;
+}
+
+.wtrend.dark {
+    color: var(--bad);
+}
+
+.zoom {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+}
+
+.zbtn {
+    width: 38px;
+    height: 38px;
+    margin-top: 6px;
+    border-radius: 19px;
+    border-width: 1px;
+    border-color: rgba(242, 180, 65, 0.35);
+    background-color: rgba(28, 23, 51, 0.85);
+    color: #f2d9a0;
+}
+
+.zbtn:hover {
+    background-color: rgba(52, 43, 85, 0.95);
+}
+
+.zbtn > .icon {
+    align-self: center;
+}
+
+.actbar {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 64px;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.actbtn {
+    padding: 8px 16px;
+    margin-right: 6px;
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: var(--gold);
+    background-color: var(--gold-bg);
+    color: #ffe2a0;
+    font-size: 15px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+    flex-direction: row;
+    align-items: center;
+}
+
+.actbtn:hover {
+    background-color: #4a3a1b;
+}
+
+.actbtn:disabled {
+    opacity: 0.5;
+}
+
+.actbtn > .icon {
+    margin-right: 6px;
+    color: #ffe2a0;
+}
+
+.actmini {
+    min-width: 46px;
+    padding: 4px 8px;
+    margin-left: 6px;
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: var(--line);
+    background-color: rgba(28, 23, 51, 0.92);
+    align-items: center;
+    justify-content: center;
+}
+
+.actmini:hover {
+    background-color: var(--btn-h);
+}
+
+.actmini:disabled {
+    opacity: 0.45;
+}
+
+.actmini > .icon {
+    color: var(--gold);
+}
+
+.actmini > Label {
+    font-size: 11px;
+}
+
+.fc {
+    padding: 4px 12px;
+    border-radius: 10px;
+    background-color: rgba(20, 16, 38, 0.92);
+    border-width: 1px;
+    border-color: var(--line);
+    justify-content: center;
+    flex-shrink: 1;
+}
+
+.fc > Label {
+    white-space: normal;
+}
+
+.fc-main {
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+    font-size: 14px;
+}
+
+.fc-sub {
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.fc .good {
+    color: var(--ok);
+}
+
+.fc .ok {
+    color: #9fe3b8;
+}
+
+.fc .warn {
+    color: var(--warn);
+}
+
+.fc .bad {
+    color: var(--bad);
+}
+
+/* ---------- меню ---------- */
+.menu {
+    flex-grow: 1;
+    flex-shrink: 1;
+    background-color: var(--panel);
+    border-top-width: 1px;
+    border-color: var(--line);
+}
+
+.app.landscape .menu {
+    border-top-width: 0;
+    border-left-width: 1px;
+}
+
+.tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 6px 10px;
+    flex-shrink: 0;
+}
+
+.tab {
+    padding: 6px 11px;
+    margin: 2px;
+    border-radius: 16px;
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0);
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.tab:hover {
+    color: var(--ink);
+    background-color: var(--btn);
+}
+
+.tab.on {
+    color: var(--ink);
+    border-color: var(--gold);
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.tab-tech {
+    color: #9fe3ff;
+}
+
+.sheet-title {
+    -unity-font: url("project://database/Assets/Iskra/Fonts/Philosopher-Bold.ttf");
+    font-size: 17px;
+    color: var(--gold);
+    padding: 2px 16px 4px 16px;
+}
+
+.menu-scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.scroll-content {
+    flex-shrink: 0;
+}
+
+.scroll-box {
+    overflow: hidden;
+}
+
+.quick {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 4px 8px 8px 8px;
+    border-bottom-width: 1px;
+    border-color: var(--line);
+}
+
+.cols {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 4px 8px 16px 8px;
+}
+
+.col {
+    flex-grow: 1;
+    flex-basis: 260px;
+    min-width: 240px;
+    padding: 4px 8px;
+}
+
+/* карточки быстрого меню */
+.qg {
+    flex-grow: 1;
+    flex-basis: 110px;
+    max-width: 240px;
+    min-width: 92px;
+    margin: 3px;
+    padding: 5px 7px;
+    border-width: 1px;
+    border-color: var(--line);
+    border-radius: 10px;
+    background-color: var(--bg);
+}
+
+.qg.wide {
+    flex-basis: 150px;
+    max-width: 300px;
+}
+
+.qg.full {
+    flex-basis: 100%;
+    max-width: none;
+}
+
+.qg.warnq {
+    border-color: var(--bad);
+}
+
+.qg.era-good {
+    border-color: var(--ok);
+}
+
+.qg.era-bad {
+    border-color: var(--bad);
+}
+
+.qg.era-mixed {
+    border-color: var(--gold);
+}
+
+.qh {
+    flex-direction: row;
+    align-items: center;
+    font-size: 16px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.qh > .icon {
+    margin-right: 5px;
+    color: var(--gold);
+}
+
+.qh-small {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-left: 4px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Regular.ttf");
+}
+
+.qe {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: normal;
+}
+
+.qe.bad {
+    color: var(--bad);
+}
+
+.qb {
+    flex-direction: row;
+    margin-top: 4px;
+    align-items: center;
+}
+
+.qbld .spk {
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    margin-right: 6px;
+}
+
+/* окно клетки: превью + карточки */
+.cellwin {
+    flex-direction: row;
+    flex-grow: 1;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+}
+
+.cell-preview {
+    width: 150px;
+    height: 150px;
+    margin: 3px;
+    border-radius: 12px;
+    background-color: #0f0b1e;
+    flex-shrink: 0;
+}
+
+.cellside {
+    flex-grow: 1;
+    flex-basis: 200px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+
+/* строки «ключ — значение» */
+.kv-row {
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 2px 0;
+}
+
+.kv-k {
+    color: var(--muted);
+    flex-shrink: 1;
+    white-space: normal;
+    margin-right: 10px;
+}
+
+.kv-v {
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+    -unity-text-align: middle-right;
+    flex-shrink: 0;
+}
+
+/* шкалы материи / энергии / силы */
+.srow {
+    flex-direction: row;
+    align-items: center;
+    margin: 3px 0;
+}
+
+.srow > .n {
+    width: 74px;
+    color: var(--muted);
+}
+
+.track {
+    flex-grow: 1;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #0f0b1e;
+    overflow: hidden;
+    margin-right: 8px;
+}
+
+.track-fill {
+    height: 100%;
+    border-radius: 4px;
+}
+
+.srow > .v {
+    width: 44px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+    -unity-text-align: middle-right;
+}
+
+.srow > .m {
+    width: 46px;
+    font-size: 12px;
+    color: var(--muted);
+    -unity-text-align: middle-right;
+}
+
+.prog {
+    height: 6px;
+    border-radius: 3px;
+    background-color: #0f0b1e;
+    overflow: hidden;
+    margin: 6px 0;
+}
+
+.prog-fill {
+    height: 100%;
+    background-color: var(--gold);
+}
+
+.tier-tag {
+    font-size: 11.5px;
+    padding: 0 7px;
+    border-radius: 9px;
+    border-width: 1px;
+    margin-left: 6px;
+    align-self: center;
+}
+
+.tier-tag.low {
+    color: var(--low);
+    border-color: var(--low);
+}
+
+.tier-tag.rare {
+    color: var(--rare);
+    border-color: var(--rare);
+}
+
+.tier-tag.epic {
+    color: var(--epic);
+    border-color: var(--epic);
+}
+
+.tier-tag.legend {
+    color: #ffffff;
+    background-color: var(--legend);
+    border-color: var(--legend);
+}
+
+.tier-tag.dist {
+    color: var(--muted);
+    border-color: var(--muted);
+}
+
+.row {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.pen {
+    color: var(--bad);
+}
+
+.list-item {
+    padding: 4px 0;
+    border-bottom-width: 1px;
+    border-color: rgba(52, 43, 85, 0.6);
+}
+
+.list-item > .sub {
+    font-size: 12.5px;
+    color: var(--muted);
+    white-space: normal;
+}
+
+.eli {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 0;
+}
+
+.eli > .icon {
+    width: 22px;
+    height: 22px;
+    margin-right: 8px;
+}
+
+.eli.good > .icon {
+    color: var(--ok);
+}
+
+.eli.bad > .icon {
+    color: var(--bad);
+}
+
+.eli.mixed > .icon {
+    color: var(--gold);
+}
+
+.eli.now {
+    background-color: rgba(242, 180, 65, 0.1);
+    border-radius: 6px;
+}
+
+.eli-text {
+    flex-shrink: 1;
+}
+
+.eli-text > Label {
+    white-space: normal;
+}
+
+/* способности в быстром меню */
+.ab-row {
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+    flex-basis: 220px;
+    margin: 3px;
+    padding: 5px 7px;
+    border-width: 1px;
+    border-left-width: 3px;
+    border-color: var(--line);
+    border-radius: 10px;
+    background-color: var(--bg);
+}
+
+.ab-row > .icon {
+    width: 26px;
+    height: 26px;
+    margin-right: 8px;
+}
+
+.ab-text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-right: 6px;
+}
+
+.ab-text > Label {
+    white-space: normal;
+}
+
+.ab-row.empty {
+    opacity: 0.6;
+}
+
+/* артефакты */
+.aslots {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-basis: 100%;
+}
+
+.aslot {
+    width: 58px;
+    height: 58px;
+    margin: 3px;
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: var(--line);
+    background-color: var(--bg);
+    align-items: center;
+    justify-content: center;
+}
+
+.aslot:hover {
+    background-color: var(--btn-h);
+}
+
+.aslot:disabled {
+    opacity: 0.4;
+}
+
+.aslot.empty {
+    border-color: rgba(52, 43, 85, 0.6);
+    background-color: rgba(20, 16, 38, 0.4);
+}
+
+.aslot > .icon {
+    width: 26px;
+    height: 26px;
+}
+
+.aslot > Label {
+    font-size: 11px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+/* персонаж: диаграмма и подписи */
+.oprow {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-basis: 100%;
+    margin: 3px;
+}
+
+.oprow > Label {
+    margin-right: 6px;
+}
+
+.radar {
+    width: 340px;
+    height: 340px;
+    align-self: center;
+    margin: 6px 0;
+}
+
+.radar-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.rlab {
+    position: absolute;
+    width: 92px;
+    align-items: center;
+    translate: -50% -50%;
+}
+
+.rlab > Label {
+    font-size: 12px;
+    -unity-text-align: middle-center;
+}
+
+.rlab > .rlv {
+    font-size: 15px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.rlab > .qup {
+    height: 24px;
+    margin: 2px 0;
+}
+
+/* технологии */
+.ttree {
+    flex-basis: 100%;
+    align-items: stretch;
+}
+
+.tlvl {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 4px 0;
+}
+
+.tnode {
+    width: 170px;
+    margin: 4px;
+    padding: 8px;
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: var(--line);
+    background-color: var(--bg);
+    align-items: center;
+}
+
+.tnode.done {
+    border-color: var(--gold);
+}
+
+.tnode.open {
+    border-color: #9fe3ff;
+}
+
+.tnode.locked,
+.tnode.soon {
+    opacity: 0.6;
+}
+
+.tnode > .icon {
+    width: 30px;
+    height: 30px;
+    color: #9fe3ff;
+}
+
+.tnode > Label {
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+/* ---------- окна ---------- */
+.overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(10, 7, 22, 0.72);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.box {
+    width: 100%;
+    max-width: 640px;
+    max-height: 96%;
+    padding: 18px 20px;
+    border-radius: 14px;
+    border-width: 1px;
+    border-color: var(--line);
+    background-color: var(--panel);
+}
+
+.facts {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.facts > .btn {
+    margin-left: 8px;
+    min-width: 120px;
+    justify-content: center;
+    -unity-text-align: middle-center;
+}
+
+.jcols {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.jcols > VisualElement {
+    flex-grow: 1;
+    flex-basis: 240px;
+    margin: 0 6px;
+}
+
+/* бой */
+.battle-box {
+    max-width: 720px;
+}
+
+.fighters {
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.fighter {
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.fname {
+    font-size: 16px;
+    color: var(--gold);
+}
+
+.fname-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.fname-row > .fname {
+    color: var(--epic);
+}
+
+.vs {
+    margin: 4px 12px 0 12px;
+    color: var(--muted);
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Italic.ttf");
+}
+
+.bar {
+    height: 10px;
+    margin-top: 6px;
+    border-radius: 5px;
+    background-color: #0f0b1e;
+    overflow: hidden;
+}
+
+.bar.cd {
+    height: 4px;
+    margin-top: 4px;
+}
+
+.bar-fill {
+    height: 100%;
+    width: 100%;
+    border-radius: 5px;
+}
+
+.bar.hp > .bar-fill {
+    background-color: var(--ok);
+}
+
+.bar.foe-hp > .bar-fill {
+    background-color: var(--epic);
+}
+
+.bar.cd > .bar-fill {
+    background-color: var(--gold);
+}
+
+.bnum {
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.bfx {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-height: 20px;
+}
+
+.fxtag {
+    font-size: 11.5px;
+    padding: 1px 6px;
+    margin: 2px 3px 0 0;
+    border-radius: 8px;
+    background-color: rgba(95, 178, 230, 0.18);
+    color: #bfe6ff;
+}
+
+.fxtag.trait {
+    background-color: rgba(239, 107, 144, 0.16);
+    color: #ffc2d4;
+}
+
+.fxtag.on {
+    background-color: var(--bad);
+    color: #ffffff;
+}
+
+.fxtag.off {
+    opacity: 0.4;
+}
+
+.arena-host {
+    height: 210px;
+    margin: 8px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #0b0818;
+}
+
+.arena {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.bstart {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.bstatus {
+    white-space: normal;
+    margin: 2px 0 6px 0;
+}
+
+.bactions {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.abi {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-width: 70px;
+    margin: 3px;
+    padding: 6px 4px 8px 4px;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: var(--line);
+    background-color: var(--bg);
+    align-items: center;
+}
+
+.abi:hover {
+    background-color: var(--btn-h);
+}
+
+.abi:disabled {
+    opacity: 0.55;
+}
+
+.abi > .cost {
+    font-size: 12px;
+    color: var(--gold);
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.abi.poor > .cost {
+    color: var(--bad);
+}
+
+.dial {
+    width: 46px;
+    height: 46px;
+    margin: 3px 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.dial > .icon {
+    width: 28px;
+    height: 28px;
+}
+
+.abi.cooling .dial > .icon {
+    opacity: 0.3;
+}
+
+.dial > .cdt {
+    position: absolute;
+    font-size: 13px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.dial > .kk {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    font-size: 10px;
+    color: var(--muted);
+}
+
+.abi > .nm {
+    font-size: 11.5px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.choice {
+    flex-basis: 100%;
+    white-space: normal;
+}
+
+.blog {
+    max-height: 140px;
+    overflow: hidden;
+    margin: 4px 0;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background-color: #0f0b1e;
+}
+
+.blog-text {
+    font-size: 12.5px;
+    white-space: normal;
+    color: var(--muted);
+}
+
+.bfoot {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.bfoot > .btn {
+    min-width: 130px;
+    justify-content: center;
+    -unity-text-align: middle-center;
+}
+
+.defbox .fc {
+    margin: 8px 0;
+    align-self: flex-start;
+}
