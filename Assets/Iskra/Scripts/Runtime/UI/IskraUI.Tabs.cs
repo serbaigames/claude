@@ -88,15 +88,14 @@ namespace Iskra.UI
             bool danger = th >= def * 0.8;
             int used = Game.UsedCap(c), cp = Game.Cap(c);
             bool full = used >= cp;
-            var side = ui.El("cellside");
-            var dg = ui.Q("shield", Fmt.N(Math.Floor(def)), null, "wide" + (danger ? " warnq" : ""));
+            var dg = ui.Q("shield", Fmt.N(Math.Floor(def)), null, "defcard" + (danger ? " warnq" : ""));
             dg.Add(ui.L(th > 0 ? $"сосед {Fmt.N(Math.Ceiling(th))} · {Game.JsRound(th / def * 100)}%" : "сосед нет", "qe" + (danger ? " bad" : "")));
             dg.Add(ui.L($"укрепл. {c.defLvl} ур. · башни +{Game.TowerPct(c.tower)}%", "qe"));
             dg.Add(ui.L($"ячеек: свободно {cp - used}, занято {used} · новая через {Fmt.Clock(Game.NextSlotIn(c))}", "qe"));
             var row = ui.El("qb");
             row.Add(ui.Btn($"Укрепить +{Fmt.N1(gain)} · {Fmt.N(dc)}", "fort:" + k, "qup grow" + (danger ? " primary" : ""), g.S.matter < dc));
             dg.Add(row);
-            side.Add(dg);
+            var blds = new List<VisualElement>();
             for (int i = 0; i < 3; i++)
             {
                 string t = Defs.Buildings[i];
@@ -121,14 +120,15 @@ namespace Iskra.UI
                     br.Add(ui.Btn(arm ? "?" : "−", $"lower:{k}:{t}", "qdn" + (arm ? " armed" : "")));
                 }
                 card.Add(br);
-                side.Add(card);
+                blds.Add(card);
             }
-            return new List<VisualElement> { ui.El("cellwin", Preview(c), side) };
+            // первая строка: изображение клетки и защита одной высоты; вторая — три равных окна строений
+            return new List<VisualElement> { ui.El("cellrow", Preview(c), dg), ui.Grid(3, blds) };
         }
 
         List<VisualElement> DarkQuick(Cell c)
         {
-            var side = ui.El("cellside");
+            var side = new List<VisualElement>();
             double rate = g.GrowRate(c), step = c.growth / rate, left = Math.Max(0, (c.growth - c.t) / rate), gm = g.GrowMul(c);
             string tm = g.Paused ? "пауза" : $"через {Game.JsRound(left)} с";
             var mightG = ui.Q("might", Fmt.N(Math.Ceiling(c.might)), $"затем {Fmt.N(Math.Ceiling(c.might * c.dev + 0.2))} {tm}");
@@ -153,6 +153,7 @@ namespace Iskra.UI
                     tg.Add(ui.L(string.Join(", ", f.Traits.Select(k => Defs.Traits[k].Name)), "qe"));
                     foreach (var k in f.Traits) tg.Add(ui.L($"{Defs.Traits[k].Name}: {Defs.Traits[k].Desc}", "qe"));
                     side.Add(tg);
+                    side.Add(null);
                 }
                 else side.Add(ui.Q(null, "·", "без особенностей"));
             }
@@ -164,22 +165,22 @@ namespace Iskra.UI
                 side.Add(growG);
                 side.Add(ui.Q("matter", Fmt.N(cost), lack ? "нужно ещё " + Fmt.N(Math.Ceiling(cost - g.S.matter)) : "цена захвата", lack ? "warnq" : null));
             }
-            return new List<VisualElement> { ui.El("cellwin", Preview(c), side) };
+            return new List<VisualElement> { ui.El("cellrow", Preview(c), ui.Grid(2, side, "cellgrid")) };
         }
 
         List<VisualElement> OverviewQuick(bool spark)
         {
             var x = g.IncomeParts();
             int thr = g.ThreatCount;
-            return new List<VisualElement>
+            return new List<VisualElement> { ui.Grid(3, new List<VisualElement>
             {
-                spark ? ui.Q("spark", "Искра", $"ядро ×{g.CoreMul} · {Fmt.N1(x.Base)}/с", "wide") : ui.Q("target", "Клетка", "нажмите на карте", "wide"),
+                spark ? ui.Q("spark", "Искра", $"ядро ×{g.CoreMul} · {Fmt.N1(x.Base)}/с") : ui.Q("target", "Клетка", "нажмите на карте"),
                 ui.Q("cells", g.Own.Count.ToString(), "клеток"),
                 ui.Q("stun", thr.ToString(), "под угрозой", thr > 0 ? "warnq" : null),
                 ui.Q("matter", Fmt.N1(x.Mines * g.BonusMul), "шахты/с"),
                 ui.Q("core", "+" + Fmt.N1(x.Fac) + "%", "заводы"),
                 ui.Q("comet", "×" + Fmt.X2(g.Aggr), Game.AggrName(g.Aggr)),
-            };
+            }) };
         }
 
         VisualElement Bars(Cell c)
@@ -365,7 +366,7 @@ namespace Iskra.UI
             r2.Add(ui.Btn(Game.MultLabel(g.M["ab"]), "mcyc:ab", "qup qcyc"));
             side.Add(r2);
             var rows = ui.El("qrows");
-            var list = new List<VisualElement> { side, rows };
+            var list = new List<VisualElement> { ui.El("abwrap", side, rows) };
             for (int i = 0; i < g.S.abilities.Length; i++)
             {
                 var a = g.S.abilities[i];
@@ -504,12 +505,14 @@ namespace Iskra.UI
             a.Add(ui.P("Подходят: " + fit));
             a.Add(ui.P("Нажмите на артефакт в ячейке сверху, чтобы применить его. Когда все ячейки заполнены, появляется новый ряд.", "muted small"));
             b.Add(ui.H2("Виды"));
+            var kinds = new List<VisualElement>();
             foreach (var k in Defs.ArtOrder)
             {
                 var ic = ui.I(Defs.Arts[k].Icon);
                 ic.style.color = Draw.Hex(ArtCol[k]);
-                b.Add(ui.El("eli", ic, ui.El("eli-text", ui.L(Defs.Arts[k].Name, "b"), ui.L(Defs.ArtShort[k], "qe"))));
+                kinds.Add(ui.El("eli", ic, ui.El("eli-text", ui.L(Defs.Arts[k].Name, "b"), ui.L(Defs.ArtShort[k], "qe"))));
             }
+            b.Add(ui.Grid(2, kinds));
             b.Add(ui.P("Шанс артефакта за победу: 4% / 12% / 25% / 100% по рангу сущности, умноженный на агрессивность мира и эру.", "muted small"));
         }
 
@@ -518,11 +521,11 @@ namespace Iskra.UI
         {
             var e = g.EraNow;
             int l = (int)Math.Ceiling(g.S.era.left);
-            return new List<VisualElement>
+            return new List<VisualElement> { ui.Grid(2, new List<VisualElement>
             {
-                ui.Q(e.Icon, e.Name, $"{e.Desc} · осталось {l / 60}:{l % 60:00} из {Game.JsRound(g.S.era.dur / 60)} мин", "wide era-" + e.Kind),
-                ui.Q("timer", "1–10 мин", "длительность эры; следующая — случайная", "wide"),
-            };
+                ui.Q(e.Icon, e.Name, $"{e.Desc} · осталось {l / 60}:{l % 60:00} из {Game.JsRound(g.S.era.dur / 60)} мин", "era-" + e.Kind),
+                ui.Q("timer", "1–10 мин", "длительность эры; следующая — случайная"),
+            }) };
         }
 
         void EraList(List<VisualElement> to, int from, int count)
@@ -538,11 +541,12 @@ namespace Iskra.UI
 
         void ColsEra(List<VisualElement> a, List<VisualElement> b)
         {
-            a.Add(ui.H2("Эры 1–12"));
-            EraList(a, 0, 12);
-            b.Add(ui.H2("Эры 13–24"));
-            EraList(b, 12, 12);
-            b.Add(ui.P("Эра длится от 1 до 10 минут игрового времени (на паузе не идёт). Зелёные помогают вам, красные — тьме, золотые — смешанные.", "muted small"));
+            // все 24 эры в два столбика в одной колонке окна
+            a.Add(ui.H2("Все эры"));
+            var all = new List<VisualElement>();
+            EraList(all, 0, Defs.Eras.Length);
+            a.Add(ui.Grid(2, all));
+            a.Add(ui.P("Эра длится от 1 до 10 минут игрового времени (на паузе не идёт). Зелёные помогают вам, красные — тьме, золотые — смешанные.", "muted small"));
         }
 
         /* ---------- профиль ---------- */

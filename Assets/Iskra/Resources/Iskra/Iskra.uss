@@ -1877,3 +1877,100 @@ Label {
 .pdesc.pen {
     color: var(--bad);
 }
+
+/* ---------- сетки из явных строк ---------- */
+.quick {
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+.grid {
+    flex-shrink: 0;
+}
+
+.grow {
+    flex-direction: row;
+    align-items: stretch;
+    flex-shrink: 0;
+}
+
+.gcell {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+}
+
+.gcell > .qg {
+    flex-grow: 1;
+    max-width: none;
+    min-width: 0;
+}
+
+.gcell > .eli {
+    flex-grow: 1;
+    margin-right: 6px;
+}
+
+/* клетка: изображение и защита одной высоты */
+.cellrow {
+    flex-direction: row;
+    align-items: stretch;
+    flex-shrink: 0;
+}
+
+.cellrow > .cell-preview {
+    width: 112px;
+    height: auto;
+    min-height: 100px;
+}
+
+.cellrow > .qg {
+    flex-grow: 1;
+    flex-shrink: 1;
+    max-width: none;
+}
+
+.cellrow > .cellgrid {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.cellrow > .defcard {
+    justify-content: space-between;
+}
+
+/* способности: карточка ОС слева, ячейки справа; в узком окне — друг под другом */
+.abwrap {
+    flex-direction: row;
+    align-items: stretch;
+    flex-shrink: 0;
+}
+
+.abwrap > .qside {
+    width: 160px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+}
+
+.abwrap > .qrows {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+}
+
+.qrows > .ab-row {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+}
+
+.narrow .abwrap {
+    flex-direction: column;
+}
+
+.narrow .abwrap > .qside {
+    width: auto;
+}

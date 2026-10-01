@@ -116,6 +116,25 @@ namespace Iskra.UI
             return t;
         }
 
+        // Сетка из явных строк по n ячеек: перенос строк (flex-wrap) в UI Toolkit неверно считает высоту
+        // строк с переносящимся текстом, отчего содержимое налезало на соседние блоки
+        public VisualElement Grid(int n, System.Collections.Generic.IList<VisualElement> items, string cls = null)
+        {
+            var grid = El("grid " + cls);
+            for (int i = 0; i < items.Count; i += n)
+            {
+                var row = El("grow");
+                for (int j = 0; j < n; j++)
+                {
+                    var cell = El("gcell");
+                    if (i + j < items.Count && items[i + j] != null) cell.Add(items[i + j]);
+                    row.Add(cell);
+                }
+                grid.Add(row);
+            }
+            return grid;
+        }
+
         public Label Tier(string tier, string text)
         {
             return L(text, "tier-tag " + tier);

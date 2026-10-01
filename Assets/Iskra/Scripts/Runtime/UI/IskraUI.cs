@@ -71,6 +71,8 @@ namespace Iskra.UI
                 Q("cols").EnableInClassList("split", split);
                 Q("cols").EnableInClassList("stacked", !split);
             });
+            // узкое окно (телефон): блоки «рядом» перестраиваются «друг под другом»
+            Q("sheetBox").RegisterCallback<GeometryChangedEvent>(_ => Q("sheetBox").EnableInClassList("narrow", Q("sheetBox").layout.width < 480));
             BuildTop();
             WireStage();
             WireMenu();
@@ -477,6 +479,7 @@ namespace Iskra.UI
                 foreach (var e in a) colA.Add(e);
                 colB.Clear();
                 foreach (var e in b) colB.Add(e);
+                colB.EnableInClassList("hidden", b.Count == 0);
                 lastCols = cs;
             }
         }
