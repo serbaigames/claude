@@ -33,13 +33,25 @@ namespace Iskra.UI
 
         public static Vector2 Polar(Vector2 c, float a, float r) => new Vector2(c.x + Mathf.Cos(a) * r, c.y + Mathf.Sin(a) * r);
 
+        // Круги и дуги — многоугольниками: встроенный Arc в Painter2D давал артефакты
+        static int Segs(float r, float span) => Mathf.Clamp(Mathf.CeilToInt(Mathf.Max(r, 1f) * span * 0.35f), 6, 96);
+
+        static void ArcPath(Painter2D p, Vector2 c, float r, float a0, float a1, bool move)
+        {
+            int n = Segs(r, a1 - a0);
+            for (int i = 0; i <= n; i++)
+            {
+                var v = Polar(c, Mathf.Lerp(a0, a1, i / (float)n), r);
+                if (i == 0 && move) p.MoveTo(v); else p.LineTo(v);
+            }
+        }
+
         public static void Circle(Painter2D p, Vector2 c, float r, Color col)
         {
             if (r <= 0.05f || col.a <= 0.003f) return;
             p.fillColor = col;
             p.BeginPath();
-            p.MoveTo(new Vector2(c.x + r, c.y));   // без MoveTo дуга тянет линию из (0,0)
-            p.Arc(c, r, Angle.Degrees(0), Angle.Degrees(360));
+            ArcPath(p, c, r, 0, Mathf.PI * 2, true);
             p.ClosePath();
             p.Fill();
         }
@@ -49,23 +61,23 @@ namespace Iskra.UI
             if (r <= 0.05f || col.a <= 0.003f) return;
             p.strokeColor = col;
             p.lineWidth = w;
+            p.lineJoin = LineJoin.Round;
             p.BeginPath();
-            p.MoveTo(new Vector2(c.x + r, c.y));   // без MoveTo дуга тянет линию из (0,0)
-            p.Arc(c, r, Angle.Degrees(0), Angle.Degrees(360));
+            ArcPath(p, c, r, 0, Mathf.PI * 2, true);
             p.ClosePath();
             p.Stroke();
         }
 
-        // Дуга по часовой стрелке от a0 до a1 (радианы, 0 — вправо, как в canvas)
+        // Дуга по часовой стрелке от a0 до a1 (радианы, 0 — вправо, y вниз)
         public static void ArcStroke(Painter2D p, Vector2 c, float r, float a0, float a1, float w, Color col, LineCap cap = LineCap.Butt)
         {
             if (a1 <= a0 || col.a <= 0.003f) return;
             p.strokeColor = col;
             p.lineWidth = w;
             p.lineCap = cap;
+            p.lineJoin = LineJoin.Round;
             p.BeginPath();
-            p.MoveTo(Polar(c, a0, r));
-            p.Arc(c, r, Angle.Radians(a0), Angle.Radians(a1));
+            ArcPath(p, c, r, a0, a1, true);
             p.Stroke();
             p.lineCap = LineCap.Butt;
         }
@@ -73,19 +85,19 @@ namespace Iskra.UI
         // Пунктирное кольцо: штрих и промежуток — в пикселях по окружности
         public static void DashedRing(Painter2D p, Vector2 c, float r, float w, Color col, float dash, float gap, float offset = 0)
         {
-            if (r <= 0.5f) return;
+            if (r <= 0.5f || col.a <= 0.003f) return;
             float step = (dash + gap) / r, len = dash / r;
             int n = Mathf.Clamp(Mathf.FloorToInt(2 * Mathf.PI / step), 1, 120);
             step = 2 * Mathf.PI / n;
             len = Mathf.Min(len, step * 0.8f);
             p.strokeColor = col;
             p.lineWidth = w;
+            p.lineJoin = LineJoin.Round;
             for (int i = 0; i < n; i++)
             {
                 float a = offset + i * step;
                 p.BeginPath();
-                p.MoveTo(Polar(c, a, r));
-                p.Arc(c, r, Angle.Radians(a), Angle.Radians(a + len));
+                ArcPath(p, c, r, a, a + len, true);
                 p.Stroke();
             }
         }
@@ -195,24 +207,6 @@ namespace Iskra.UI
                 o.Add(Polar(c, a, i % 2 == 1 ? r2 : r1));
             }
             return o;
-        }
-
-        public static void RoundRect(Painter2D p, Rect r, float rad, Color col)
-        {
-            rad = Mathf.Min(rad, Mathf.Min(r.width, r.height) * 0.5f);
-            p.fillColor = col;
-            p.BeginPath();
-            p.MoveTo(new Vector2(r.xMin + rad, r.yMin));
-            p.LineTo(new Vector2(r.xMax - rad, r.yMin));
-            p.ArcTo(new Vector2(r.xMax, r.yMin), new Vector2(r.xMax, r.yMin + rad), rad);
-            p.LineTo(new Vector2(r.xMax, r.yMax - rad));
-            p.ArcTo(new Vector2(r.xMax, r.yMax), new Vector2(r.xMax - rad, r.yMax), rad);
-            p.LineTo(new Vector2(r.xMin + rad, r.yMax));
-            p.ArcTo(new Vector2(r.xMin, r.yMax), new Vector2(r.xMin, r.yMax - rad), rad);
-            p.LineTo(new Vector2(r.xMin, r.yMin + rad));
-            p.ArcTo(new Vector2(r.xMin, r.yMin), new Vector2(r.xMin + rad, r.yMin), rad);
-            p.ClosePath();
-            p.Fill();
         }
     }
 }

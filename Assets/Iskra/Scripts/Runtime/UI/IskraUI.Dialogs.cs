@@ -37,8 +37,8 @@ namespace Iskra.UI
             box.Clear();
             box.AddToClassList("defbox");
             box.Add(u.H2("Клетка под ударом!"));
-            box.Add(u.El("row", u.L($"{t.Foe} "), u.Tier(c.tier, t.Name.ToLower()),
-                u.L($"  мощью {Fmt.N(Math.Ceiling(c.might))} прорывает защиту вашей клетки ({Fmt.N(Math.Floor(g.CellDef(n)))}). Игра на паузе.", "p")));
+            box.Add(u.El("row", u.L(t.Foe, "b"), u.Tier(c.tier, t.Name.ToLower())));
+            box.Add(u.P($"Мощь {Fmt.N(Math.Ceiling(c.might))} прорывает защиту вашей клетки ({Fmt.N(Math.Floor(g.CellDef(n)))}). Игра на паузе."));
             box.Add(u.P("Защитите клетку в бою — при победе сущность будет побеждена. Если отступить или проиграть, клетка перейдёт к тьме."));
             box.Add(u.El("fc", u.L(lab, "fc-main " + cls), u.L(mt, "fc-sub " + mcls)));
             box.Add(u.El("facts", u.Btn("Бежать", "def:flee", "btn danger"), u.Btn("Защитить", "def:fight", "btn primary")));

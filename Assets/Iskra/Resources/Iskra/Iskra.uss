@@ -1737,3 +1737,143 @@ Button {
 .cols.stacked > #colB {
     border-top-width: 1px;
 }
+
+/* метки по умолчанию не сжимаются: иначе слова рвутся по буквам («О/П», «купит/ь») */
+Label {
+    flex-shrink: 0;
+}
+
+.kv-k,
+.qh > Label,
+.fc > Label,
+.ab-text > Label,
+.eli-text > Label,
+.erasub {
+    flex-shrink: 1;
+}
+
+/* строка покупки ОП */
+.oprow {
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 4px 8px;
+}
+
+.opg {
+    flex-direction: row;
+    align-items: center;
+    margin: 2px 0;
+}
+
+.opg > Label,
+.opg > Button {
+    margin-right: 6px;
+    white-space: nowrap;
+}
+
+.opsep {
+    padding-left: 8px;
+    border-left-width: 1px;
+    border-color: var(--line);
+}
+
+.opg > .opu {
+    font-size: 14px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.opg > .qcyc,
+.opg > .qup {
+    height: 28px;
+    min-width: 44px;
+    margin-right: 6px;
+}
+
+/* диаграмма: квадрат, подписи вокруг круга */
+.radar {
+    height: 340px;
+    max-width: 480px;
+    width: 100%;
+}
+
+.rlab {
+    width: 31%;
+}
+
+.rlvrow {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.rlv {
+    font-size: 15px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.rpen {
+    font-size: 11.5px;
+    color: var(--bad);
+    margin-left: 4px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.rcost {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.rring {
+    position: absolute;
+    translate: -50% -100%;
+    font-size: 10px;
+    color: #ff8aa0;
+}
+
+.rnote {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-basis: 100%;
+    margin: 4px 0;
+}
+
+.rnote > .dash {
+    width: 18px;
+    height: 0;
+    border-top-width: 2px;
+    border-color: #ff5c7a;
+    margin-right: 6px;
+    flex-shrink: 0;
+}
+
+.rnote-t {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: normal;
+    flex-shrink: 1;
+}
+
+/* параметры одной строкой: имя и пояснение */
+.prow {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 2px 0;
+}
+
+.pname {
+    font-size: 14px;
+    margin-right: 8px;
+    -unity-font: url("project://database/Assets/Iskra/Fonts/PTSans-Bold.ttf");
+}
+
+.pdesc {
+    font-size: 12px;
+    color: var(--muted);
+    margin-right: 6px;
+}
+
+.pdesc.pen {
+    color: var(--bad);
+}

@@ -63,14 +63,11 @@ namespace Iskra.UI
 
         public void Arc(float r, float a0Deg, float a1Deg, float w, float a = 1, bool ccw = false)
         {
-            P.strokeColor = Col(false, a);
-            P.lineWidth = w * S;
-            P.lineCap = LineCap.Round;
-            P.BeginPath();
-            P.MoveTo(Draw.Polar(C, a0Deg * Mathf.Deg2Rad, r * S));
-            P.Arc(C, r * S, Angle.Degrees(a0Deg), Angle.Degrees(a1Deg), ccw ? ArcDirection.CounterClockwise : ArcDirection.Clockwise);
-            P.Stroke();
-            P.lineCap = LineCap.Butt;
+            // против часовой стрелки — значит, идём по длинной стороне круга
+            float s0 = a0Deg * Mathf.Deg2Rad, s1 = a1Deg * Mathf.Deg2Rad;
+            if (ccw) { float t = s0; s0 = s1; s1 = t + Mathf.PI * 2; }
+            if (s1 < s0) s1 += Mathf.PI * 2;
+            Draw.ArcStroke(P, C, r * S, s0, s1, w * S, Col(false, a), LineCap.Round);
         }
 
         public void Rays(int n, float r1, float r2, float w, float rot = 0, bool white = false, float a = 1)
@@ -183,8 +180,9 @@ namespace Iskra.UI
             ["veil"] = g =>
             {
                 g.Ring(9, 1.6f);
-                g.P.fillColor = Draw.A(g.Cur, g.Cur.a * .75f);
-                g.P.BeginPath(); g.P.MoveTo(g.V(0, -9)); g.P.Arc(g.C, 9 * g.S, Angle.Degrees(-90), Angle.Degrees(90)); g.P.ClosePath(); g.P.Fill();
+                var half = new List<Vector2>();
+                for (int k = 0; k <= 16; k++) half.Add(Draw.Polar(g.C, Mathf.Lerp(-Mathf.PI / 2, Mathf.PI / 2, k / 16f), 9 * g.S));
+                Draw.Poly(g.P, half, Draw.A(g.Cur, g.Cur.a * .75f));
                 g.Dot(2, true);
             },
             ["bolt"] = g => { g.Fill(g.Pts(2, -11, -6, 1, -.5f, 1, -3, 11, 6, -2, .5f, -2, 4, -11)); g.Fill(g.Pts(1.5f, -8, -3, .5f, .5f, .5f), true, .8f); },

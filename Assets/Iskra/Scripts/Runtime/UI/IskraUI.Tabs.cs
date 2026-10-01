@@ -289,20 +289,27 @@ namespace Iskra.UI
         List<VisualElement> QuickChar()
         {
             var ob = g.OpBuyInfo();
-            var row = ui.El("oprow");
-            row.Add(ui.I("spark"));
-            row.Add(ui.L(g.S.op.ToString(), "opn"));
-            row.Add(ui.L("ОП"));
-            row.Add(ui.L("· купить", "muted"));
-            row.Add(ui.Btn(Game.MultLabel(g.M["opBuy"]), "mcyc:opBuy", "qup qcyc"));
-            row.Add(ui.Btn("+" + ob.N, "op", "qup primary", ob.N < 1 || g.S.matter < ob.Cost));
-            row.Add(ui.L(Fmt.N(ob.Cost) + " мат.", "muted small"));
-            row.Add(ui.L("· уровней за раз", "muted"));
-            row.Add(ui.Btn(Game.MultLabel(g.M["par"]), "mcyc:par", "qup qcyc"));
+            // строка покупки ОП из трёх групп: переносится между группами, а не посреди слов
+            var row = ui.El("oprow",
+                ui.El("opg", ui.I("spark"), ui.L(g.S.op.ToString(), "opn"), ui.L("ОП", "opu")),
+                ui.El("opg opsep",
+                    ui.L("купить", "muted"),
+                    ui.Btn(Game.MultLabel(g.M["opBuy"]), "mcyc:opBuy", "qcyc"),
+                    ui.Btn("+" + ob.N, "op", "qup primary", ob.N < 1 || g.S.matter < ob.Cost),
+                    ui.L(Fmt.N(ob.Cost) + " мат.", "muted")),
+                ui.El("opg opsep",
+                    ui.L("уровней за раз", "muted"),
+                    ui.Btn(Game.MultLabel(g.M["par"]), "mcyc:par", "qcyc")));
 
             var radar = ui.El("radar");
-            radar.Add(new RadarChart { G = g });
-            ui.Sig.Append("radar").Append(g.S.chr.Sum);
+            radar.Add(new RadarChart(g));
+            ui.Sig.Append("radar").Append(string.Join(",", Defs.Params.Select(x => g.S.chr[x.Id])));
+            // диаграмма квадратная: высота равна ширине
+            radar.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                float wd = Mathf.Round(radar.layout.width);
+                if (wd > 10 && Mathf.Abs(radar.layout.height - wd) > 1) radar.style.height = wd;
+            });
             for (int i = 0; i < Defs.Params.Length; i++)
             {
                 var pd = Defs.Params[i];
@@ -315,12 +322,13 @@ namespace Iskra.UI
                 var nm = ui.L(pd.Name, "rn");
                 nm.style.color = Draw.Hex(RadarChart.ParamCol[i]);
                 lab.Add(nm);
-                lab.Add(ui.L(g.S.chr[pd.Id] + (e.Pen > 0 ? $"  −{Game.JsRound(e.Pen * 100)}%" : ""), "rlv" + (e.Pen > 0 ? " pen" : "")));
+                var lv = ui.El("rlvrow", ui.L(g.S.chr[pd.Id].ToString(), "rlv"), e.Pen > 0 ? ui.L($"−{Game.JsRound(e.Pen * 100)}%", "rpen") : null);
+                lab.Add(lv);
                 lab.Add(ui.Btn("+" + pi.N, "par:" + pd.Id, "qup", pi.N < 1 || g.S.op < pi.Cost));
-                lab.Add(ui.L(Fmt.N(pi.Cost) + " ОП", "muted"));
+                lab.Add(ui.L(Fmt.N(pi.Cost) + " ОП", "rcost"));
                 radar.Add(lab);
             }
-            var note = ui.L("Пунктир — общие пороги штрафа: параметр выше 2×, 3×, 4× среднего теряет 10%, 20%, 30% силы.", "rnote");
+            var note = ui.El("rnote", ui.El("dash"), ui.L("общие пороги штрафа: параметр выше 2×, 3×, 4× среднего теряет 10%, 20%, 30% силы", "rnote-t"));
             return new List<VisualElement> { row, radar, note };
         }
 
@@ -330,10 +338,8 @@ namespace Iskra.UI
             foreach (var pd in Defs.Params)
             {
                 var e = g.EffOf(pd.Id);
-                var it = ui.El("list-item");
-                it.Add(ui.L($"{pd.Name} {g.S.chr[pd.Id]}", "b"));
-                it.Add(ui.L(pd.Short + (e.Pen > 0 ? $" · штраф −{Game.JsRound(e.Pen * 100)}%" : ""), "sub"));
-                a.Add(it);
+                a.Add(ui.El("prow", ui.L($"{pd.Name} {g.S.chr[pd.Id]}", "pname"), ui.L(pd.Short, "pdesc"),
+                    e.Pen > 0 ? ui.L($"−{Game.JsRound(e.Pen * 100)}%", "pdesc pen") : null));
             }
             a.Add(ui.L("Если один параметр вдвое выше среднего по остальным, он теряет 10% силы, втрое — 20%, и так далее.", "qe"));
             b.Add(ui.H2("В бою"));
