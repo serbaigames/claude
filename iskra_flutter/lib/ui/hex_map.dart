@@ -29,8 +29,11 @@ Offset hexToWorld(int q, int r) => Offset(_grid * _sq3 * (q + r / 2), _grid * 1.
 }
 
 class HexMap extends StatefulWidget {
-  const HexMap({super.key, required this.ctl});
+  const HexMap({super.key, required this.ctl, this.controlsBottom = 0});
   final GameController ctl;
+
+  /// На сколько поднять кнопки масштаба над нижним краем карты (блок выбранной клетки)
+  final double controlsBottom;
 
   @override
   State<HexMap> createState() => _HexMapState();
@@ -92,7 +95,7 @@ class _HexMapState extends State<HexMap> {
                 ),
                 Positioned(
                   right: 8,
-                  bottom: 8,
+                  bottom: 8 + widget.controlsBottom,
                   child: Column(
                     children: [
                       _zoomBtn(Icons.add, () => _zoomAt(_size.center(Offset.zero), zoom * 1.25)),

@@ -21,7 +21,8 @@ void main() {
     final dark = ctl.game.vis.map(ctl.game.cell).firstWhere((c) => c != null && !c.own)!;
     ctl.select(dark.key);
     await tester.pump(const Duration(milliseconds: 100));
-    await tester.tap(find.text('В бой').first);
+    expect(find.byKey(const ValueKey('cell-block')), findsOneWidget);
+    await tester.tap(find.text('Атаковать'));
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Начать бой'), findsOneWidget);
     await tester.ensureVisible(find.text('Отступить'));
@@ -35,7 +36,6 @@ void main() {
       ('Способности', 'abil'),
       ('Артефакты', 'art'),
       ('Технологии', 'tech'),
-      ('Эры', 'era'),
       ('Аккаунт', 'acc'),
     ]) {
       final item = find.descendant(of: find.byKey(const ValueKey('menu-bar')), matching: find.text(t));
@@ -47,6 +47,18 @@ void main() {
     await tester.tap(find.byTooltip('Закрыть'));
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Статистика'), findsNothing);
+
+    // кнопка эры слева вверху открывает окно эр, кнопка прыжка без технологии — окно технологий
+    await tester.tap(find.byTooltip('Эры'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byKey(const ValueKey('window-era')), findsOneWidget);
+    await tester.tap(find.byTooltip('Закрыть'));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byTooltip('Прыжок: нужна технология'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byKey(const ValueKey('window-tech')), findsOneWidget);
+    await tester.tap(find.byTooltip('Закрыть'));
+    await tester.pump(const Duration(milliseconds: 100));
     expect(prefs.getString(GameController.saveKey), isNull, reason: 'сохранение раз в 5 секунд');
     await tester.pump(const Duration(seconds: 6));
     expect(prefs.getString(GameController.saveKey), isNotNull);

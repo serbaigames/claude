@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../core/game.dart';
@@ -26,6 +27,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late final Ticker _ticker;
   Duration _last = Duration.zero;
   MenuTab? tab;
+  double blockH = 0; // высота блока выбранной клетки: над ним поднимаются кнопки по краям карты
+
+  /// Тень под надписями поверх карты (у верхних строк нет фона)
+  static const _shadow = [Shadow(color: Color(0xE6000000), blurRadius: 4)];
   SyncConflict? conflict;
   Completer<bool>? _conflictDone;
 
@@ -89,6 +94,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       setState(() => tab = null);
       return true;
     }
+    if (g.sel != null) {
+      ctl.select(null);
+      return true;
+    }
     ctl.save();
     return false;
   }
@@ -96,14 +105,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final g = ctl.game;
-    final map = Stack(
-      children: [
-        Positioned.fill(child: HexMap(ctl: ctl)),
-        Positioned(left: 8, top: 8, right: 60, child: _feed()),
-        Positioned(left: 8, right: 56, bottom: 8, child: _actionBar(g)),
-        if (tab != null) _window(tab!),
-      ],
-    );
+    final block = _cellBlock(g);
+    final lift = block == null ? 0.0 : blockH + 8;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -115,9 +118,47 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             SafeArea(
               child: Column(
                 children: [
-                  _topBar(g),
-                  _eraStrip(g),
-                  Expanded(child: map),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: HexMap(ctl: ctl, controlsBottom: lift),
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          top: 0,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _topBar(g),
+                              _header(g),
+                              Padding(padding: const EdgeInsets.fromLTRB(8, 6, 8, 0), child: _feed()),
+                            ],
+                          ),
+                        ),
+                        Positioned(left: 8, bottom: 8 + lift, child: _timeColumn(g)),
+                        if (block != null)
+                          Positioned(
+                            left: 8,
+                            right: 8,
+                            bottom: 8,
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 560),
+                                child: _MeasureSize(
+                                  onChange: (h) {
+                                    if (h != blockH) setState(() => blockH = h);
+                                  },
+                                  child: block,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (tab != null) _window(tab!),
+                      ],
+                    ),
+                  ),
                   _menu(),
                 ],
               ),
@@ -143,11 +184,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         message: tip ?? label,
         child: Column(
           children: [
-            Text(label, style: const TextStyle(fontSize: 11, color: C.muted)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: C.muted, shadows: _shadow),
+            ),
             FittedBox(
               child: Text(
                 value,
-                style: TextStyle(fontWeight: FontWeight.w700, color: color),
+                style: TextStyle(fontWeight: FontWeight.w700, color: color, shadows: _shadow),
               ),
             ),
           ],
@@ -155,12 +199,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     );
     final thr = g.threatCount;
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      decoration: const BoxDecoration(
-        color: C.panel,
-        border: Border(bottom: BorderSide(color: C.line)),
-      ),
       child: Row(
         children: [
           res('Материя', Fmt.n(g.s.matter), color: C.gold),
@@ -188,101 +228,153 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _eraStrip(Game g) {
-    final e = g.eraNow, l = g.s.era!.left.ceil(), tr = g.worldTrend();
-    final era = InkWell(
-      onTap: () => setState(() => tab = MenuTab.era),
-      child: Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: '${e.name} · ${l ~/ 60}:${(l % 60).toString().padLeft(2, '0')}',
-              style: TextStyle(color: C.kind(e.kind), fontWeight: FontWeight.w700),
-            ),
-            TextSpan(
-              text: '  ${e.desc}',
-              style: const TextStyle(color: C.muted, fontSize: 12),
-            ),
-          ],
+  /// Картинка эры на кнопке: своя для каждой из 24 эр
+  static const _eraIcons = {
+    'dawn': Icons.wb_twilight,
+    'drain': Icons.water_drop_outlined,
+    'tide': Icons.waves,
+    'torpor': Icons.ac_unit,
+    'flame': Icons.local_fire_department,
+    'dim': Icons.brightness_low,
+    'blood': Icons.bloodtype_outlined,
+    'brittle': Icons.heart_broken_outlined,
+    'stone': Icons.landscape_outlined,
+    'lore': Icons.menu_book_outlined,
+    'toll': Icons.paid_outlined,
+    'builders': Icons.construction,
+    'scarcity': Icons.remove_shopping_cart_outlined,
+    'bastions': Icons.fort,
+    'spoils': Icons.card_giftcard,
+    'meager': Icons.money_off,
+    'starfall': Icons.auto_awesome,
+    'void': Icons.blur_on,
+    'ancients': Icons.visibility_outlined,
+    'bloom': Icons.local_florist_outlined,
+    'swift': Icons.bolt,
+    'viscous': Icons.hourglass_bottom,
+    'balance': Icons.balance,
+    'eclipse': Icons.brightness_3_outlined,
+  };
+
+  /// Круглая кнопка в стиле кнопок масштаба карты
+  Widget _sqBtn(Widget child, VoidCallback f, {bool on = false, String? tip}) {
+    final b = SizedBox(
+      width: 40,
+      height: 40,
+      child: FilledButton(
+        onPressed: f,
+        style: FilledButton.styleFrom(
+          padding: EdgeInsets.zero,
+          backgroundColor: on ? C.goldBg : null,
+          foregroundColor: on ? C.gold : null,
         ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+        child: child,
       ),
     );
-    final trend = Tooltip(
-      message: tr.info,
+    return tip == null ? b : Tooltip(message: tip, child: b);
+  }
+
+  /// Вторая строка сверху: эра слева, прыжок справа
+  Widget _header(Game g) {
+    final e = g.eraNow, l = g.s.era!.left.ceil(), tr = g.worldTrend();
+    final jump = g.hasTech('jump');
+    const shadow = _shadow;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 2, 8, 0),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // стрелка из текста ядра (▲ ▼ ■) рисуется значком: такие символы есть не во всех шрифтах
-          Icon(
-            tr.kind == 'grow'
-                ? Icons.arrow_upward
-                : tr.kind == 'stall'
-                ? Icons.stop
-                : Icons.arrow_downward,
-            size: 14,
-            color: C.kind(tr.kind),
+          _sqBtn(
+            Icon(_eraIcons[e.id] ?? Icons.hourglass_empty, size: 22, color: C.kind(e.kind)),
+            () => setState(() => tab = MenuTab.era),
+            tip: 'Эры',
           ),
-          const SizedBox(width: 4),
-          Text(tr.text.substring(2), style: TextStyle(color: C.kind(tr.kind), fontSize: 12)),
-        ],
-      ),
-    );
-    final time = [
-      _timeBtn(
-        Icon(g.s.paused ? Icons.play_arrow : Icons.pause, size: 16),
-        () => ctl.setPaused(!g.s.paused),
-        g.s.paused,
-      ),
-      for (final s in [1, 2, 3])
-        _timeBtn(Text('×$s', style: const TextStyle(fontSize: 12)), () => ctl.setSpeed(s), g.speed == s),
-    ];
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      color: C.bg,
-      child: LayoutBuilder(
-        builder: (context, box) => box.maxWidth >= 640
-            ? Row(
-                children: [
-                  Expanded(child: era),
-                  trend,
-                  const SizedBox(width: 8),
-                  ...time,
-                ],
-              )
-            : Column(
+          const SizedBox(width: 8),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => tab = MenuTab.era),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  era,
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(child: trend),
-                      ...time,
-                    ],
+                  Text(
+                    '${e.name} · ${l ~/ 60}:${(l % 60).toString().padLeft(2, '0')}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: C.kind(e.kind), fontWeight: FontWeight.w700, shadows: shadow),
+                  ),
+                  Text(
+                    e.desc,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: C.muted, fontSize: 12, shadows: shadow),
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: tr.info,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '+${Fmt.x(g.rebirthGain(), 2)} к бонусу',
+                  style: TextStyle(color: jump ? C.gold : C.muted, fontWeight: FontWeight.w700, shadows: shadow),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // стрелка из текста ядра (▲ ▼ ■) рисуется значком: такие символы есть не во всех шрифтах
+                    Icon(
+                      tr.kind == 'grow'
+                          ? Icons.arrow_upward
+                          : tr.kind == 'stall'
+                          ? Icons.stop
+                          : Icons.arrow_downward,
+                      size: 13,
+                      color: C.kind(tr.kind),
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      tr.text.substring(2),
+                      style: TextStyle(color: C.kind(tr.kind), fontSize: 12, shadows: shadow),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          _sqBtn(
+            Icon(Icons.rocket_launch_outlined, size: 20, color: jump ? C.gold : C.muted),
+            () => jump ? ctl.openJump() : setState(() => tab = MenuTab.tech),
+            tip: jump ? 'Прыжок искры' : 'Прыжок: нужна технология',
+          ),
+        ],
       ),
     );
   }
 
-  Widget _timeBtn(Widget child, VoidCallback f, bool on) => Padding(
-    padding: const EdgeInsets.only(left: 4),
-    child: SizedBox(
-      height: 30,
-      child: FilledButton(
-        onPressed: f,
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          minimumSize: const Size(34, 30),
-          backgroundColor: on ? C.goldBg : C.btn,
-          foregroundColor: on ? C.gold : C.ink,
-        ),
-        child: child,
+  /// Пауза и скорость времени: столбик слева внизу, как кнопки масштаба справа
+  Widget _timeColumn(Game g) => Column(
+    children: [
+      _sqBtn(
+        Icon(g.s.paused ? Icons.play_arrow : Icons.pause, size: 20),
+        () => ctl.setPaused(!g.s.paused),
+        on: g.s.paused,
+        tip: g.s.paused ? 'Продолжить' : 'Пауза',
       ),
-    ),
+      for (final s in [1, 2, 3]) ...[
+        const SizedBox(height: 6),
+        _sqBtn(
+          Text('×$s', style: const TextStyle(fontSize: 13)),
+          () => ctl.setSpeed(s),
+          on: !g.s.paused && g.speed == s,
+          tip: 'Скорость ×$s',
+        ),
+      ],
+    ],
   );
 
   Widget _feed() {
@@ -304,55 +396,136 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  /// Быстрое действие для выбранной клетки (actbar в веб-версии)
-  Widget _actionBar(Game g) {
+  /// Блок выбранной клетки над меню: сущность, свободная клетка, своя клетка или искра
+  Widget? _cellBlock(Game g) {
     final c = g.sel;
-    if (c == null || c.spark) return const SizedBox.shrink();
-    Widget bar(List<Widget> children) => Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: const Color(0xE61C1733),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: C.line),
-      ),
-      child: Row(children: children),
+    if (c == null) return null;
+    Widget open(String label, MenuTab t) => ActBtn(label, () => setState(() => tab = t));
+    Widget line(String text, {Color color = C.muted, double size = 13, FontWeight? w}) => Text(
+      text,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(color: color, fontSize: size, fontWeight: w),
     );
-    if (c.own) {
+    final String title;
+    Widget? chip;
+    final List<Widget> info, buttons;
+    if (c.spark) {
+      final x = g.incomeParts();
+      title = 'Искра';
+      info = [
+        line('+${Fmt.n1(x.base)} материи/с · ядро ×${g.coreMul}', color: C.ok),
+        line('бонус прыжка ×${Fmt.x(g.bonusMul, 2)} · искру нельзя потерять'),
+      ];
+      buttons = [open('Параметры', MenuTab.char)];
+    } else if (c.own) {
       final def = g.cellDef(c), th = g.maxAdjMight(c), danger = th >= def * 0.8, dc = g.defCost(c);
-      return bar([
-        Expanded(
-          child: Text(
-            '🛡 ${Fmt.n(def.floor())} · ${danger ? 'угроза' : 'защищена'}${th > 0 ? ' · сосед ${Fmt.n(th.ceil())}' : ''}',
-            style: TextStyle(color: danger ? C.bad : C.ok),
-          ),
+      final lv = Game.cellLvl(c);
+      title = 'Ваша клетка · ур. $lv';
+      info = [
+        Row(
+          children: [
+            Icon(Icons.shield_outlined, size: 15, color: danger ? C.bad : C.ok),
+            const SizedBox(width: 4),
+            Flexible(
+              child: line(
+                '${Fmt.n(def.floor())} · ${danger ? 'угроза' : 'защищена'}${th > 0 ? ' · сосед ${Fmt.n(th.ceil())}' : ''}',
+                color: danger ? C.bad : C.ok,
+              ),
+            ),
+          ],
         ),
+        line(
+          'материя ${g.st(c, 'm').round()}% · энергия ${g.st(c, 'e').round()}% · сила ${g.st(c, 'f').round()}%'
+          ' · строения ${Game.usedCap(c)} из ${Game.cap(c)}',
+          size: 12,
+        ),
+      ];
+      buttons = [
         ActBtn(
           'Укрепить',
           g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null,
           right: Fmt.n(dc),
           primary: danger,
         ),
-      ]);
-    }
-    if (!c.alive) {
-      final cost = c.might.ceil();
-      return bar([
-        const Expanded(child: Text('Свободная клетка')),
-        ActBtn(
-          'Захватить',
-          g.s.matter >= cost ? () => ctl.act((g) => g.capture(c.key)) : null,
-          right: Fmt.n(cost),
-          primary: true,
+        open('Развитие', MenuTab.cell),
+      ];
+    } else if (!c.alive) {
+      final cost = c.might.ceil(), lack = g.s.matter < cost;
+      title = 'Свободная клетка';
+      info = [
+        line(
+          lack ? 'нужно ещё ${Fmt.n((cost - g.s.matter).ceil())} материи' : 'защитник побеждён, можно взять',
+          color: lack ? C.bad : C.ok,
         ),
-      ]);
+      ];
+      buttons = [
+        ActBtn('Захватить', lack ? null : () => ctl.act((g) => g.capture(c.key)), right: Fmt.n(cost), primary: true),
+        open('Клетка', MenuTab.cell),
+      ];
+    } else {
+      final f = g.foeFromCell(c), fc = g.fightForecast(c), lab = GameForecast.forecastLabel(fc.p);
+      title = f.name;
+      chip = tierChip(c.tier, Defs.tiers[c.tier]!.name);
+      info = [
+        line('${lab.label} · ${(fc.p * 100).round()}%', color: C.kind(lab.kind), size: 14, w: FontWeight.w700),
+        line('мощь ${Fmt.n(c.might.ceil())} · ${g.fcMatter(fc)}', size: 12),
+      ];
+      buttons = [
+        ActBtn('Атаковать', () => ctl.act((g) => g.startBattle(g.foeFromCell(c), c.key)), primary: true),
+        open('Клетка', MenuTab.cell),
+      ];
     }
-    final fc = g.fightForecast(c), lab = GameForecast.forecastLabel(fc.p);
-    return bar([
-      Expanded(
-        child: Text(lab.label, style: TextStyle(color: C.kind(lab.kind))),
+    return Container(
+      key: const ValueKey('cell-block'),
+      padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+      decoration: BoxDecoration(
+        color: const Color(0xF21C1733),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.own ? C.gold.withValues(alpha: 0.4) : C.line),
+        boxShadow: const [BoxShadow(color: Color(0x80000000), blurRadius: 12)],
       ),
-      ActBtn('В бой', () => ctl.act((g) => g.startBattle(g.foeFromCell(c), c.key)), primary: true),
-    ]);
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.w700, color: c.own ? C.gold : C.ink),
+                      ),
+                    ),
+                    if (chip != null) ...[const SizedBox(width: 6), chip],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                ...info,
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          IntrinsicWidth(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < buttons.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 6),
+                  SizedBox(height: 36, child: buttons[i]),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   static const _tabIcons = {
@@ -368,9 +541,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   /// Строка меню внизу экрана: все пункты в один ряд, выбранный подсвечен
   Widget _menu() {
+    // «Клетка» открывается из блока выбранной клетки, «Эры» — кнопкой эры слева вверху
     final tabs = [
-      for (final t in MenuTab.values)
-        if ((t != MenuTab.top) || (ctl.sync?.on ?? false)) t,
+      MenuTab.char,
+      MenuTab.abil,
+      MenuTab.art,
+      MenuTab.tech,
+      if (ctl.sync?.on ?? false) MenuTab.top,
+      MenuTab.acc,
     ];
     return Container(
       key: const ValueKey('menu-bar'),
@@ -462,4 +640,31 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     ),
   );
+}
+
+/// Сообщает высоту ребёнка после раскладки
+class _MeasureSize extends SingleChildRenderObjectWidget {
+  const _MeasureSize({required this.onChange, required super.child});
+  final ValueChanged<double> onChange;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderMeasure(onChange);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderMeasure renderObject) => renderObject.onChange = onChange;
+}
+
+class _RenderMeasure extends RenderProxyBox {
+  _RenderMeasure(this.onChange);
+  ValueChanged<double> onChange;
+  double? _h;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final h = size.height;
+    if (h == _h) return;
+    _h = h;
+    WidgetsBinding.instance.addPostFrameCallback((_) => onChange(h));
+  }
 }
