@@ -8,6 +8,7 @@ import '../core/game.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
 import 'controller.dart';
+import 'map_art.dart';
 import 'portraits.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -144,38 +145,96 @@ class CellPanel extends StatelessWidget {
     final def = g.cellDef(c), th = g.maxAdjMight(c), danger = th >= def * 0.8;
     final lv = Game.cellLvl(c), nx = Game.nextLvlAt(c), from = lv > 0 ? nx / 2 : 0.0;
     final dc = g.defCost(c), gain = g.fortGain(c);
-    final full = Game.usedCap(c) >= Game.cap(c);
+    final cap = Game.cap(c), full = Game.usedCap(c) >= cap;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Ваша клетка', style: h2(C.gold)),
-        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Ваша клетка', style: h2(C.gold)),
+                  Text(
+                    'Уровень $lv (+${lv * 10}%) · до ${lv + 1}-го ${Fmt.clock(nx - c.held)}',
+                    style: const TextStyle(color: C.muted, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  Bar((c.held - from) / (nx - from), height: 4),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            ActBtn(
+              'Укрепить +${Fmt.n1(gain)}',
+              g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null,
+              right: Fmt.n(dc),
+              primary: danger,
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Builder(
+          builder: (context) => _portrait(
+            PlasmaPortrait.cell(
+              slots: slotTypes(c.b, cap),
+              ring: [c.m, c.e, c.f],
+              tagLeft: 'защита ${Fmt.n(def.floor())}',
+              tagRight: '${Game.usedCap(c)} / $cap',
+              onEmptySlot: full ? null : () => _buildMenu(context, c.key),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
         _statBars(g, c),
         const SizedBox(height: 8),
         KV([
-          ('Защита', Fmt.n(def.floor())),
+          ('Защита', '${Fmt.n(def.floor())} · ур. укрепления ${c.defLvl}'),
           ('Сильнейший сосед', th > 0 ? Fmt.n(th.ceil()) : '—'),
-          ('Укрепление', '${c.defLvl} ур. · башни +${Fmt.n(Game.towerPct(Game.bL(c, 'tower')))}%'),
-          ('Ячейки строений', '${Game.usedCap(c)} из ${Game.cap(c)} · новая через ${Fmt.clock(Game.nextSlotIn(c))}'),
+          ('Башни', '+${Fmt.n(Game.towerPct(Game.bL(c, 'tower')))}% защиты'),
+          ('Ячейки строений', '${Game.usedCap(c)} из $cap · новая через ${Fmt.clock(Game.nextSlotIn(c))}'),
           ('Во владении', Fmt.clock(c.held)),
-          ('Уровень', '$lv (+${lv * 10}%)'),
-          ('До уровня ${lv + 1}', Fmt.clock(nx - c.held)),
         ]),
-        const SizedBox(height: 4),
-        Bar((c.held - from) / (nx - from), height: 5),
         if (danger) const Note('Сосед почти сравнялся с защитой.', kind: 'bad'),
-        const SizedBox(height: 10),
-        ActBtn(
-          'Укрепить +${Fmt.n1(gain)}',
-          g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null,
-          right: Fmt.n(dc),
-          primary: danger,
-        ),
         const SizedBox(height: 10),
         for (final b in Defs.buildings.values) _bld(g, c, b, full),
       ],
     );
   }
+
+  // Касание пустой ячейки на орбите: что построить
+  void _buildMenu(BuildContext context, String key) => showDialog<void>(
+    context: context,
+    builder: (ctx) => ListenableBuilder(
+      listenable: ctl,
+      builder: (ctx, _) {
+        final g = ctl.game, c = g.s.cells[key];
+        return SimpleDialog(
+          title: const Text('Построить в ячейке'),
+          contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          children: [
+            if (c != null && c.own)
+              for (final b in Defs.buildings.values)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: ActBtn(
+                    '${b.glyph}  ${b.name}${Game.bL(c, b.id) > 0 ? ' (${Game.bL(c, b.id) + 1} ур.)' : ''}',
+                    g.s.matter >= g.bldCost(c, b.id) && Game.usedCap(c) < Game.cap(c)
+                        ? () {
+                            ctl.act((g) => g.build(key, b.id));
+                            Navigator.pop(ctx);
+                          }
+                        : null,
+                    right: Fmt.n(g.bldCost(c, b.id)),
+                  ),
+                ),
+          ],
+        );
+      },
+    ),
+  );
 
   Widget _bld(Game g, Cell c, BuildingDef b, bool full) {
     final l = Game.bL(c, b.id), cost = g.bldCost(c, b.id);
