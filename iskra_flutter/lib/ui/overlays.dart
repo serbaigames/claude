@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../core/game.dart';
 import '../net/cloud_sync.dart';
+import 'battle_scene.dart';
 import 'controller.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -47,7 +48,12 @@ class BattleOverlay extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              SizedBox(height: 120, child: CustomPaint(painter: _ArenaPainter(g, b))),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: LayoutBuilder(
+                  builder: (context, box) => SizedBox(height: math.min(box.maxWidth * 9 / 16, 230), child: BattleScene(b)),
+                ),
+              ),
               const SizedBox(height: 8),
               const Text('Враг', style: TextStyle(color: C.muted, fontSize: 12)),
               Bar(
@@ -191,87 +197,6 @@ class BattleOverlay extends StatelessWidget {
       ],
     );
   }
-}
-
-/// Арена: искра слева, сущность справа, числа урона всплывают над ними
-class _ArenaPainter extends CustomPainter {
-  _ArenaPainter(this.g, this.b);
-  final Game g;
-  final Battle b;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final t = g.now;
-    final p = Offset(size.width * 0.25, size.height * 0.55), f = Offset(size.width * 0.75, size.height * 0.55);
-    Offset shake(double until) => until > t ? Offset(math.sin(t * 60) * 3, 0) : Offset.zero;
-    final pr = p + shake(b.shP), fr = f + shake(b.shF);
-    final fcol = Color(Defs.tierColor[b.foe.tier]!);
-    void orb(Offset c, double r, Color col, bool dead) {
-      canvas.drawCircle(
-        c,
-        r * 1.6,
-        Paint()
-          ..shader = RadialGradient(colors: [col.withValues(alpha: 0.35), col.withValues(alpha: 0)])
-              .createShader(Rect.fromCircle(center: c, radius: r * 1.6)),
-      );
-      canvas.drawCircle(c, dead ? r * 0.6 : r, Paint()..color = dead ? col.withValues(alpha: 0.3) : col);
-    }
-
-    orb(pr, 26, C.gold, b.over && !b.won);
-    orb(fr, b.foe.tier == 'legend' ? 34 : 28, fcol, b.over && b.won);
-    if (b.immune > 0 || b.shield > 0) {
-      canvas.drawCircle(
-        pr,
-        34,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
-          ..color = const Color(0xFF9FD3FF),
-      );
-    }
-    for (final v in b.fx) {
-      final age = t - v.t0;
-      if (age > 1) continue;
-      final at = v.at == 'p' ? pr : fr;
-      if (v.kind == 'num' && v.text != null) {
-        final tp = TextPainter(
-          text: TextSpan(
-            text: v.text,
-            style: TextStyle(
-              fontFamily: bodyFont,
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-              color: Color(v.color).withValues(alpha: 1 - age),
-            ),
-          ),
-          textDirection: TextDirection.ltr,
-        )..layout();
-        tp.paint(canvas, at + Offset(-tp.width / 2, -44 - age * 30));
-      } else if (v.kind == 'bolt' && age < 0.3) {
-        final from = v.at == 'p' ? pr : fr, to = v.at == 'p' ? fr : pr;
-        canvas.drawLine(
-          from,
-          Offset.lerp(from, to, age / 0.3)!,
-          Paint()
-            ..strokeWidth = 3
-            ..strokeCap = StrokeCap.round
-            ..color = Color(v.color),
-        );
-      } else if ((v.kind == 'heal' || v.kind == 'flash') && age < 0.5) {
-        canvas.drawCircle(
-          at,
-          30 + age * 40,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2
-            ..color = Color(v.color).withValues(alpha: 1 - age * 2),
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter old) => true;
 }
 
 /* ---------- клетка под ударом ---------- */

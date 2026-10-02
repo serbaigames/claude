@@ -24,6 +24,8 @@ void main() {
     await tester.tap(find.text('В бой').first);
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Начать бой'), findsOneWidget);
+    await tester.ensureVisible(find.text('Отступить'));
+    await tester.pump();
     await tester.tap(find.text('Отступить'));
     await tester.pump(const Duration(milliseconds: 100));
     expect(ctl.game.b, isNull);
