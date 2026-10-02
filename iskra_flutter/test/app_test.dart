@@ -28,14 +28,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     expect(ctl.game.b, isNull);
 
-    for (final t in ['Персонаж', 'Способности', 'Артефакты', 'Технологии', 'Эры', 'Аккаунт']) {
-      final chip = find.widgetWithText(ChoiceChip, t);
-      await tester.ensureVisible(chip);
-      await tester.pump();
-      await tester.tap(chip);
+    for (final (t, key) in [
+      ('Персонаж', 'char'),
+      ('Способности', 'abil'),
+      ('Артефакты', 'art'),
+      ('Технологии', 'tech'),
+      ('Эры', 'era'),
+      ('Аккаунт', 'acc'),
+    ]) {
+      final item = find.descendant(of: find.byKey(const ValueKey('menu-bar')), matching: find.text(t));
+      await tester.tap(item);
       await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byKey(ValueKey('window-$key')), findsOneWidget, reason: 'пункт «$t» открывается окном');
     }
     expect(find.text('Статистика'), findsOneWidget);
+    await tester.tap(find.byTooltip('Закрыть'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('Статистика'), findsNothing);
     expect(prefs.getString(GameController.saveKey), isNull, reason: 'сохранение раз в 5 секунд');
     await tester.pump(const Duration(seconds: 6));
     expect(prefs.getString(GameController.saveKey), isNotNull);
