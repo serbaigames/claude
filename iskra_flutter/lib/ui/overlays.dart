@@ -27,13 +27,16 @@ class BattleOverlay extends StatelessWidget {
           if (b == null) return const SizedBox.shrink();
           final f = b.foe, t = Defs.tiers[f.tier]!;
           final full = g.turnCd() * (b.haste > 0 ? 0.5 : 1);
-          // продолжительные эффекты: (значок, подпись, осталось секунд, полезный ли)
-          final fx = <(Widget, String, double, bool)>[
+          // продолжительные эффекты: (значок, подпись, осталось секунд, полезный ли);
+          // на искре — слева под ней, на сущности — справа под ней
+          final mine = <(Widget, String, double, bool)>[
             if (b.shield > 0) (abilityIcon('veil', size: 16), 'Покров: урон по вам −50%', b.shield, true),
             if (b.immune > 0) (abilityIcon('dark_shield', size: 16), 'Неуязвимость', b.immune, true),
             if (b.haste > 0) (abilityIcon('haste', size: 16), 'Ускорение ходов', b.haste, true),
             if (b.mend > 0) (abilityIcon('mend', size: 16), 'Восстановление здоровья', b.mend, true),
             if (b.refl > 0) (abilityIcon('mirror', size: 16), 'Зеркало: удары отражаются', b.refl, true),
+          ];
+          final foe = <(Widget, String, double, bool)>[
             if (b.weak > 0) (abilityIcon('wither', size: 16), 'Враг ослаблен', b.weak, true),
             if (b.dot > 0) (abilityIcon('ember', size: 16), 'Враг горит', b.dot, true),
             if (b.dispel > 0) (abilityIcon('dispel', size: 16), 'Особенности врага отключены', b.dispel, true),
@@ -64,11 +67,14 @@ class BattleOverlay extends StatelessWidget {
                           left: 6,
                           right: 6,
                           bottom: 6,
-                          child: Wrap(
+                          child: Row(
                             key: const ValueKey('battle-fx'),
-                            spacing: 4,
-                            runSpacing: 4,
-                            children: [for (final e in fx) _fxChip(e.$1, e.$2, e.$3, e.$4)],
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Expanded(child: _fxGroup('Искра', mine, WrapAlignment.start, C.gold)),
+                              const SizedBox(width: 8),
+                              Expanded(child: _fxGroup('Сущность', foe, WrapAlignment.end, Color(Defs.tierColor[f.tier]!))),
+                            ],
                           ),
                         ),
                       ],
@@ -122,27 +128,45 @@ class BattleOverlay extends StatelessWidget {
               ],
               if (b.choice != null) _choice(g, b) else if (b.started && !b.over) _abilities(g, b),
               const SizedBox(height: 8),
-              ActBtn(b.over ? 'Закрыть' : 'Отступить', () => ctl.act((g) => g.closeBattle()), danger: !b.over && b.started),
-              if (!b.started && !b.over)
-                const Padding(
-                  padding: EdgeInsets.only(top: 4),
-                  child: Text(
-                    'До начала боя отступить можно без штрафа',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: C.muted, fontSize: 12),
-                  ),
-                ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 90,
-                child: ListView(
-                  children: [for (final l in b.log.take(30)) Text(l, style: const TextStyle(fontSize: 12, color: C.muted))],
-                ),
+              ActBtn(
+                b.over ? 'Закрыть' : 'Отступить',
+                () => ctl.act((g) => g.closeBattle()),
+                danger: !b.over && b.started,
+                // во время боя отступление стоит половину штрафа сущности; до начала — бесплатно
+                right: b.over
+                    ? null
+                    : b.started
+                    ? '−${Fmt.n((f.pen * 0.5).floor())} материи${b.defend != null ? ' и клетка' : ''}'
+                    : 'без штрафа',
               ),
+              const SizedBox(height: 4),
+              _BattleLog(b.log),
             ],
           );
         },
       ),
+    );
+  }
+
+  /// Эффекты одной стороны боя: подпись и значки с таймерами
+  Widget _fxGroup(String who, List<(Widget, String, double, bool)> fx, WrapAlignment align, Color tone) {
+    if (fx.isEmpty) return const SizedBox.shrink();
+    final end = align == WrapAlignment.end;
+    return Column(
+      crossAxisAlignment: end ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+          decoration: BoxDecoration(color: const Color(0xC0100C1E), borderRadius: BorderRadius.circular(6)),
+          child: Text(
+            who,
+            style: TextStyle(fontSize: 10, color: tone, fontWeight: FontWeight.w700),
+          ),
+        ),
+        Wrap(alignment: align, spacing: 4, runSpacing: 4, children: [for (final e in fx) _fxChip(e.$1, e.$2, e.$3, e.$4)]),
+      ],
     );
   }
 
@@ -198,7 +222,7 @@ class BattleOverlay extends StatelessWidget {
     final a = g.s.abilities[i];
     if (a == null) {
       return Container(
-        height: 64,
+        height: 80,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -216,7 +240,7 @@ class BattleOverlay extends StatelessWidget {
         onTap: can ? () => ctl.act((g) => g.doAction('ab$i')) : null,
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          height: 64,
+          height: 80,
           decoration: BoxDecoration(
             color: col.withValues(alpha: can ? 0.16 : 0.05),
             borderRadius: BorderRadius.circular(10),
@@ -243,7 +267,20 @@ class BattleOverlay extends StatelessWidget {
                   ],
                 ),
               ),
-              Text(d.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11)),
+              // название целиком: два слова — в две строки, длинное слово ужимается
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      d.name.replaceFirst(' ', '\n'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 11, height: 1.1),
+                    ),
+                  ),
+                ),
+              ),
               Text('${info.cost.toInt()} мат.', style: const TextStyle(fontSize: 10, color: C.muted)),
             ],
           ),
@@ -285,6 +322,38 @@ class BattleOverlay extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Журнал боя под спойлером: закрыт, пока игрок сам его не откроет
+class _BattleLog extends StatefulWidget {
+  const _BattleLog(this.log);
+  final List<String> log;
+  @override
+  State<_BattleLog> createState() => _BattleLogState();
+}
+
+class _BattleLogState extends State<_BattleLog> {
+  bool open = false;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      TextButton.icon(
+        key: const ValueKey('battle-log'),
+        onPressed: () => setState(() => open = !open),
+        style: TextButton.styleFrom(foregroundColor: C.muted, alignment: Alignment.centerLeft),
+        icon: Icon(open ? Icons.expand_less : Icons.expand_more, size: 18),
+        label: Text(open ? 'Скрыть журнал боя' : 'Журнал боя'),
+      ),
+      if (open)
+        SizedBox(
+          height: 110,
+          child: ListView(
+            children: [for (final l in widget.log.take(30)) Text(l, style: const TextStyle(fontSize: 12, color: C.muted))],
+          ),
+        ),
+    ],
+  );
 }
 
 /* ---------- клетка под ударом ---------- */

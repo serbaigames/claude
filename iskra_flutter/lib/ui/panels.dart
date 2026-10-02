@@ -535,59 +535,153 @@ class _CharPanelState extends State<CharPanel> {
   Widget _param(Game g, ParamDef p) {
     final e = g.eff(p.id), x = g.parInfo(p.id, parMode), col = Color(p.color);
     final can = x.n > 0 && g.s.op >= x.cost;
-    return Tooltip(
-      message: p.desc,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-        decoration: BoxDecoration(
-          color: col.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: e.pen > 0 ? C.bad.withValues(alpha: 0.7) : col.withValues(alpha: 0.4)),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(paramIcons[p.id], size: 16, color: col),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    p.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: C.muted),
+    return Stack(
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
+          decoration: BoxDecoration(
+            color: col.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: e.pen > 0 ? C.bad.withValues(alpha: 0.7) : col.withValues(alpha: 0.4)),
+          ),
+          child: Column(
+            children: [
+              // справа — место под кнопку справки; длинное название ужимается, а не обрезается
+              Padding(
+                padding: const EdgeInsets.only(right: 18),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(paramIcons[p.id], size: 16, color: col),
+                      const SizedBox(width: 4),
+                      Text(p.name, style: const TextStyle(fontSize: 12, color: C.muted)),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            Text(
-              '${g.s.char[p.id]}',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: col),
-            ),
-            SizedBox(
-              height: 16,
-              child: e.pen > 0
-                  ? Text('штраф −${(e.pen * 100).round()}%', style: const TextStyle(color: C.bad, fontSize: 11))
-                  : null,
-            ),
-            const SizedBox(height: 2),
-            SizedBox(
-              width: double.infinity,
-              height: 30,
-              child: FilledButton(
-                onPressed: can ? () => widget.ctl.act((g) => g.parUp(p.id, parMode)) : null,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  backgroundColor: C.btn,
-                  foregroundColor: C.ink,
-                  side: BorderSide(color: can ? col.withValues(alpha: 0.5) : C.line),
-                ),
-                child: FittedBox(child: Text('+${x.n} · ${Fmt.n(x.cost)} ОП', style: const TextStyle(fontSize: 12))),
               ),
+              Text(
+                '${g.s.char[p.id]}',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: col),
+              ),
+              SizedBox(
+                height: 16,
+                child: e.pen > 0
+                    ? Text('штраф −${(e.pen * 100).round()}%', style: const TextStyle(color: C.bad, fontSize: 11))
+                    : null,
+              ),
+              const SizedBox(height: 2),
+              SizedBox(
+                width: double.infinity,
+                height: 30,
+                child: FilledButton(
+                  onPressed: can ? () => widget.ctl.act((g) => g.parUp(p.id, parMode)) : null,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    backgroundColor: C.btn,
+                    foregroundColor: C.ink,
+                    side: BorderSide(color: can ? col.withValues(alpha: 0.5) : C.line),
+                  ),
+                  child: FittedBox(child: Text('+${x.n} · ${Fmt.n(x.cost)} ОП', style: const TextStyle(fontSize: 12))),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: IconButton(
+            key: ValueKey('par-info-${p.id}'),
+            tooltip: 'О параметре «${p.name}»',
+            onPressed: () => _help(context, g, p),
+            icon: const Icon(Icons.info_outline, size: 16, color: C.muted),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 26, height: 26),
+            visualDensity: VisualDensity.compact,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Расширенная справка о параметре с текущими числами
+  void _help(BuildContext context, Game g, ParamDef p) {
+    final e = g.eff(p.id), v = g.s.char[p.id] ?? 1, col = Color(p.color);
+    String x2(double v) => Fmt.x(v, 2);
+    final (what, now) = switch (p.id) {
+      'life' => (
+        'Запас здоровья искры в бою: 60 единиц и ещё 40 за каждое очко Жизни. Если здоровье кончится, бой проигран '
+            'и спишется штраф материей.',
+        'Здоровье в бою: ${Fmt.n(g.maxHp().round())}',
+      ),
+      'defense' => (
+        'Каждый удар сущности тьмы делится на делитель Защиты: 1 и ещё 0,125 за каждое очко сверх первого. '
+            'Покров и ослабление врага снижают урон дополнительно.',
+        'Делитель урона: ${x2(g.defDiv())}',
+      ),
+      'power' => (
+        'Множитель силы ваших атак и атакующих способностей: +12,5% за каждое очко сверх первого. '
+            'Некоторые эры усиливают или ослабляют его.',
+        'Сила атаки: ×${x2(g.powMul())}',
+      ),
+      'meditation' => (
+        'Сколько материи искра вкладывает в каждый ход: атака стоит 4 материи × Медитацию и во столько же раз сильнее. '
+            'Урон и лечение способностей тоже растут от Медитации. Чем она выше, тем дороже бой, но тем он короче.',
+        'Медитация ×${x2(g.med())}, атака стоит ${math.max(1, (4 * g.med()).ceil())} материи',
+      ),
+      'speed' => (
+        'Как быстро откатывается ход искры: 1,4 с, делённые на 1 + 0,06 за каждое очко сверх первого. '
+            'Эры и «Ускорение» меняют откат.',
+        'Откат хода: ${Fmt.x(g.turnCd(), 2)} с',
+      ),
+      _ => (
+        'Защита всех ваших клеток растёт на 1% за каждое очко Управления сверх первого (проценты складываются '
+            'умножением). Сильнее защита — реже тьма отнимает клетки.',
+        'Бонус к защите клеток: +${Fmt.x(g.ctrlPct, 1)}%',
+      ),
+    };
+    showDialog<void>(
+      context: context,
+      builder: (c) => AlertDialog(
+        key: ValueKey('par-help-${p.id}'),
+        backgroundColor: C.panel,
+        title: Row(
+          children: [
+            Icon(paramIcons[p.id], color: col),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text('${p.name}: $v', style: TextStyle(color: col)),
             ),
           ],
         ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(what),
+              const SizedBox(height: 10),
+              Text(now, style: const TextStyle(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 10),
+              Text(
+                'Перекос: если параметр больше среднего по всем шести (сейчас ${Fmt.x(g.parAvg, 1)}) в 1,5 раза, '
+                'его действие слабеет на 10%, в 2 раза — на 25%, в 2,5 раза — на 50%.',
+                style: const TextStyle(color: C.muted, fontSize: 13),
+              ),
+              if (e.pen > 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    'Сейчас штраф −${(e.pen * 100).round()}%: действует как ${Fmt.x(e.v, 1)} вместо $v.',
+                    style: const TextStyle(color: C.bad, fontSize: 13),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('Понятно'))],
       ),
     );
   }
@@ -626,7 +720,7 @@ class _RadarPainter extends CustomPainter {
       for (final (k, p) in Game.penSteps) {
         final rr = k * avg / mx;
         if (rr > 1.0001) continue;
-        final hit = vals.any((v) => v >= k * avg);
+        final hit = vals.any((v) => v > k * avg);
         canvas.drawCircle(
           c,
           r * rr,
@@ -642,7 +736,7 @@ class _RadarPainter extends CustomPainter {
           ),
           textDirection: TextDirection.ltr,
         )..layout();
-        tp.paint(canvas, c + Offset(r * rr * 0.72, -r * rr * 0.72) - Offset(0, tp.height));
+        tp.paint(canvas, c + Offset(r * rr * 0.5, r * rr * 0.866) + const Offset(3, -2));
       }
     }
     final poly = [for (var i = 0; i < n; i++) at(i, vals[i] / mx)];
@@ -937,7 +1031,7 @@ class TechPanel extends StatefulWidget {
 
 class _TechPanelState extends State<TechPanel> {
   // все узлы дерева одного размера; дерево двигается пальцем и масштабируется
-  static const nodeW = 124.0, nodeH = 172.0, gapX = 14.0, gapY = 56.0;
+  static const nodeW = 124.0, nodeH = 140.0, gapX = 14.0, gapY = 44.0;
   static const treeW = 6 * nodeW + 5 * gapX, treeH = 3 * nodeH + 2 * gapY;
   final view = TransformationController();
   double? _fitFor;

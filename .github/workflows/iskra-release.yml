@@ -1,0 +1,58 @@
+# Релиз Flutter-версии «Искры»: APK для Android и веб-сборка с PHP-сервером.
+# Запускается тегом iskra-v* (например, iskra-v0.2.0) или вручную из вкладки Actions.
+name: iskra-release
+
+on:
+  push:
+    tags: ['iskra-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Тег релиза, например iskra-v0.2.0'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: iskra_flutter
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.6'
+          cache: true
+      - run: flutter pub get
+      - run: flutter test
+      - name: APK
+        run: |
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk "../iskra-${TAG#iskra-v}.apk"
+      - name: Веб-сборка с сервером
+        run: |
+          flutter build web --release --no-web-resources-cdn
+          mkdir -p ../web-pkg
+          cp -r build/web/. ../web-pkg/
+          cp -r server/api server/data ../web-pkg/
+          cd ../web-pkg && zip -qr "../iskra-web-${TAG#iskra-v}.zip" .
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          target_commitish: ${{ github.sha }}
+          name: Искра ${{ env.TAG }}
+          body_path: iskra_flutter/RELEASE_NOTES.md
+          prerelease: true
+          files: |
+            iskra-*.apk
+            iskra-web-*.zip

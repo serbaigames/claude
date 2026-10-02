@@ -33,7 +33,7 @@ class ActBtn extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+          Flexible(child: Text(label, textAlign: TextAlign.center)),
           if (right != null) ...[
             const SizedBox(width: 8),
             Text(right!, style: TextStyle(fontSize: 12, color: fg.withValues(alpha: 0.75))),

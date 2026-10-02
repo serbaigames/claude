@@ -322,16 +322,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${e.name} · ${l ~/ 60}:${(l % 60).toString().padLeft(2, '0')}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: C.kind(e.kind), fontWeight: FontWeight.w700, shadows: shadow),
+                  // название эры может перенестись, таймер всегда целиком
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          e.name,
+                          style: TextStyle(color: C.kind(e.kind), fontWeight: FontWeight.w700, shadows: shadow),
+                        ),
+                      ),
+                      Text(
+                        ' · ${l ~/ 60}:${(l % 60).toString().padLeft(2, '0')}',
+                        style: TextStyle(color: C.kind(e.kind), fontWeight: FontWeight.w700, shadows: shadow),
+                      ),
+                    ],
                   ),
                   Text(
                     e.desc,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: C.muted, fontSize: 12, shadows: shadow),
                   ),
                 ],
