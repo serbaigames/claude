@@ -52,6 +52,7 @@ jobs:
           mkdir -p ../web-pkg
           cp -r build/web/. ../web-pkg/
           cp -r server/api server/data ../web-pkg/
+          cp server/site.htaccess ../web-pkg/.htaccess
           cd ../web-pkg && zip -qr "../iskra-web-${TAG#iskra-v}.zip" .
       - uses: softprops/action-gh-release@v2
         with:

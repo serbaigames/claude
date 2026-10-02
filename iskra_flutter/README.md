@@ -23,6 +23,11 @@ flutter run --dart-define=ISKRA_SERVER=https://example.com/iskra/
 содержимое `build/web/` и папку `server/api/` — на хостинг рядом. Без сервера игра работает,
 прогресс хранится только на устройстве.
 
+Веб-движку Flutter (CanvasKit) нужны от сервера две вещи, иначе вместо игры белый экран:
+файлы `.wasm` с типом `application/wasm` и `'wasm-unsafe-eval'` в `script-src`, если сайт отдаёт заголовок
+Content-Security-Policy. Для Apache всё это есть в `server/site.htaccess` (положить в корень сайта как `.htaccess`),
+для nginx — в `server/nginx.conf.example` и `server/iskra-security.conf`. Готовый архив из релиза уже содержит `.htaccess`.
+
 ## Устройство
 
 ```
