@@ -196,9 +196,18 @@ void paintBlackHole(Canvas c, Offset o, double r, double t, Color tier) {
 }
 
 /// Искра: звезда с короной, протуберанцами и горячим ядром
-void paintSparkStar(Canvas c, Offset o, double r, double t, double charge, {double speed = 1}) {
+void paintSparkStar(
+  Canvas c,
+  Offset o,
+  double r,
+  double t,
+  double charge, {
+  double speed = 1,
+  int rays = 44,
+  bool flares = true,
+}) {
   plasmaGlow(c, o, r * (3 + charge * 1.5), _sparkHalo, .22 + .25 * charge);
-  for (final q in _rays) {
+  for (final q in _rays.take(rays)) {
     final a = q.a + t * .12 * q.dir * speed, len = r * q.l * (1 + .25 * math.sin(t * 3 + q.ph)) * (1 + charge * .7), wd = r * q.w;
     final tip = o + Offset(math.cos(a), math.sin(a)) * len * 1.6;
     c.drawPath(
@@ -218,7 +227,7 @@ void paintSparkStar(Canvas c, Offset o, double r, double t, double charge, {doub
     );
   }
   // протуберанцы
-  for (var k = 0; k < 3; k++) {
+  for (var k = 0; k < (flares ? 3 : 0); k++) {
     final a = k * 2.1 + t * .2, rr = r * .72, hh = r * (.35 + .15 * math.sin(t * 1.7 + k));
     final p0 = o + Offset(math.cos(a - .25), math.sin(a - .25)) * rr, p1 = o + Offset(math.cos(a + .25), math.sin(a + .25)) * rr;
     final cp = o + Offset(math.cos(a), math.sin(a)) * (rr + hh * 2);
