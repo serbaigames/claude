@@ -1,12 +1,13 @@
 name: iskra
 description: "Искра — мир шестигранников. Flutter-версия браузерной игры."
 publish_to: 'none'
-version: 0.3.0+4
+version: 0.4.0+5
 
 environment:
   sdk: ^3.13.5
 
 dependencies:
+  audioplayers: ^6.8.1
   flutter:
     sdk: flutter
   http: ^1.6.0
@@ -22,6 +23,7 @@ flutter:
 
   assets:
     - assets/icons/
+    - assets/audio/
 
   # Шрифты веб-версии (SIL OFL 1.1, тексты лицензий в assets/fonts)
   fonts:

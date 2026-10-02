@@ -2,17 +2,16 @@
 // Тексты и подсказки взяты из веб-версии.
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/game.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
 import 'controller.dart';
-import 'gfx.dart';
 import 'icons.dart';
 import 'map_art.dart';
 import 'portraits.dart';
+import 'settings.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -25,7 +24,7 @@ const tabTitles = {
   MenuTab.art: 'Артефакты',
   MenuTab.tech: 'Технологии',
   MenuTab.era: 'Эры',
-  MenuTab.acc: 'Аккаунт',
+  MenuTab.acc: 'Настройки',
   MenuTab.top: 'Рейтинги',
 };
 
@@ -36,7 +35,7 @@ Widget panelFor(MenuTab t, GameController ctl) => switch (t) {
   MenuTab.art => ArtPanel(ctl),
   MenuTab.tech => TechPanel(ctl),
   MenuTab.era => EraPanel(ctl),
-  MenuTab.acc => AccountPanel(ctl),
+  MenuTab.acc => SettingsPanel(ctl),
   MenuTab.top => TopPanel(ctl),
 };
 
@@ -1475,7 +1474,7 @@ class EraPanel extends StatelessWidget {
   }
 }
 
-/* ---------- аккаунт и статистика ---------- */
+/* ---------- аккаунт (вкладка окна «Настройки») ---------- */
 class AccountPanel extends StatefulWidget {
   const AccountPanel(this.ctl, {super.key});
   final GameController ctl;
@@ -1579,14 +1578,7 @@ class _AccountPanelState extends State<AccountPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final ctl = widget.ctl, g = ctl.game, sync = ctl.sync, k = g.s.kills;
-    final stats = KV([
-      ('Материя за всё время', Fmt.n(g.s.earned)),
-      ('Рекорд клеток', '${g.s.bestCells}'),
-      ('Прыжков', '${g.s.rebirths}'),
-      ('Побеждено: низшие / редкие / эпические / легендарные', '${k['low']} / ${k['rare']} / ${k['epic']} / ${k['legend']}'),
-      ('Время в этом мире', Fmt.time(g.s.worldTime)),
-    ]);
+    final sync = widget.ctl.sync;
     final List<Widget> acc;
     if (sync == null || !sync.on) {
       acc = [
@@ -1690,36 +1682,6 @@ class _AccountPanelState extends State<AccountPanel> {
         const SizedBox(height: 6),
         ...acc,
         if (err != null) Note(err!, kind: 'bad'),
-        const SizedBox(height: 14),
-        Text('Качество графики', style: h2()),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: double.infinity,
-          child: SegmentedButton<GfxLevel>(
-            key: const ValueKey('gfx'),
-            showSelectedIcon: false,
-            segments: [
-              for (final l in GfxLevel.values)
-                ButtonSegment(
-                  value: l,
-                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(gfxNames[l]!)),
-                ),
-            ],
-            selected: {ctl.gfx},
-            onSelectionChanged: (v) => ctl.setGfx(v.first),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(gfxInfo[ctl.gfx]!, style: const TextStyle(color: C.muted, fontSize: 13)),
-        if (kIsWeb)
-          const Text(
-            'Чёткость изображения в браузере меняется после перезагрузки страницы.',
-            style: TextStyle(color: C.muted, fontSize: 12),
-          ),
-        const SizedBox(height: 14),
-        Text('Статистика', style: h2()),
-        const SizedBox(height: 6),
-        stats,
         const SizedBox(height: 14),
         ActBtn('Начать заново', () => _askReset(context), danger: true),
       ],

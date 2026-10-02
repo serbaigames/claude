@@ -3,10 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:iskra/main.dart';
 import 'package:iskra/ui/controller.dart';
 import 'package:iskra/ui/gfx.dart';
+import 'package:iskra/ui/sound.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('приложение запускается, вступление закрывается, вкладки открываются', (tester) async {
+    Sound.enabled = false;
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final ctl = GameController(prefs);
@@ -37,14 +39,15 @@ void main() {
       ('Способности', 'abil'),
       ('Артефакты', 'art'),
       ('Технологии', 'tech'),
-      ('Аккаунт', 'acc'),
+      ('Настройки', 'acc'),
     ]) {
       final item = find.descendant(of: find.byKey(const ValueKey('menu-bar')), matching: find.text(t));
       await tester.tap(item);
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byKey(ValueKey('window-$key')), findsOneWidget, reason: 'пункт «$t» открывается окном');
     }
-    expect(find.text('Статистика'), findsOneWidget);
+    // настройки открываются на вкладке «Аккаунт»
+    expect(find.byKey(const ValueKey('settings-tabs')), findsOneWidget);
     // «Начать заново» спрашивает подтверждение и перечисляет, что сбросится
     await tester.ensureVisible(find.text('Начать заново'));
     await tester.pump();
@@ -56,6 +59,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const ValueKey('reset-dialog')), findsNothing);
     // качество графики переключается и сохраняется
+    await tester.tap(find.byKey(const ValueKey('set-app')));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('Музыка'), findsOneWidget);
     expect(ctl.gfx, GfxLevel.high);
     await tester.ensureVisible(find.text('Лёгкий режим'));
     await tester.tap(find.text('Лёгкий режим'));
@@ -64,9 +70,18 @@ void main() {
     expect(prefs.getString(GameController.gfxKey), 'low');
     ctl.setGfx(GfxLevel.high);
     await tester.pump(const Duration(milliseconds: 100));
+    // громкость музыки сохраняется
+    ctl.sound.setMusic(0.25);
+    expect(prefs.getDouble('iskra-vol-music'), 0.25);
+    for (final (t, key) in [('stats', 'stats'), ('about', 'app-version'), ('dev', 'donate-empty')]) {
+      await tester.ensureVisible(find.byKey(ValueKey('set-$t')));
+      await tester.tap(find.byKey(ValueKey('set-$t')));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byKey(ValueKey(key)), findsOneWidget, reason: 'вкладка $t');
+    }
     await tester.tap(find.byTooltip('Закрыть'));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('Статистика'), findsNothing);
+    expect(find.byKey(const ValueKey('settings-tabs')), findsNothing);
 
     // кнопка эры слева вверху открывает окно эр, кнопка прыжка без технологии — окно технологий
     await tester.tap(find.byTooltip('Эры'));

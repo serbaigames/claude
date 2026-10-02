@@ -10,6 +10,7 @@ import '../core/game.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
 import 'gfx.dart';
+import 'sound.dart';
 
 class FeedItem {
   final String text, kind;
@@ -29,7 +30,7 @@ class PrefsStore implements KeyValueStore {
 }
 
 class GameController extends ChangeNotifier {
-  GameController(this.prefs, {Uri? server}) {
+  GameController(this.prefs, {Uri? server}) : sound = Sound(prefs) {
     _boot();
     if (server != null) {
       final api = IskraApi(
@@ -50,6 +51,7 @@ class GameController extends ChangeNotifier {
   static const _sessionKey = 'iskra-session';
 
   final SharedPreferences prefs;
+  final Sound sound;
   late Game game;
   CloudSync? sync;
 
@@ -85,7 +87,8 @@ class GameController extends ChangeNotifier {
 
   Game _newGameObject() => Game()
     ..onLog = log
-    ..onDefend = notifyListeners;
+    ..onDefend = notifyListeners
+    ..onSfx = sound.play;
 
   bool _attach(String raw) {
     try {
@@ -131,6 +134,7 @@ class GameController extends ChangeNotifier {
       save();
       notifyListeners();
     }
+    sound.setBattle(game.b != null);
     frameTick.value++;
     if (_gate.pass(dt)) paintTick.value++;
     _panelT += dt;
@@ -152,6 +156,7 @@ class GameController extends ChangeNotifier {
 
   /// Приложение свернули: сохраняем всё сразу
   void onPause() {
+    sound.setAppPaused(true);
     save();
     sync?.cloudSave();
   }
@@ -188,6 +193,7 @@ class GameController extends ChangeNotifier {
       });
       return;
     }
+    if (key != null) sound.play('tap');
     act((g) => g.s.sel = key);
   }
 
@@ -233,6 +239,7 @@ class GameController extends ChangeNotifier {
   void dispose() {
     frameTick.dispose();
     paintTick.dispose();
+    sound.dispose();
     sync?.api.close();
     super.dispose();
   }

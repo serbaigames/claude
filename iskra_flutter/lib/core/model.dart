@@ -195,6 +195,9 @@ class GameState {
   int speed = 1;
   Map<String, Object?> extra = {};
 
+  /// Накопительная статистика (только у Flutter-версии): бои, захваты, урон, время игры…
+  Map<String, double> st = {};
+
   static List<AbilitySlot?> newSlots() => [AbilitySlot('spark_strike'), null, null, null];
 
   static const _known = {
@@ -231,6 +234,7 @@ class GameState {
     'lostOnce',
     'paused',
     'speed',
+    'st',
   };
 
   /// Проверка как в load() и на сервере: есть клетки, число материи и клетка искры
@@ -331,6 +335,12 @@ class GameState {
     s.lostOnce = _b(j['lostOnce']);
     s.paused = _b(j['paused']);
     s.speed = _i(j['speed'], 1).clamp(1, 3);
+    final st = j['st'];
+    if (st is Map) {
+      st.forEach((k, v) {
+        if (k is String && v is num && v.isFinite) s.st[k] = v.toDouble();
+      });
+    }
     return s;
   }
 
@@ -368,6 +378,7 @@ class GameState {
     'sel': sel,
     'lostOnce': lostOnce,
     'paused': paused,
+    if (st.isNotEmpty) 'st': st,
     'speed': speed,
   };
 

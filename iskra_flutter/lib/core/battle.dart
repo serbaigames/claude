@@ -106,6 +106,8 @@ extension GameBattle on Game {
     if (!pierce && _has('shell') && bt.foe.hp > bt.foe.maxHp * 0.5) d *= 0.65;
     d = jsRound(d);
     bt.foe.hp -= d;
+    stat('dmg', d);
+    if (d > stv('maxHit')) s.st['maxHit'] = d;
     bt.shF = now + 0.25;
     _vfx('num', 'f', 0xFFFFE3A3, '−${d.toInt()}');
     return d;
@@ -117,6 +119,7 @@ extension GameBattle on Game {
     bt.hp = math.min(bt.maxHp, bt.hp + h);
     final x = jsRound(bt.hp - before);
     if (x > 0) {
+      sfx('heal');
       _vfx('heal', 'p', 0xFF7BE0A8);
       _vfx('num', 'p', 0xFF7BE0A8, '+${x.toInt()}');
     }
@@ -128,6 +131,8 @@ extension GameBattle on Game {
     if (bt == null || bt.started || bt.over) return;
     bt.started = true;
     bt.status = 'Бой идёт! Каждый ход тратит свободную материю.';
+    stat('battles');
+    sfx('start');
     _vfx('flash', 'p', 0xFFFFF3C4);
   }
 
@@ -140,10 +145,13 @@ extension GameBattle on Game {
     s.matter -= info.cost;
     if (act == 'attack') {
       _vfx('bolt', 'p', 0xFFFFD27A);
+      sfx('zap');
       _blog('Атака: ${_hitFoe(10 * med() * powMul() * rnd(.9, 1.1)).toInt()} урона (−${info.cost.toInt()} материи)');
     } else {
       final i = int.parse(act.substring(2));
       final a = s.abilities[i]!, d = Defs.abilities[a.id]!, v = abVal(a);
+      stat('abil');
+      sfx('cast');
       bt.abCd[i] = d.cd;
       _vfx(d.kind == 'heal' || d.kind == 'regenme' ? 'heal' : 'bolt', 'p', Defs.tierColor[d.tier]!);
       String n(double x) => '${x.toInt()}';
@@ -254,6 +262,8 @@ extension GameBattle on Game {
         if (bt.weak > 0) d *= 0.6;
         d = jsRound(d);
         bt.hp -= d;
+        stat('taken', d);
+        sfx('hurt');
         if (bt.refl > 0 && d > 0) {
           final r = jsRound(d * 0.6);
           f.hp -= r;
@@ -326,10 +336,14 @@ extension GameBattle on Game {
       }
       msg = 'Победа! +${gain.toInt()} материи. ${_drop(f.tier)}${artDrop(f.tier)}$capMsg';
       log(msg, 'good');
+      stat('wins');
+      sfx('win');
     } else {
       final p = (f.pen * 0.5).floor();
       msg = (fled ? 'Вы отступили. ' : 'Поражение. ') + _payPenalty(p);
       log(msg, 'bad');
+      stat(fled ? 'fled' : 'losses');
+      sfx('lose');
     }
     if (bt.defend != null) {
       final n = s.cells[bt.defend], c = s.cells[bt.cell];

@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iskra/core/game.dart';
 import 'package:iskra/core/sim.dart';
+import 'package:iskra/version.dart';
 
 // Сохранение в том виде, как его пишет браузерная версия (сокращено до нужных полей)
 const webSave = '''
@@ -25,6 +27,12 @@ const webSave = '''
 ''';
 
 void main() {
+  test('версия в приложении совпадает с pubspec.yaml', () {
+    final pub = File('pubspec.yaml').readAsStringSync();
+    expect(RegExp(r'^version: (\S+)\+', multiLine: true).firstMatch(pub)!.group(1), appVersion);
+    expect(releases.first.version, appVersion);
+  });
+
   test('новая игра: искра и шесть соседей тьмы', () {
     final g = Game(random: math.Random(1))..newGame();
     expect(g.own.length, 1);

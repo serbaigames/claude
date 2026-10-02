@@ -65,6 +65,14 @@ class Game {
 
   void log(String text, [String kind = 'info']) => onLog?.call(text, kind);
 
+  /// Звуки событий: интерфейс сопоставляет имя с файлом (capture, hit, win…)
+  void Function(String id)? onSfx;
+  void sfx(String id) => onSfx?.call(id);
+
+  /// Прибавка к накопительной статистике s.st
+  void stat(String k, [double v = 1]) => s.st[k] = (s.st[k] ?? 0) + v;
+  double stv(String k) => s.st[k] ?? 0;
+
   static String k(int q, int r) => '$q,$r';
   static double hexDist(int q1, int r1, int q2, int r2) => ((q1 - q2).abs() + (r1 - r2).abs() + (q1 + r1 - q2 - r2).abs()) / 2;
 
@@ -98,7 +106,10 @@ class Game {
     final dur = 60.0 + randInt(541);
     s.era = EraState(i, dur, dur);
     final e = Defs.eras[i];
-    if (!silent) log('Новая эра: «${e.name}» — ${e.desc}.', e.kind == 'bad' ? 'bad' : 'good');
+    if (!silent) {
+      log('Новая эра: «${e.name}» — ${e.desc}.', e.kind == 'bad' ? 'bad' : 'good');
+      sfx('era');
+    }
   }
 
   /* ---------- технологии ---------- */
@@ -129,6 +140,7 @@ class Game {
     final r = techRank(id) + 1;
     s.tech[id] = r;
     log(t.ranks > 1 ? 'Технология «${t.name}»: ранг $r.' : 'Изучена технология «${t.name}».', 'good');
+    sfx('tech');
   }
 
   /* ---------- агрессивность мира ---------- */
@@ -488,7 +500,10 @@ class Game {
         c.lv0 = l;
       } else if (l > c.lv0!) {
         c.lv0 = l;
-        if (c.key == s.sel || own.length < 12) log('Клетка достигла уровня $l: +10% к её силе.', 'good');
+        if (c.key == s.sel || own.length < 12) {
+          log('Клетка достигла уровня $l: +10% к её силе.', 'good');
+          sfx('level');
+        }
       }
     }
     for (final key in vis.toList()) {
@@ -517,7 +532,11 @@ class Game {
       final wd = dt * speed;
       tick(wd);
       battleTick(dt);
-      if (!s.paused) s.worldTime += wd;
+      if (!s.paused) {
+        s.worldTime += wd;
+        stat('play', wd);
+        if (s.worldTime > stv('longWorld')) s.st['longWorld'] = s.worldTime;
+      }
     }
     return false;
   }
@@ -542,6 +561,8 @@ class Game {
     n.traits = rollTraits(n.tier);
     s.lostOnce = true;
     log('Тьма захватила клетку. Её мощь теперь ${n.might.ceil()}.', 'bad');
+    stat('lost');
+    sfx('lost');
     refresh();
   }
 
@@ -554,6 +575,7 @@ class Game {
         s.paused = true;
         s.sel = n.key;
         onDefend?.call();
+        sfx('alarm');
         return;
       }
     }
@@ -662,6 +684,8 @@ class Game {
     s.worldMax = math.max(s.worldMax, own.length);
     s.bestCells = math.max(s.bestCells, own.length);
     log('Клетка захвачена. Защита ${Fmt.n(c.def)}.', 'good');
+    stat('captured');
+    sfx('capture');
     return true;
   }
 
@@ -673,6 +697,8 @@ class Game {
     if (s.matter < cost) return;
     s.matter -= cost;
     c.b[t] = bL(c, t) + 1;
+    stat('built');
+    sfx('build');
   }
 
   void lower(String key, String t) {
@@ -689,6 +715,8 @@ class Game {
     if (s.matter < cost) return;
     s.matter -= cost;
     c.defLvl++;
+    stat('fort');
+    sfx('build');
   }
 
   /// Прибавка за укрепление: столько защиты даст следующий уровень

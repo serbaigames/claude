@@ -42,6 +42,9 @@ class IskraApp extends StatelessWidget {
     title: 'Искра',
     debugShowCheckedModeBanner: false,
     theme: iskraTheme(),
+    // первое касание разрешает звук (браузеры не дают играть его раньше)
+    builder: (context, child) =>
+        Listener(behavior: HitTestBehavior.translucent, onPointerDown: (_) => controller.sound.unlock(), child: child),
     home: HomeScreen(ctl: controller),
   );
 }

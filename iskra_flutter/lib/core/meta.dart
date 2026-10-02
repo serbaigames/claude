@@ -66,6 +66,7 @@ extension GameMeta on Game {
       s.matter -= x.cost;
       s.op += x.n;
       s.opB += x.n;
+      sfx('buy');
     }
   }
 
@@ -75,6 +76,7 @@ extension GameMeta on Game {
       s.matter -= x.cost;
       s.os += x.n;
       s.osB += x.n;
+      sfx('buy');
     }
   }
 
@@ -173,6 +175,8 @@ extension GameMeta on Game {
     if (!artValid(a, c)) return;
     final d = Defs.arts[a.type]!;
     final v = a.v ?? 0;
+    stat('arts');
+    sfx('art');
     if (d.stat != null) {
       switch (d.stat) {
         case 'm':
@@ -293,6 +297,7 @@ extension GameMeta on Game {
     def = null;
     gameOver = false;
     freshWorld();
+    sfx('jump');
     log('Искра совершила прыжок в новую область вселенной. Агрессивность: $aggrText.', 'good');
   }
 }

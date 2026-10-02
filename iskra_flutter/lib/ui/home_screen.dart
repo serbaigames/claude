@@ -74,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) ctl.onPause();
+    if (state == AppLifecycleState.resumed) ctl.sound.setAppPaused(false);
   }
 
   @override
@@ -321,7 +322,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             tip: 'Эры',
           ),
           const SizedBox(width: 8),
+          // эре — больше места; длинный прогноз справа переносится, а не сжимает название эры
           Expanded(
+            flex: 5,
             child: GestureDetector(
               onTap: () => setState(() => tab = MenuTab.era),
               child: Column(
@@ -352,36 +355,42 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ),
           const SizedBox(width: 8),
-          Tooltip(
-            message: tr.info,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '+${Fmt.x(g.rebirthGain(), 2)} к бонусу',
-                  style: TextStyle(color: jump ? C.gold : C.muted, fontWeight: FontWeight.w700, shadows: shadow),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // стрелка из текста ядра (▲ ▼ ■) рисуется значком: такие символы есть не во всех шрифтах
-                    Icon(
-                      tr.kind == 'grow'
-                          ? Icons.arrow_upward
-                          : tr.kind == 'stall'
-                          ? Icons.stop
-                          : Icons.arrow_downward,
-                      size: 13,
-                      color: C.kind(tr.kind),
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      tr.text.substring(2),
-                      style: TextStyle(color: C.kind(tr.kind), fontSize: 12, shadows: shadow),
-                    ),
-                  ],
-                ),
-              ],
+          Flexible(
+            flex: 4,
+            child: Tooltip(
+              message: tr.info,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '+${Fmt.x(g.rebirthGain(), 2)} к бонусу',
+                    style: TextStyle(color: jump ? C.gold : C.muted, fontWeight: FontWeight.w700, shadows: shadow),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // стрелка из текста ядра (▲ ▼ ■) рисуется значком: такие символы есть не во всех шрифтах
+                      Icon(
+                        tr.kind == 'grow'
+                            ? Icons.arrow_upward
+                            : tr.kind == 'stall'
+                            ? Icons.stop
+                            : Icons.arrow_downward,
+                        size: 13,
+                        color: C.kind(tr.kind),
+                      ),
+                      const SizedBox(width: 3),
+                      Flexible(
+                        child: Text(
+                          tr.text.substring(2),
+                          textAlign: TextAlign.right,
+                          style: TextStyle(color: C.kind(tr.kind), fontSize: 12, shadows: shadow),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -609,7 +618,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     MenuTab.art: Icons.diamond_outlined,
     MenuTab.tech: Icons.science_outlined,
     MenuTab.era: Icons.hourglass_empty,
-    MenuTab.acc: Icons.account_circle_outlined,
+    MenuTab.acc: Icons.settings_outlined,
     MenuTab.top: Icons.leaderboard_outlined,
   };
 
@@ -638,6 +647,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       borderRadius: BorderRadius.circular(10),
                       onTap: () {
                         if (ctl.artPick != null) ctl.cancelArtPick();
+                        ctl.sound.play(tab == t ? 'close' : 'open');
                         setState(() => tab = tab == t ? null : t);
                       },
                       child: Container(
@@ -677,10 +687,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
+  void _closeWindow() {
+    ctl.sound.play('close');
+    setState(() => tab = null);
+  }
+
   /// Окно пункта меню поверх карты; нажатие мимо окна или на крестик закрывает его
   Widget _window(MenuTab t) => Positioned.fill(
     child: GestureDetector(
-      onTap: () => setState(() => tab = null),
+      onTap: _closeWindow,
       child: ColoredBox(
         color: const Color(0x99080514),
         child: Align(
@@ -708,7 +723,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       tooltip: 'Закрыть',
                       padding: EdgeInsets.zero,
                       icon: const Icon(Icons.close, size: 20, color: C.muted),
-                      onPressed: () => setState(() => tab = null),
+                      onPressed: _closeWindow,
                     ),
                   ),
                   Flexible(
