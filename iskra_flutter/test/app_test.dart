@@ -32,7 +32,7 @@ void main() {
     expect(ctl.game.b, isNull);
 
     for (final (t, key) in [
-      ('Характеристики\nискры', 'char'),
+      ('Параметры\nискры', 'char'),
       ('Способности', 'abil'),
       ('Артефакты', 'art'),
       ('Технологии', 'tech'),
@@ -44,6 +44,16 @@ void main() {
       expect(find.byKey(ValueKey('window-$key')), findsOneWidget, reason: 'пункт «$t» открывается окном');
     }
     expect(find.text('Статистика'), findsOneWidget);
+    // «Начать заново» спрашивает подтверждение и перечисляет, что сбросится
+    await tester.ensureVisible(find.text('Начать заново'));
+    await tester.pump();
+    await tester.tap(find.text('Начать заново'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const ValueKey('reset-dialog')), findsOneWidget);
+    expect(find.text('артефакты'), findsOneWidget);
+    await tester.tap(find.text('Отмена'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byKey(const ValueKey('reset-dialog')), findsNothing);
     await tester.tap(find.byTooltip('Закрыть'));
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Статистика'), findsNothing);

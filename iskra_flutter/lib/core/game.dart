@@ -376,15 +376,30 @@ class Game {
   int get threatCount => own.where(threatened).length;
 
   /* ---------- персонаж ---------- */
-  // Перекос: если параметр вдвое выше среднего по остальным, он теряет 10% силы, втрое — 20%… (до 60%)
-  Eff eff(String p) {
+  /// Перекос: параметр выше среднего по всем шести на 50% теряет 10% силы, на 100% — 25%, на 150% — 50%
+  static const penSteps = [(1.5, 0.10), (2.0, 0.25), (2.5, 0.50)];
+
+  /// Среднее значение параметров (по всем шести)
+  double get parAvg {
     var sum = 0;
     for (final x in Defs.params) {
-      if (x.id != p) sum += s.char[x.id] ?? 1;
+      sum += s.char[x.id] ?? 1;
     }
+    return sum / Defs.params.length;
+  }
+
+  /// Штраф за перекос для значения [v] при среднем [avg]
+  static double penFor(double v, double avg) {
+    var pen = 0.0;
+    for (final (k, p) in penSteps) {
+      if (v > avg * k) pen = p;
+    }
+    return pen;
+  }
+
+  Eff eff(String p) {
     final v = s.char[p] ?? 1;
-    final ratio = v / (sum / 5);
-    final pen = ratio >= 2 ? math.min(0.6, 0.1 * (ratio.floor() - 1)) : 0.0;
+    final pen = penFor(v.toDouble(), parAvg);
     return Eff(v * (1 - pen), pen);
   }
 

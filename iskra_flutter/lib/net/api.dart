@@ -154,8 +154,8 @@ class IskraApi {
   }
 
   /// Рейтинг: matter — материя за всё время, cells — больше всего клеток, kills — очки за сущности
-  Future<TopTable> top(String by) async {
-    final j = await _call('top', query: {'by': by});
+  Future<TopTable> top(String by, {int limit = 100}) async {
+    final j = await _call('top', query: {'by': by, 'limit': '$limit'});
     TopEntry e(Map m) => TopEntry('${m['login']}', (m['value'] as num).toDouble(), (m['rank'] as num?)?.toInt());
     return TopTable(
       '${j['by']}',

@@ -138,7 +138,7 @@ extension GameMeta on Game {
       'frost' => '½',
       'tome' => '+${a.v}ОП',
       'rune' => '+${a.v}ОС',
-      _ => '↻',
+      _ => 'эра',
     };
   }
 

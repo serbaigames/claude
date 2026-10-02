@@ -8,6 +8,7 @@ import '../core/game.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
 import 'controller.dart';
+import 'icons.dart';
 import 'map_art.dart';
 import 'portraits.dart';
 import 'theme.dart';
@@ -17,7 +18,7 @@ enum MenuTab { cell, char, abil, art, tech, era, acc, top }
 
 const tabTitles = {
   MenuTab.cell: 'Клетка',
-  MenuTab.char: 'Характеристики искры',
+  MenuTab.char: 'Параметры искры',
   MenuTab.abil: 'Способности',
   MenuTab.art: 'Артефакты',
   MenuTab.tech: 'Технологии',
@@ -109,7 +110,7 @@ class CellPanel extends StatelessWidget {
         if (thr > 0)
           const Note('Клетки с красной рамкой может забрать тьма.', kind: 'bad')
         else if (g.own.length == 1 && g.s.lostOnce)
-          const Note('Соседей не одолеть? Совершите прыжок — вкладка «Технологии».'),
+          const Note('Соседей не одолеть? Совершите прыжок — кнопка в правом верхнем углу.'),
         const Note('Нажмите на клетку на карте: золотые — ваши, фиолетовые — тьма.'),
       ],
     );
@@ -345,20 +346,67 @@ class CellPanel extends StatelessWidget {
           ('Штраф за поражение', '−${Fmt.n((f.pen * 0.5).floor())}'),
           ('Шанс артефакта', '${Fmt.x(art)}%'),
         ]),
+        if (f.traits.isNotEmpty) ...[const SizedBox(height: 6), Text('Способности сущности', style: h2())],
         for (final tr in f.traits)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              '${Defs.traits[tr]!.glyph} ${Defs.traits[tr]!.name}: ${Defs.traits[tr]!.desc}',
-              style: const TextStyle(color: C.warn, fontSize: 13),
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: C.warn.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: C.warn.withValues(alpha: 0.6)),
+                  ),
+                  child: traitIcon(tr, size: 20),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${Defs.traits[tr]!.name}\n',
+                          style: const TextStyle(color: C.warn, fontWeight: FontWeight.w700),
+                        ),
+                        TextSpan(
+                          text: Defs.traits[tr]!.desc,
+                          style: const TextStyle(color: C.muted, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         const SizedBox(height: 8),
         grow,
         const SizedBox(height: 8),
         Note('${lab.label[0].toUpperCase()}${lab.label.substring(1)} · ${g.fcMatter(fc)}', kind: lab.kind),
-        const SizedBox(height: 10),
-        ActBtn('В бой', () => ctl.act((g) => g.startBattle(g.foeFromCell(c), c.key)), primary: true),
+        const SizedBox(height: 14),
+        Center(
+          child: SizedBox(
+            width: 220,
+            height: 52,
+            child: FilledButton.icon(
+              key: const ValueKey('to-battle'),
+              style: FilledButton.styleFrom(
+                backgroundColor: C.gold,
+                foregroundColor: const Color(0xFF221A08),
+                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              onPressed: () => ctl.act((g) => g.startBattle(g.foeFromCell(c), c.key)),
+              icon: const Icon(Icons.flash_on, size: 22),
+              label: const Text('В бой'),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -417,11 +465,13 @@ class _CharPanelState extends State<CharPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Характеристики искры', style: h2()),
+        Text('Параметры искры', style: h2()),
         const SizedBox(height: 6),
         Row(
           children: [
-            Text('✦ ${g.s.op} ОП', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const Icon(Icons.stars, size: 18, color: C.gold),
+            const SizedBox(width: 4),
+            Text('${g.s.op} ОП', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
             const Spacer(),
             _ModeBtn(opMode, (m) => setState(() => opMode = m)),
             const SizedBox(width: 6),
@@ -437,7 +487,11 @@ class _CharPanelState extends State<CharPanel> {
           'Каждое следующее ОП дороже на 1,5%; следующее — ${Fmt.n(ob.next)} материи',
           style: const TextStyle(color: C.muted, fontSize: 12),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
+        Center(
+          child: SizedBox(width: 230, height: 230, child: CustomPaint(painter: _RadarPainter(g))),
+        ),
+        const SizedBox(height: 4),
         Row(
           children: [
             const Expanded(
@@ -446,8 +500,22 @@ class _CharPanelState extends State<CharPanel> {
             _ModeBtn(parMode, (m) => setState(() => parMode = m)),
           ],
         ),
-        for (final p in Defs.params) _param(g, p),
         const SizedBox(height: 6),
+        // 3 столбика × 2 строки
+        for (var row = 0; row < 2; row++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var col = 0; col < 3; col++) ...[
+                  if (col > 0) const SizedBox(width: 6),
+                  Expanded(child: _param(g, Defs.params[row * 3 + col])),
+                ],
+              ],
+            ),
+          ),
+        const SizedBox(height: 4),
         KV([
           ('Здоровье в бою', Fmt.n(g.maxHp().round())),
           ('Делитель урона тьмы', Fmt.x(g.defDiv(), 2)),
@@ -456,52 +524,154 @@ class _CharPanelState extends State<CharPanel> {
           ('Откат хода', '${Fmt.x(g.turnCd(), 2)} с'),
           ('Управление', '+${Fmt.x(g.ctrlPct, 1)}% к клеткам'),
         ]),
-        const Note('Если параметр вдвое выше среднего по остальным, он теряет 10% силы, втрое — 20% и так далее до 60%.'),
+        const Note(
+          'Перекос: параметр выше среднего по всем шести на 50% теряет 10% силы, на 100% — 25%, на 150% — 50%. '
+          'Кольца на диаграмме — границы штрафов.',
+        ),
       ],
     );
   }
 
   Widget _param(Game g, ParamDef p) {
-    final e = g.eff(p.id), x = g.parInfo(p.id, parMode);
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(color: Color(p.color), shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Tooltip(
-              message: p.desc,
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '${p.name} ${g.s.char[p.id]}',
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    if (e.pen > 0)
-                      TextSpan(
-                        text: '  −${(e.pen * 100).round()}%',
-                        style: const TextStyle(color: C.bad),
-                      ),
-                  ],
+    final e = g.eff(p.id), x = g.parInfo(p.id, parMode), col = Color(p.color);
+    final can = x.n > 0 && g.s.op >= x.cost;
+    return Tooltip(
+      message: p.desc,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
+        decoration: BoxDecoration(
+          color: col.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: e.pen > 0 ? C.bad.withValues(alpha: 0.7) : col.withValues(alpha: 0.4)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(paramIcons[p.id], size: 16, color: col),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    p.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: C.muted),
+                  ),
                 ),
+              ],
+            ),
+            Text(
+              '${g.s.char[p.id]}',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: col),
+            ),
+            SizedBox(
+              height: 16,
+              child: e.pen > 0
+                  ? Text('штраф −${(e.pen * 100).round()}%', style: const TextStyle(color: C.bad, fontSize: 11))
+                  : null,
+            ),
+            const SizedBox(height: 2),
+            SizedBox(
+              width: double.infinity,
+              height: 30,
+              child: FilledButton(
+                onPressed: can ? () => widget.ctl.act((g) => g.parUp(p.id, parMode)) : null,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  backgroundColor: C.btn,
+                  foregroundColor: C.ink,
+                  side: BorderSide(color: can ? col.withValues(alpha: 0.5) : C.line),
+                ),
+                child: FittedBox(child: Text('+${x.n} · ${Fmt.n(x.cost)} ОП', style: const TextStyle(fontSize: 12))),
               ),
             ),
-          ),
-          ActBtn(
-            '+${x.n}',
-            x.n > 0 && g.s.op >= x.cost ? () => widget.ctl.act((g) => g.parUp(p.id, parMode)) : null,
-            right: '${Fmt.n(x.cost)} ОП',
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+/// Круговая диаграмма параметров: самый большой параметр — край диаграммы,
+/// кольца — границы штрафов за перекос (видны, когда штраф появился)
+class _RadarPainter extends CustomPainter {
+  _RadarPainter(this.g);
+  final Game g;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero), r = size.shortestSide / 2 - 26;
+    final ps = Defs.params, n = ps.length;
+    final vals = [for (final p in ps) (g.s.char[p.id] ?? 1).toDouble()];
+    final mx = vals.reduce(math.max), avg = g.parAvg;
+    Offset at(int i, double k) {
+      final a = -math.pi / 2 + i * 2 * math.pi / n;
+      return c + Offset(math.cos(a), math.sin(a)) * r * k;
+    }
+
+    final grid = Paint()
+      ..color = C.line
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    for (final k in [0.25, 0.5, 0.75, 1.0]) {
+      canvas.drawPath(Path()..addPolygon([for (var i = 0; i < n; i++) at(i, k)], true), grid);
+    }
+    for (var i = 0; i < n; i++) {
+      canvas.drawLine(c, at(i, 1), grid);
+    }
+    // кольца штрафов: только когда хоть один параметр получил штраф
+    final anyPen = vals.any((v) => Game.penFor(v, avg) > 0);
+    if (anyPen) {
+      for (final (k, p) in Game.penSteps) {
+        final rr = k * avg / mx;
+        if (rr > 1.0001) continue;
+        final hit = vals.any((v) => v >= k * avg);
+        canvas.drawCircle(
+          c,
+          r * rr,
+          Paint()
+            ..color = C.bad.withValues(alpha: hit ? 0.75 : 0.35)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.4,
+        );
+        final tp = TextPainter(
+          text: TextSpan(
+            text: '−${(p * 100).round()}%',
+            style: TextStyle(color: C.bad.withValues(alpha: 0.9), fontSize: 9),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        tp.paint(canvas, c + Offset(r * rr * 0.72, -r * rr * 0.72) - Offset(0, tp.height));
+      }
+    }
+    final poly = [for (var i = 0; i < n; i++) at(i, vals[i] / mx)];
+    canvas.drawPath(Path()..addPolygon(poly, true), Paint()..color = C.gold.withValues(alpha: 0.22));
+    canvas.drawPath(
+      Path()..addPolygon(poly, true),
+      Paint()
+        ..color = C.gold
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+    for (var i = 0; i < n; i++) {
+      final col = Color(ps[i].color);
+      canvas.drawCircle(poly[i], 4, Paint()..color = col);
+      final tp = TextPainter(
+        text: TextSpan(
+          text: '${ps[i].name}\n${vals[i].toInt()}',
+          style: TextStyle(color: col, fontSize: 11, fontWeight: FontWeight.w700, height: 1.1),
+        ),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final p = at(i, 1.0) + (at(i, 1.0) - c) / r * 16;
+      tp.paint(canvas, p - Offset(tp.width / 2, tp.height / 2));
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RadarPainter old) => true;
 }
 
 /* ---------- способности ---------- */
@@ -526,7 +696,9 @@ class _AbilPanelState extends State<AbilPanel> {
         const SizedBox(height: 6),
         Row(
           children: [
-            Text('✧ ${g.s.os} ОС', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const Icon(Icons.auto_awesome, size: 18, color: C.violet),
+            const SizedBox(width: 4),
+            Text('${g.s.os} ОС', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
             const Spacer(),
             _ModeBtn(osMode, (m) => setState(() => osMode = m)),
             const SizedBox(width: 6),
@@ -559,8 +731,22 @@ class _AbilPanelState extends State<AbilPanel> {
     final a = g.s.abilities[i];
     if (a == null) {
       return Padding(
-        padding: const EdgeInsets.only(top: 6),
-        child: Text('${i + 1}. пусто', style: const TextStyle(color: C.muted)),
+        padding: const EdgeInsets.only(top: 8),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: C.line),
+              ),
+              child: const Icon(Icons.add, size: 18, color: C.line),
+            ),
+            const SizedBox(width: 10),
+            Text('Ячейка ${i + 1} пуста', style: const TextStyle(color: C.muted)),
+          ],
+        ),
       );
     }
     final d = Defs.abilities[a.id]!, x = g.abInfo(i, abMode);
@@ -568,10 +754,17 @@ class _AbilPanelState extends State<AbilPanel> {
       padding: const EdgeInsets.only(top: 8),
       child: Row(
         children: [
-          SizedBox(
-            width: 28,
-            child: Text(d.glyph, style: TextStyle(fontSize: 20, color: Color(Defs.tierColor[d.tier]!))),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Color(Defs.tierColor[d.tier]!).withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Color(Defs.tierColor[d.tier]!).withValues(alpha: 0.7)),
+            ),
+            child: Center(child: abilityIcon(a.id, size: 24)),
           ),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -602,59 +795,121 @@ class ArtPanel extends StatelessWidget {
   const ArtPanel(this.ctl, {super.key});
   final GameController ctl;
 
+  static const perRow = 5;
+
   @override
   Widget build(BuildContext context) {
-    final g = ctl.game, c = g.sel;
-    final target = c == null
-        ? 'ничего'
-        : c.spark
-        ? 'искра'
-        : c.own
-        ? 'ваша клетка'
-        : c.alive
-        ? 'тьма, мощь ${c.might.ceil()}'
-        : 'свободная, мощь ${c.might.ceil()}';
+    final g = ctl.game, n = g.s.artifacts.length;
+    // ряд пустых ячеек; заполнился ряд — появляется следующий
+    final slots = (n ~/ perRow + 1) * perRow;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Артефакты', style: h2()),
         const SizedBox(height: 4),
-        Text('Выбрано: $target', style: const TextStyle(color: C.muted)),
+        Text(
+          n == 0 ? 'Пока пусто. Артефакты выпадают после побед.' : 'Нажмите на артефакт, чтобы применить его.',
+          style: const TextStyle(color: C.muted),
+        ),
         const SizedBox(height: 8),
-        if (g.s.artifacts.isEmpty) const Text('Пока пусто. Артефакты выпадают после побед.', style: TextStyle(color: C.muted)),
-        _wrap([for (var i = 0; i < g.s.artifacts.length; i++) _art(g, i)]),
-        const SizedBox(height: 10),
+        LayoutBuilder(
+          builder: (context, box) {
+            const gap = 8.0;
+            final w = (box.maxWidth - gap * (perRow - 1)) / perRow;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [for (var i = 0; i < slots; i++) SizedBox(width: w, height: w, child: _slot(context, g, i))],
+            );
+          },
+        ),
+        const SizedBox(height: 12),
         const Text('Виды', style: TextStyle(color: C.muted)),
+        const SizedBox(height: 4),
         for (final a in Defs.arts.values)
-          Text('${a.glyph} ${a.name} — ${a.short}', style: TextStyle(color: Color(a.color), fontSize: 13)),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              children: [
+                artIcon(a.id, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('${a.name} — ${a.short}', style: TextStyle(color: Color(a.color), fontSize: 13)),
+                ),
+              ],
+            ),
+          ),
         const Note('Шанс артефакта за победу: 4% / 12% / 25% / 100% по рангу сущности, умноженный на агрессивность мира и эру.'),
       ],
     );
   }
 
-  Widget _art(Game g, int i) {
-    final a = g.s.artifacts[i], d = Defs.arts[a.type]!, ok = g.artValid(a, g.sel);
+  Widget _slot(BuildContext context, Game g, int i) {
+    if (i >= g.s.artifacts.length) {
+      return Container(
+        decoration: BoxDecoration(
+          color: C.bg.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: C.line),
+        ),
+      );
+    }
+    final a = g.s.artifacts[i], d = Defs.arts[a.type]!, col = Color(d.color);
     return Tooltip(
-      message: '${g.artTitle(a)}: ${g.artDesc(a)}${ok ? '' : ' Выберите на карте подходящую клетку.'}',
+      message: '${g.artTitle(a)}: ${g.artDesc(a)}',
       child: InkWell(
-        onTap: ok ? () => ctl.act((g) => g.applyArt(i)) : null,
+        key: ValueKey('art-$i'),
+        onTap: () => _use(context, g, i),
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          width: 58,
-          height: 58,
           decoration: BoxDecoration(
-            color: Color(d.color).withValues(alpha: ok ? 0.18 : 0.06),
+            color: col.withValues(alpha: 0.16),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Color(d.color).withValues(alpha: ok ? 0.8 : 0.25)),
+            border: Border.all(color: col.withValues(alpha: 0.75)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(d.glyph, style: TextStyle(fontSize: 20, color: Color(d.color))),
-              Text(g.artBadge(a), style: const TextStyle(fontSize: 11)),
+              artIcon(a.type, size: 24),
+              const SizedBox(height: 2),
+              FittedBox(child: Text(g.artBadge(a), style: const TextStyle(fontSize: 11))),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Артефакт на клетку — выбор клетки на карте; остальные — окно с описанием и подтверждением
+  void _use(BuildContext context, Game g, int i) {
+    final a = g.s.artifacts[i], d = Defs.arts[a.type]!;
+    if (d.target != 'player') {
+      ctl.startArtPick(i);
+      return;
+    }
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: C.panel,
+        title: Row(
+          children: [
+            artIcon(a.type, size: 26),
+            const SizedBox(width: 8),
+            Expanded(child: Text(g.artTitle(a), style: h2())),
+          ],
+        ),
+        content: Text(g.artDesc(a)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ctl.act((g) => g.applyArt(i));
+            },
+            style: FilledButton.styleFrom(backgroundColor: C.goldBg, foregroundColor: C.gold),
+            child: const Text('Применить'),
+          ),
+        ],
       ),
     );
   }
@@ -673,9 +928,47 @@ const techIcons = {
 /// Значок пульсара (валюта технологий)
 const pulsarIcon = Icons.flare;
 
-class TechPanel extends StatelessWidget {
+class TechPanel extends StatefulWidget {
   const TechPanel(this.ctl, {super.key});
   final GameController ctl;
+  @override
+  State<TechPanel> createState() => _TechPanelState();
+}
+
+class _TechPanelState extends State<TechPanel> {
+  // все узлы дерева одного размера; дерево двигается пальцем и масштабируется
+  static const nodeW = 124.0, nodeH = 172.0, gapX = 14.0, gapY = 56.0;
+  static const treeW = 6 * nodeW + 5 * gapX, treeH = 3 * nodeH + 2 * gapY;
+  final view = TransformationController();
+  double? _fitFor;
+
+  GameController get ctl => widget.ctl;
+
+  @override
+  void dispose() {
+    view.dispose();
+    super.dispose();
+  }
+
+  /// Вписать дерево по ширине окна
+  /// Вписать дерево; при открытии — не мельче 75%, чтобы подписи читались (остальное — перетаскиванием)
+  void _fit(double w, {bool all = false}) {
+    final k = all ? math.min(1.0, w / treeW) : math.max(math.min(1.0, w / treeW), 0.75);
+    view.value = Matrix4.identity()
+      ..translateByDouble((w - treeW * k) / 2, 8, 0, 1)
+      ..scaleByDouble(k, k, 1, 1);
+    _fitFor = w;
+  }
+
+  void _zoom(double f, double w) {
+    final m = view.value.clone(), c = Offset(w / 2, 180);
+    final k = (m.getMaxScaleOnAxis() * f).clamp(0.3, 2.0) / m.getMaxScaleOnAxis();
+    view.value = Matrix4.identity()
+      ..translateByDouble(c.dx, c.dy, 0, 1)
+      ..scaleByDouble(k, k, 1, 1)
+      ..translateByDouble(-c.dx, -c.dy, 0, 1)
+      ..multiply(m);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -707,67 +1000,100 @@ class TechPanel extends StatelessWidget {
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, box) {
-            final w = box.maxWidth, col = w / 3;
-            const gap = 22.0;
-            Widget level(String label) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(label, style: const TextStyle(color: C.muted, fontSize: 11)),
-            );
-            return Column(
-              children: [
-                level('Уровень 1'),
-                Center(
-                  child: SizedBox(width: col, child: _node(context, g, l1.first)),
-                ),
-                _Links(
-                  height: gap,
-                  from: [w / 2],
-                  to: [for (var i = 0; i < l2.length; i++) (i + 0.5) * col],
-                  lit: [for (final t in l2) g.techOpen(t)],
-                ),
-                level('Уровень 2'),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            final w = box.maxWidth;
+            if (_fitFor != w) _fit(w);
+            // центры узлов на холсте дерева
+            double x3(int j) => j * (nodeW + gapX) + nodeW / 2;
+            double x2(int i) => (x3(2 * i) + x3(2 * i + 1)) / 2;
+            const y1 = 0.0, y2 = nodeH + gapY, y3 = 2 * (nodeH + gapY);
+            Widget at(double cx, double y, TechDef t) =>
+                Positioned(left: cx - nodeW / 2, top: y, width: nodeW, height: nodeH, child: _node(context, g, t));
+            return Container(
+              height: 400,
+              decoration: BoxDecoration(
+                color: C.bg.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: C.line),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
                   children: [
-                    for (final t in l2)
-                      SizedBox(
-                        width: col,
-                        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3), child: _node(context, g, t)),
+                    InteractiveViewer(
+                      key: const ValueKey('tech-tree'),
+                      transformationController: view,
+                      constrained: false,
+                      minScale: 0.3,
+                      maxScale: 2,
+                      boundaryMargin: const EdgeInsets.all(200),
+                      child: SizedBox(
+                        width: treeW,
+                        height: treeH + 16,
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: _TreeLinks([
+                                  for (var i = 0; i < l2.length; i++)
+                                    (Offset(treeW / 2, y1 + nodeH), Offset(x2(i), y2), g.techOpen(l2[i])),
+                                  for (var j = 0; j < l3.length; j++)
+                                    (Offset(x2(j ~/ 2), y2 + nodeH), Offset(x3(j), y3), g.techOpen(l3[j])),
+                                ]),
+                              ),
+                            ),
+                            at(treeW / 2, y1, l1.first),
+                            for (var i = 0; i < l2.length; i++) at(x2(i), y2, l2[i]),
+                            for (var j = 0; j < l3.length; j++) at(x3(j), y3, l3[j]),
+                          ],
+                        ),
                       ),
+                    ),
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Column(
+                        children: [
+                          for (final (ic, f, tip) in [
+                            (Icons.add, () => _zoom(1.25, w), 'Крупнее'),
+                            (Icons.remove, () => _zoom(0.8, w), 'Мельче'),
+                            (Icons.fit_screen, () => _fit(w, all: true), 'Вписать'),
+                          ])
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: SizedBox(
+                                width: 32,
+                                height: 32,
+                                child: IconButton.filledTonal(
+                                  tooltip: tip,
+                                  padding: EdgeInsets.zero,
+                                  iconSize: 18,
+                                  onPressed: f,
+                                  icon: Icon(ic),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                _Links(
-                  height: gap,
-                  from: [for (var i = 0; i < l2.length; i++) (i + 0.5) * col],
-                  to: [for (var j = 0; j < l3.length; j++) (j + 0.5) * w / l3.length],
-                  lit: [for (final t in l3) g.techOpen(t)],
-                  fanOut: 2,
-                ),
-                level('Уровень 3'),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final t in l3)
-                      SizedBox(
-                        width: w / l3.length,
-                        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 2), child: _small(context, g, t)),
-                      ),
-                  ],
-                ),
-              ],
+              ),
             );
           },
         ),
+        const SizedBox(height: 4),
+        const Text('Дерево можно двигать пальцем и масштабировать.', style: TextStyle(color: C.muted, fontSize: 11)),
         const SizedBox(height: 14),
         Text('Прыжок искры', style: h2()),
         const SizedBox(height: 4),
         Text(g.worldTrend().info, style: const TextStyle(color: C.muted, fontSize: 13)),
-        const SizedBox(height: 8),
-        ActBtn(
-          g.hasTech('jump') ? 'Прыжок…' : 'Нужна технология «Прыжок»',
-          g.hasTech('jump') ? ctl.openJump : null,
-          right: g.hasTech('jump') ? '+${Fmt.x(g.rebirthGain(), 2)} к бонусу' : null,
-          primary: true,
+        const SizedBox(height: 4),
+        // сам прыжок — только кнопкой в правом верхнем углу главного экрана
+        Text(
+          g.hasTech('jump')
+              ? 'Прыжок даст +${Fmt.x(g.rebirthGain(), 2)} к бонусу. Совершить его — кнопкой в правом верхнем углу экрана.'
+              : 'Изучите «Прыжок», чтобы открыть кнопку прыжка в правом верхнем углу экрана.',
+          style: const TextStyle(color: C.gold, fontSize: 13),
         ),
       ],
     );
@@ -837,8 +1163,10 @@ class TechPanel extends StatelessWidget {
               ],
             ),
           ],
-          const SizedBox(height: 6),
-          if (cost == null)
+          const Spacer(),
+          if (t.soon)
+            const Text('скоро', style: TextStyle(color: C.muted, fontSize: 12))
+          else if (cost == null)
             Text(t.ranks > 1 ? 'все ранги' : 'изучено', style: const TextStyle(color: C.ok, fontSize: 12))
           else if (!open)
             const Text('закрыто', style: TextStyle(color: C.muted, fontSize: 12))
@@ -853,14 +1181,17 @@ class TechPanel extends StatelessWidget {
                   foregroundColor: C.gold,
                   side: BorderSide(color: can ? C.gold.withValues(alpha: 0.45) : C.line),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(r == 0 ? 'Изучить' : 'Ранг ${r + 1}', style: const TextStyle(fontSize: 12)),
-                    const SizedBox(width: 4),
-                    Text('$cost', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                    const Icon(pulsarIcon, size: 13),
-                  ],
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(r == 0 ? 'Изучить' : 'Ранг ${r + 1}', style: const TextStyle(fontSize: 12)),
+                      const SizedBox(width: 4),
+                      Text('$cost', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                      const Icon(pulsarIcon, size: 13),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -868,26 +1199,6 @@ class TechPanel extends StatelessWidget {
       ),
     );
   }
-
-  /// Узел третьего уровня: значок и подпись, подробности по нажатию
-  Widget _small(BuildContext context, Game g, TechDef t) => InkWell(
-    key: ValueKey('tech-${t.id}'),
-    borderRadius: BorderRadius.circular(10),
-    onTap: () => _info(context, g, t),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        children: [
-          _badge(t, _tone(g, t), false, 34),
-          const SizedBox(height: 3),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(t.soon ? 'скоро' : t.name, style: const TextStyle(color: C.muted, fontSize: 11)),
-          ),
-        ],
-      ),
-    ),
-  );
 
   Widget _badge(TechDef t, Color tone, bool open, double d) => Container(
     width: d,
@@ -950,50 +1261,31 @@ class TechPanel extends StatelessWidget {
   }
 }
 
-/// Линии дерева между уровнями: от каждого родителя к его детям
-class _Links extends StatelessWidget {
-  const _Links({required this.height, required this.from, required this.to, required this.lit, this.fanOut});
-  final double height;
-  final List<double> from, to;
-  final List<bool> lit;
-
-  /// Сколько детей у каждого родителя; null — все дети от первого родителя
-  final int? fanOut;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    height: height,
-    width: double.infinity,
-    child: CustomPaint(painter: _LinksPainter(this)),
-  );
-}
-
-class _LinksPainter extends CustomPainter {
-  _LinksPainter(this.l);
-  final _Links l;
+/// Линии дерева: от нижнего края родителя к верхнему краю ребёнка; золотые — путь открыт
+class _TreeLinks extends CustomPainter {
+  _TreeLinks(this.links);
+  final List<(Offset, Offset, bool)> links;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final h = size.height;
-    for (var j = 0; j < l.to.length; j++) {
-      final x0 = l.from[l.fanOut == null ? 0 : j ~/ l.fanOut!], x1 = l.to[j];
-      final p = Paint()
-        ..color = l.lit[j] ? C.gold.withValues(alpha: 0.8) : C.line
-        ..strokeWidth = 1.6
-        ..style = PaintingStyle.stroke;
+    for (final (a, b, lit) in links) {
+      final mid = (a.dy + b.dy) / 2;
       canvas.drawPath(
         Path()
-          ..moveTo(x0, 0)
-          ..lineTo(x0, h / 2)
-          ..lineTo(x1, h / 2)
-          ..lineTo(x1, h),
-        p,
+          ..moveTo(a.dx, a.dy)
+          ..lineTo(a.dx, mid)
+          ..lineTo(b.dx, mid)
+          ..lineTo(b.dx, b.dy),
+        Paint()
+          ..color = lit ? C.gold.withValues(alpha: 0.85) : C.line
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke,
       );
     }
   }
 
   @override
-  bool shouldRepaint(_LinksPainter old) => true;
+  bool shouldRepaint(_TreeLinks old) => true;
 }
 
 /* ---------- эры ---------- */
@@ -1125,6 +1417,70 @@ class _AccountPanelState extends State<AccountPanel> {
     }
   }
 
+  /// Подтверждение сброса: перечисляем всё, что пропадёт
+  Future<void> _askReset(BuildContext context) async {
+    final sync = widget.ctl.sync, login = sync != null && sync.on ? sync.user?.login : null;
+    const lost = [
+      'все клетки, материя и укрепления',
+      'параметры искры, ОП и ОС',
+      'способности и сборки',
+      'артефакты',
+      'технологии, пульсары и бонус прыжка',
+      'статистика и рекорды',
+    ];
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        key: const ValueKey('reset-dialog'),
+        backgroundColor: C.panel,
+        title: const Text('Начать заново?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              login != null
+                  ? 'Будет стёрт весь прогресс учётной записи «$login»:'
+                  : 'Будет стёрт весь прогресс на этом устройстве:',
+            ),
+            const SizedBox(height: 6),
+            for (final t in lost)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 3),
+                      child: Icon(Icons.close, size: 14, color: C.bad),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(child: Text(t)),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text(
+              login != null
+                  ? 'Новое начало сразу сохранится на сервере вместо прежнего. Отменить это нельзя.'
+                  : 'Отменить это нельзя.',
+              style: const TextStyle(color: C.bad),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Отмена')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: C.bad),
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('Стереть всё'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) widget.ctl.resetAll();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ctl = widget.ctl, g = ctl.game, sync = ctl.sync, k = g.s.kills;
@@ -1243,7 +1599,7 @@ class _AccountPanelState extends State<AccountPanel> {
         const SizedBox(height: 6),
         stats,
         const SizedBox(height: 14),
-        _Confirm(label: 'Начать заново', confirm: 'Стереть прогресс на устройстве?', onConfirm: ctl.resetAll),
+        ActBtn('Начать заново', () => _askReset(context), danger: true),
       ],
     );
   }
@@ -1292,47 +1648,95 @@ class _TopPanelState extends State<TopPanel> {
     }
     final t = table;
     String v(double x) => by == 'matter' ? Fmt.n(x) : Fmt.n(x.round());
+    Widget row(int place, String login, double value, {bool me = false}) => Container(
+      height: 34,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: me ? C.goldBg : (place.isOdd ? C.bg.withValues(alpha: 0.35) : null),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 34,
+            child: place >= 1 && place <= 3
+                ? Icon(Icons.emoji_events, size: 18, color: [C.gold, const Color(0xFFC9D1E0), const Color(0xFFD08A4E)][place - 1])
+                : Text('$place', style: const TextStyle(color: C.muted)),
+          ),
+          Expanded(
+            child: Text(
+              login,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: me ? C.gold : C.ink, fontWeight: me ? FontWeight.w700 : null),
+            ),
+          ),
+          Text(v(value), style: const TextStyle(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('Рейтинги', style: h2()),
+        const SizedBox(height: 8),
+        // три вкладки сверху переключают таблицу ниже
+        SegmentedButton<String>(
+          showSelectedIcon: false,
+          segments: const [
+            ButtonSegment(value: 'matter', icon: Icon(Icons.blur_on, size: 16), label: Text('Материя')),
+            ButtonSegment(value: 'cells', icon: Icon(Icons.hexagon_outlined, size: 16), label: Text('Клетки')),
+            ButtonSegment(value: 'kills', icon: Icon(Icons.gps_fixed, size: 16), label: Text('Сущности')),
+          ],
+          selected: {by},
+          onSelectionChanged: (x) {
+            setState(() {
+              by = x.first;
+              table = null;
+              err = null;
+            });
+            _load();
+          },
+        ),
         const SizedBox(height: 6),
-        _wrap([
-          for (final e in tops.entries)
-            ChoiceChip(
-              label: Text(e.value),
-              selected: by == e.key,
-              onSelected: (_) {
-                setState(() {
-                  by = e.key;
-                  table = null;
-                });
-                _load();
-              },
-            ),
-        ]),
-        if (by == 'kills')
-          const Text('низшая 1, редкая 3, эпическая 10, легендарная 500', style: TextStyle(color: C.muted, fontSize: 12)),
+        Text(
+          tops[by]! + (by == 'kills' ? ' (низшая 1, редкая 3, эпическая 10, легендарная 500)' : ''),
+          style: const TextStyle(color: C.muted, fontSize: 12),
+        ),
         const SizedBox(height: 8),
         if (err != null) Note(err!, kind: 'bad'),
         if (t == null && err == null) const LinearProgressIndicator(),
         if (t != null) ...[
-          for (var i = 0; i < t.list.length; i++)
-            Row(
-              children: [
-                SizedBox(
-                  width: 28,
-                  child: Text('${i + 1}.', style: const TextStyle(color: C.muted)),
-                ),
-                Expanded(
-                  child: Text(t.list[i].login, style: TextStyle(color: t.list[i].login == sync.user?.login ? C.gold : C.ink)),
-                ),
-                Text(v(t.list[i].value), style: const TextStyle(fontWeight: FontWeight.w700)),
-              ],
+          // видно 10 мест, дальше список прокручивается до 100-го
+          Container(
+            height: 10 * 36 + 8,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: C.line),
             ),
-          if (t.me != null && !t.list.any((e) => e.login == t.me!.login))
-            Text('Вы: ${t.me!.rank}-е место из ${t.total}, ${v(t.me!.value)}', style: const TextStyle(color: C.gold)),
-          if (t.list.isEmpty) const Text('Пока никого нет.', style: TextStyle(color: C.muted)),
+            padding: const EdgeInsets.all(4),
+            child: t.list.isEmpty
+                ? const Center(
+                    child: Text('Пока никого нет.', style: TextStyle(color: C.muted)),
+                  )
+                : ListView.builder(
+                    key: const ValueKey('top-list'),
+                    itemCount: t.list.length,
+                    itemExtent: 36,
+                    itemBuilder: (_, i) => Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: row(i + 1, t.list[i].login, t.list[i].value, me: t.list[i].login == sync.user?.login),
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 8),
+          const Text('Ваше место', style: TextStyle(color: C.muted, fontSize: 12)),
+          const SizedBox(height: 4),
+          if (sync.user == null)
+            const Text('Войдите в учётную запись, чтобы попасть в рейтинг.', style: TextStyle(color: C.muted))
+          else if (t.me == null)
+            Text('${sync.user!.login}: пока нет результата в этом рейтинге.', style: const TextStyle(color: C.muted))
+          else
+            row(t.me!.rank ?? 0, '${t.me!.login} · из ${t.total}', t.me!.value, me: true),
         ],
         const Note('Показатели обновляются при каждом сохранении на сервере и хранятся как максимум.'),
       ],

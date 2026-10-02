@@ -150,6 +150,22 @@ void main() {
     expect(back.tech, {'jump': 1, 'income': 3, 'fort': 1, 'grow': 1});
   });
 
+  test('штраф за перекос: от превышения среднего на 50% — 10/25/50%', () {
+    expect(Game.penFor(15, 10), 0);
+    expect(Game.penFor(16, 10), 0.10);
+    expect(Game.penFor(21, 10), 0.25);
+    expect(Game.penFor(26, 10), 0.50);
+    final g = Game(random: math.Random(1))..newGame();
+    for (final p in Defs.params) {
+      g.s.char[p.id] = 10;
+    }
+    expect(g.eff('power').pen, 0);
+    g.s.char['power'] = 40; // среднее 15, превышение ×2.67
+    expect(g.eff('power').pen, 0.50);
+    expect(g.eff('power').v, 20);
+    expect(g.eff('life').pen, 0);
+  });
+
   test('симуляция: бот играет час без ошибок на нескольких сидах', () {
     for (final seed in [1, 2, 3]) {
       final r = runSim(seed: seed, minutes: 60);

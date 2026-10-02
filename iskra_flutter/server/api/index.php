@@ -262,8 +262,10 @@ case 'POST save': {
 case 'GET top': {
     $by = $_GET['by'] ?? 'matter';
     if (!in_array($by, ['matter', 'cells', 'kills'], true)) fail(422, 'Неизвестный рейтинг.');
+    // limit: сколько мест отдать (по умолчанию 10, как ждёт веб-версия; приложение просит 100)
+    $limit = max(1, min(100, (int)($_GET['limit'] ?? 10)));
     $st = db()->query("SELECT u.login, s.$by AS v FROM stats s JOIN users u ON u.id = s.user_id
-                       WHERE s.$by > 0 ORDER BY s.$by DESC, s.updated ASC LIMIT 10");
+                       WHERE s.$by > 0 ORDER BY s.$by DESC, s.updated ASC LIMIT $limit");
     $list = array_map(fn($r) => ['login' => $r['login'], 'value' => (float)$r['v']], $st->fetchAll());
     $total = (int)db()->query("SELECT COUNT(*) FROM stats WHERE $by > 0")->fetchColumn();
     $me = null;

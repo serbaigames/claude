@@ -1,6 +1,7 @@
 // Главный экран: ресурсы сверху, карта, лента сообщений, строка меню внизу.
 // Пункты меню открываются окнами поверх карты; строка меню остаётся видна и под окном.
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -9,6 +10,7 @@ import '../core/game.dart';
 import '../net/cloud_sync.dart';
 import 'controller.dart';
 import 'hex_map.dart';
+import 'icons.dart';
 import 'overlays.dart';
 import 'panels.dart';
 import 'theme.dart';
@@ -30,6 +32,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   /// Тень под надписями поверх карты (у верхних строк нет фона)
   static const _shadow = [Shadow(color: Color(0xE6000000), blurRadius: 4)];
   SyncConflict? conflict;
+
+  /// Гость без учётной записи: при каждом запуске предлагаем войти или зарегистрироваться
+  bool guestAsk = false;
   Completer<bool>? _conflictDone;
 
   GameController get ctl => widget.ctl;
@@ -51,11 +56,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         setState(() => conflict = c);
         return _conflictDone!.future;
       };
-      sync.init();
+      sync.init().then((_) {
+        if (mounted && sync.on && sync.user == null) setState(() => guestAsk = true);
+      });
     }
   }
 
   void _changed() {
+    // выбор клетки для артефакта: окно меню закрывается, видна карта
+    if (ctl.artPick != null) tab = null;
+    // начался бой: окно клетки под ним больше не нужно
+    if (ctl.game.b != null) tab = null;
     if (mounted) setState(() {});
   }
 
@@ -76,6 +87,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   bool _back() {
     final g = ctl.game;
     if (conflict != null) return true;
+    if (guestAsk && g.s.introSeen) {
+      setState(() => guestAsk = false);
+      return true;
+    }
     if (!g.s.introSeen) {
       ctl.act((g) => g.s.introSeen = true);
       return true;
@@ -86,6 +101,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
     if (ctl.showJump && !ctl.jumpDefeat) {
       ctl.closeJump();
+      return true;
+    }
+    if (ctl.artPick != null) {
+      ctl.cancelArtPick();
       return true;
     }
     if (tab != null) {
@@ -103,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final g = ctl.game;
-    final block = _cellBlock(g);
+    final block = ctl.artPick != null ? _artPickBlock(g) : _cellBlock(g);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -126,8 +145,28 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _topBar(g),
-                              _header(g),
+                              // лёгкое размытие карты под верхними строками, чтобы текст читался
+                              ClipRect(
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                                  child: DecoratedBox(
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [Color(0x8C0B0816), Color(0x260B0816)],
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(bottom: 6),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [_topBar(g), _header(g)],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               Padding(padding: const EdgeInsets.fromLTRB(8, 6, 8, 0), child: _feed()),
                             ],
                           ),
@@ -155,6 +194,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             if (g.b != null) BattleOverlay(ctl),
             if (ctl.showJump) JumpOverlay(ctl),
             if (!g.s.introSeen) IntroOverlay(ctl),
+            if (guestAsk && g.s.introSeen && conflict == null && g.b == null && !ctl.showJump) _guestOverlay(),
             if (conflict != null)
               ConflictOverlay(ctl, conflict!, (v) {
                 setState(() => conflict = null);
@@ -165,6 +205,37 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     );
   }
+
+  Widget _guestOverlay() => Overlay2(
+    key: const ValueKey('guest-ask'),
+    onClose: () => setState(() => guestAsk = false),
+    maxWidth: 420,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Icon(Icons.account_circle_outlined, size: 44, color: C.violet),
+        const SizedBox(height: 8),
+        Text('Вы играете без учётной записи', style: h2(), textAlign: TextAlign.center),
+        const SizedBox(height: 8),
+        const Text(
+          'Прогресс хранится только на этом устройстве. Войдите или зарегистрируйтесь, чтобы сохранять его на сервере, '
+          'продолжать игру на другом устройстве и попасть в рейтинги.',
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 14),
+        ActBtn(
+          'Войти или зарегистрироваться',
+          () => setState(() {
+            guestAsk = false;
+            tab = MenuTab.acc;
+          }),
+          primary: true,
+        ),
+        const SizedBox(height: 6),
+        ActBtn('Играть без входа', () => setState(() => guestAsk = false)),
+      ],
+    ),
+  );
 
   Widget _topBar(Game g) {
     Widget res(String label, String value, {Color color = C.ink, String? tip}) => Expanded(
@@ -351,6 +422,50 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
+  /// Подсказка при применении артефакта: какую клетку выбрать
+  Widget _artPickBlock(Game g) {
+    final i = ctl.artPick!;
+    if (i >= g.s.artifacts.length) return const SizedBox.shrink();
+    final a = g.s.artifacts[i], d = Defs.arts[a.type]!;
+    final what = switch (d.target) {
+      'spark' => 'искру',
+      'own' => 'свою клетку',
+      _ => 'клетку тьмы',
+    };
+    return Container(
+      key: const ValueKey('art-pick'),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      decoration: BoxDecoration(
+        color: const Color(0xF21C1733),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Color(d.color).withValues(alpha: 0.7)),
+        boxShadow: const [BoxShadow(color: Color(0x80000000), blurRadius: 12)],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              artIcon(a.type, size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  g.artTitle(a),
+                  style: TextStyle(fontWeight: FontWeight.w700, color: Color(d.color)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('Выберите на карте $what — артефакт применится к ней.', style: const TextStyle(color: C.ink, fontSize: 13)),
+          const SizedBox(height: 8),
+          SizedBox(height: 34, child: ActBtn('Отмена', ctl.cancelArtPick)),
+        ],
+      ),
+    );
+  }
+
   /// Блок выбранной клетки над меню: сущность, свободная клетка, своя клетка или искра
   Widget? _cellBlock(Game g) {
     final c = g.sel;
@@ -505,15 +620,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               children: [
                 for (final t in tabs)
                   Expanded(
-                    // длинной подписи «Характеристики искры» — шире ячейка и две строки
-                    flex: t == MenuTab.char ? 3 : 2,
                     child: InkWell(
                       key: ValueKey('menu-${t.name}'),
                       borderRadius: BorderRadius.circular(10),
-                      onTap: () => setState(() => tab = tab == t ? null : t),
+                      onTap: () {
+                        if (ctl.artPick != null) ctl.cancelArtPick();
+                        setState(() => tab = tab == t ? null : t);
+                      },
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        padding: const EdgeInsets.symmetric(vertical: 5),
                         decoration: BoxDecoration(
                           color: tab == t ? C.gold.withValues(alpha: 0.18) : null,
                           borderRadius: BorderRadius.circular(10),
@@ -523,13 +639,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           children: [
                             Icon(_tabIcons[t], size: 22, color: tab == t ? C.gold : C.muted),
                             const SizedBox(height: 2),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                t == MenuTab.char ? 'Характеристики\nискры' : tabTitles[t]!,
-                                maxLines: 2,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 11, height: 1.15, color: tab == t ? C.ink : C.muted),
+                            // у всех пунктов один размер шрифта и равная ширина; длинные подписи — в две строки
+                            Text(
+                              t == MenuTab.char ? 'Параметры\nискры' : tabTitles[t]!,
+                              maxLines: 2,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 10,
+                                height: 1.15,
+                                letterSpacing: -0.1,
+                                color: tab == t ? C.ink : C.muted,
                               ),
                             ),
                           ],

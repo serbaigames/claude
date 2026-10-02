@@ -146,7 +146,33 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void select(String? key) => act((g) => g.s.sel = key);
+  /// Артефакт, который ждёт выбора клетки на карте (номер в s.artifacts)
+  int? artPick;
+
+  void startArtPick(int i) {
+    artPick = i;
+    notifyListeners();
+  }
+
+  void cancelArtPick() {
+    artPick = null;
+    notifyListeners();
+  }
+
+  /// Нажатие на клетку карты. Если ждёт артефакт и клетка подходит — артефакт применяется к ней
+  void select(String? key) {
+    final i = artPick;
+    final c = key == null ? null : game.s.cells[key];
+    if (i != null && i < game.s.artifacts.length && game.artValid(game.s.artifacts[i], c)) {
+      artPick = null;
+      act((g) {
+        g.s.sel = key;
+        g.applyArt(i);
+      });
+      return;
+    }
+    act((g) => g.s.sel = key);
+  }
 
   void setPaused(bool v) => act((g) => g.s.paused = v);
 
@@ -182,6 +208,7 @@ class GameController extends ChangeNotifier {
     game = _newGameObject()..newGame();
     _noSave = false;
     save();
+    sync?.cloudSave(force: true);
     notifyListeners();
   }
 
