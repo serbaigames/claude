@@ -219,15 +219,23 @@ class CellPanel extends StatelessWidget {
               for (final b in Defs.buildings.values)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: ActBtn(
-                    '${b.glyph}  ${b.name}${Game.bL(c, b.id) > 0 ? ' (${Game.bL(c, b.id) + 1} ур.)' : ''}',
-                    g.s.matter >= g.bldCost(c, b.id) && Game.usedCap(c) < Game.cap(c)
-                        ? () {
-                            ctl.act((g) => g.build(key, b.id));
-                            Navigator.pop(ctx);
-                          }
-                        : null,
-                    right: Fmt.n(g.bldCost(c, b.id)),
+                  child: Row(
+                    children: [
+                      BuildingIcon(b.id),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ActBtn(
+                          '${b.name}${Game.bL(c, b.id) > 0 ? ' (${Game.bL(c, b.id) + 1} ур.)' : ''}',
+                          g.s.matter >= g.bldCost(c, b.id) && Game.usedCap(c) < Game.cap(c)
+                              ? () {
+                                  ctl.act((g) => g.build(key, b.id));
+                                  Navigator.pop(ctx);
+                                }
+                              : null,
+                          right: Fmt.n(g.bldCost(c, b.id)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
           ],
@@ -253,7 +261,8 @@ class CellPanel extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          SizedBox(width: 28, child: Text(b.glyph, style: const TextStyle(fontSize: 18))),
+          BuildingIcon(b.id),
+          const SizedBox(width: 6),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

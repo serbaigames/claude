@@ -316,3 +316,27 @@ void paintPill(
   }
   tp.paint(c, p - Offset(tp.width / 2, tp.height / 2));
 }
+
+/// Значок строения для списков: тот же спутник, что на карте и орбите окна клетки
+class BuildingIcon extends StatelessWidget {
+  const BuildingIcon(this.type, {super.key, this.size = 28});
+  final String type;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+    dimension: size,
+    child: CustomPaint(painter: _BuildingIconPainter(type)),
+  );
+}
+
+class _BuildingIconPainter extends CustomPainter {
+  _BuildingIconPainter(this.type);
+  final String type;
+
+  @override
+  void paint(Canvas canvas, Size size) => paintBuilding(canvas, type, size.center(Offset.zero), size.shortestSide * .3, 1.2);
+
+  @override
+  bool shouldRepaint(covariant _BuildingIconPainter old) => old.type != type;
+}
