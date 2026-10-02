@@ -1,5 +1,5 @@
-// Главный экран: ресурсы сверху, карта, лента сообщений, вкладки меню и окна поверх.
-// На узком экране меню снизу, на широком — справа от карты (как вёрстка веб-версии).
+// Главный экран: ресурсы сверху, карта, лента сообщений, строка меню внизу.
+// Пункты меню открываются окнами поверх карты; строка меню остаётся видна и под окном.
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -25,7 +25,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final Ticker _ticker;
   Duration _last = Duration.zero;
-  MenuTab? tab = MenuTab.cell;
+  MenuTab? tab;
   SyncConflict? conflict;
   Completer<bool>? _conflictDone;
 
@@ -96,13 +96,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final g = ctl.game;
-    final wide = MediaQuery.sizeOf(context).width >= 900;
-    final menu = _menu(wide);
     final map = Stack(
       children: [
         Positioned.fill(child: HexMap(ctl: ctl)),
         Positioned(left: 8, top: 8, right: 60, child: _feed()),
         Positioned(left: 8, right: 56, bottom: 8, child: _actionBar(g)),
+        if (tab != null) _window(tab!),
       ],
     );
     return PopScope(
@@ -118,21 +117,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   _topBar(g),
                   _eraStrip(g),
-                  Expanded(
-                    child: wide
-                        ? Row(
-                            children: [
-                              Expanded(child: map),
-                              SizedBox(width: 440, child: menu),
-                            ],
-                          )
-                        : Column(
-                            children: [
-                              Expanded(child: map),
-                              menu,
-                            ],
-                          ),
-                  ),
+                  Expanded(child: map),
+                  _menu(),
                 ],
               ),
             ),
@@ -189,7 +175,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             '+${Fmt.n1(g.incomeParts().fac)}%',
             tip: 'Бонус заводов ко всей добыче: сумма процентов всех заводов ÷ число клеток',
           ),
-          res('Клетки', '${g.own.length} ($thr)', color: thr > 0 ? C.bad : C.ink, tip: 'Всего клеток (из них под угрозой)'),
+          res(
+            'Клетки',
+            '${g.own.length} ($thr)',
+            color: thr > 0 ? C.bad : C.ink,
+            tip: 'Всего клеток (из них под угрозой)',
+          ),
           res('Бонус', '×${Fmt.x(g.bonusMul, 2)}'),
           res('Пульсары', '${g.s.pulsars}', tip: 'Пульсары — валюта технологий'),
         ],
@@ -225,7 +216,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         children: [
           // стрелка из текста ядра (▲ ▼ ■) рисуется значком: такие символы есть не во всех шрифтах
           Icon(
-            tr.kind == 'grow' ? Icons.arrow_upward : tr.kind == 'stall' ? Icons.stop : Icons.arrow_downward,
+            tr.kind == 'grow'
+                ? Icons.arrow_upward
+                : tr.kind == 'stall'
+                ? Icons.stop
+                : Icons.arrow_downward,
             size: 14,
             color: C.kind(tr.kind),
           ),
@@ -235,21 +230,38 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     );
     final time = [
-      _timeBtn(Icon(g.s.paused ? Icons.play_arrow : Icons.pause, size: 16), () => ctl.setPaused(!g.s.paused), g.s.paused),
-      for (final s in [1, 2, 3]) _timeBtn(Text('×$s', style: const TextStyle(fontSize: 12)), () => ctl.setSpeed(s), g.speed == s),
+      _timeBtn(
+        Icon(g.s.paused ? Icons.play_arrow : Icons.pause, size: 16),
+        () => ctl.setPaused(!g.s.paused),
+        g.s.paused,
+      ),
+      for (final s in [1, 2, 3])
+        _timeBtn(Text('×$s', style: const TextStyle(fontSize: 12)), () => ctl.setSpeed(s), g.speed == s),
     ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       color: C.bg,
       child: LayoutBuilder(
         builder: (context, box) => box.maxWidth >= 640
-            ? Row(children: [Expanded(child: era), trend, const SizedBox(width: 8), ...time])
+            ? Row(
+                children: [
+                  Expanded(child: era),
+                  trend,
+                  const SizedBox(width: 8),
+                  ...time,
+                ],
+              )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   era,
                   const SizedBox(height: 4),
-                  Row(children: [Expanded(child: trend), ...time]),
+                  Row(
+                    children: [
+                      Expanded(child: trend),
+                      ...time,
+                    ],
+                  ),
                 ],
               ),
       ),
@@ -314,7 +326,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             style: TextStyle(color: danger ? C.bad : C.ok),
           ),
         ),
-        ActBtn('Укрепить', g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null, right: Fmt.n(dc), primary: danger),
+        ActBtn(
+          'Укрепить',
+          g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null,
+          right: Fmt.n(dc),
+          primary: danger,
+        ),
       ]);
     }
     if (!c.alive) {
@@ -338,57 +355,111 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     ]);
   }
 
-  Widget _menu(bool wide) {
+  static const _tabIcons = {
+    MenuTab.cell: Icons.hexagon_outlined,
+    MenuTab.char: Icons.person_outline,
+    MenuTab.abil: Icons.auto_awesome_outlined,
+    MenuTab.art: Icons.diamond_outlined,
+    MenuTab.tech: Icons.science_outlined,
+    MenuTab.era: Icons.hourglass_empty,
+    MenuTab.acc: Icons.account_circle_outlined,
+    MenuTab.top: Icons.leaderboard_outlined,
+  };
+
+  /// Строка меню внизу экрана: все пункты в один ряд, выбранный подсвечен
+  Widget _menu() {
     final tabs = [
       for (final t in MenuTab.values)
         if ((t != MenuTab.top) || (ctl.sync?.on ?? false)) t,
     ];
-    final strip = SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      child: Row(
-        children: [
-          for (final t in tabs)
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: ChoiceChip(
-                label: Text(tabTitles[t]!),
-                selected: tab == t,
-                onSelected: (_) => setState(() => tab = tab == t ? null : t),
-              ),
-            ),
-        ],
-      ),
-    );
-    final body = tab == null
-        ? null
-        : SingleChildScrollView(padding: const EdgeInsets.fromLTRB(12, 4, 12, 16), child: panelFor(tab!, ctl));
     return Container(
+      key: const ValueKey('menu-bar'),
       decoration: const BoxDecoration(
         color: C.panel,
-        border: Border(
-          top: BorderSide(color: C.line),
-          left: BorderSide(color: C.line),
+        border: Border(top: BorderSide(color: C.line)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 760),
+          child: Row(
+            children: [
+              for (final t in tabs)
+                Expanded(
+                  child: InkWell(
+                    key: ValueKey('menu-${t.name}'),
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => setState(() => tab = tab == t ? null : t),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: tab == t ? C.gold.withValues(alpha: 0.18) : null,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_tabIcons[t], size: 22, color: tab == t ? C.gold : C.muted),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              tabTitles[t]!,
+                              maxLines: 1,
+                              style: TextStyle(fontSize: 11, color: tab == t ? C.ink : C.muted),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-      child: wide
-          ? Column(
-              children: [
-                strip,
-                if (body != null) Expanded(child: body),
-              ],
-            )
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                strip,
-                if (body != null)
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.42),
-                    child: body,
-                  ),
-              ],
-            ),
     );
   }
+
+  /// Окно пункта меню поверх карты; нажатие мимо окна или на крестик закрывает его
+  Widget _window(MenuTab t) => Positioned.fill(
+    child: GestureDetector(
+      onTap: () => setState(() => tab = null),
+      child: ColoredBox(
+        color: const Color(0x99080514),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: GestureDetector(
+            onTap: () {},
+            child: Container(
+              key: ValueKey('window-${t.name}'),
+              constraints: const BoxConstraints(maxWidth: 560),
+              margin: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+              decoration: BoxDecoration(
+                color: C.panel,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: C.line),
+                boxShadow: const [BoxShadow(color: Color(0x80000000), blurRadius: 18)],
+              ),
+              child: Stack(
+                children: [
+                  SingleChildScrollView(padding: const EdgeInsets.fromLTRB(14, 10, 14, 16), child: panelFor(t, ctl)),
+                  Positioned(
+                    right: 2,
+                    top: 2,
+                    child: IconButton(
+                      tooltip: 'Закрыть',
+                      icon: const Icon(Icons.close, size: 20, color: C.muted),
+                      onPressed: () => setState(() => tab = null),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
