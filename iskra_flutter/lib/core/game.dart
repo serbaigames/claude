@@ -102,15 +102,33 @@ class Game {
   }
 
   /* ---------- технологии ---------- */
-  bool hasTech(String id) => (s.tech[id] ?? 0) > 0;
+  bool hasTech(String id) => techRank(id) > 0;
+  int techRank(String id) => s.tech[id] ?? 0;
+
+  /// Технология доступна, когда у каждой предыдущей изучен хотя бы 1-й ранг
   bool techOpen(TechDef t) => t.req.every(hasTech);
 
+  /// Цена следующего ранга или null, если изучены все ранги
+  int? techNextCost(TechDef t) {
+    final r = techRank(t.id);
+    return r >= t.ranks ? null : t.rankCost(r);
+  }
+
+  /// Множитель технологии: 1 + прибавка × ранг; накладывается поверх всех остальных множителей
+  double techMul(String id) {
+    final t = Defs.techById[id];
+    return t == null ? 1 : 1 + t.per * math.min(techRank(id), t.ranks);
+  }
+
   void researchTech(String id) {
-    final t = Defs.tech.where((x) => x.id == id).firstOrNull;
-    if (t == null || t.soon || hasTech(id) || !techOpen(t) || s.pulsars < t.cost) return;
-    s.pulsars -= t.cost;
-    s.tech[id] = 1;
-    log('Изучена технология «${t.name}».', 'good');
+    final t = Defs.techById[id];
+    if (t == null || t.soon || !techOpen(t)) return;
+    final cost = techNextCost(t);
+    if (cost == null || s.pulsars < cost) return;
+    s.pulsars -= cost;
+    final r = techRank(id) + 1;
+    s.tech[id] = r;
+    log(t.ranks > 1 ? 'Технология «${t.name}»: ранг $r.' : 'Изучена технология «${t.name}».', 'good');
   }
 
   /* ---------- агрессивность мира ---------- */
@@ -279,7 +297,7 @@ class Game {
   double get sparkSpeed => 1 + 0.15 * s.rebirths;
 
   /// (база + шахты × бонус) × (1 + заводы %) × эра
-  double income() => incomeParts().total * eraV('inc');
+  double income() => incomeParts().total * eraV('inc') * techMul('income');
 
   /// Заводы: сумма процентов всех заводов в мире делится на число ваших клеток и даёт бонус ко всей добыче
   IncomeParts incomeParts() {
@@ -297,7 +315,7 @@ class Game {
   /// «Управление»: коэффициент защиты клеток 1 на 1-м уровне, ×1,01 за каждый следующий
   double get ctrlMul => math.pow(1.01, math.max(0, eff('control').v - 1)).toDouble();
   double get ctrlPct => (ctrlMul - 1) * 100;
-  double fortPct(Cell c) => 10 * mult(st(c, 'f')); // +10% защиты за уровень укрепления при силе клетки 33%
+  double fortPct(Cell c) => 10 * mult(st(c, 'f')) * techMul('fort'); // +10% защиты за уровень укрепления при силе клетки 33%
   double cellDef(Cell c) => c.spark
       ? double.infinity
       : c.def *
@@ -449,7 +467,7 @@ class Game {
     trendSample(dt);
     for (final c in own) {
       if (c.spark) continue;
-      c.held += dt * eraV('held');
+      c.held += dt * eraV('held') * techMul('grow');
       final l = cellLvl(c);
       if (c.lv0 == null) {
         c.lv0 = l;

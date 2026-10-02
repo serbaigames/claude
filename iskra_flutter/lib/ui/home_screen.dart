@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../core/game.dart';
@@ -27,7 +26,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late final Ticker _ticker;
   Duration _last = Duration.zero;
   MenuTab? tab;
-  double blockH = 0; // высота блока выбранной клетки: над ним поднимаются кнопки по краям карты
 
   /// Тень под надписями поверх карты (у верхних строк нет фона)
   static const _shadow = [Shadow(color: Color(0xE6000000), blurRadius: 4)];
@@ -106,7 +104,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final g = ctl.game;
     final block = _cellBlock(g);
-    final lift = block == null ? 0.0 : blockH + 8;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -121,9 +118,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   Expanded(
                     child: Stack(
                       children: [
-                        Positioned.fill(
-                          child: HexMap(ctl: ctl, controlsBottom: lift),
-                        ),
+                        Positioned.fill(child: HexMap(ctl: ctl)),
                         Positioned(
                           left: 0,
                           right: 0,
@@ -137,22 +132,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             ],
                           ),
                         ),
-                        Positioned(left: 8, bottom: 8 + lift, child: _timeColumn(g)),
+                        Positioned(left: 8, bottom: 8, child: _timeColumn(g)),
                         if (block != null)
+                          // блок между столбиками кнопок времени (слева) и масштаба (справа), кнопки не сдвигает
                           Positioned(
-                            left: 8,
-                            right: 8,
+                            left: 56,
+                            right: 56,
                             bottom: 8,
                             child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 560),
-                                child: _MeasureSize(
-                                  onChange: (h) {
-                                    if (h != blockH) setState(() => blockH = h);
-                                  },
-                                  child: block,
-                                ),
-                              ),
+                              child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 560), child: block),
                             ),
                           ),
                         if (tab != null) _window(tab!),
@@ -215,46 +203,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             '+${Fmt.n1(g.incomeParts().fac)}%',
             tip: 'Бонус заводов ко всей добыче: сумма процентов всех заводов ÷ число клеток',
           ),
-          res(
-            'Клетки',
-            '${g.own.length} ($thr)',
-            color: thr > 0 ? C.bad : C.ink,
-            tip: 'Всего клеток (из них под угрозой)',
-          ),
+          res('Клетки', '${g.own.length} ($thr)', color: thr > 0 ? C.bad : C.ink, tip: 'Всего клеток (из них под угрозой)'),
           res('Бонус', '×${Fmt.x(g.bonusMul, 2)}'),
           res('Пульсары', '${g.s.pulsars}', tip: 'Пульсары — валюта технологий'),
         ],
       ),
     );
   }
-
-  /// Картинка эры на кнопке: своя для каждой из 24 эр
-  static const _eraIcons = {
-    'dawn': Icons.wb_twilight,
-    'drain': Icons.water_drop_outlined,
-    'tide': Icons.waves,
-    'torpor': Icons.ac_unit,
-    'flame': Icons.local_fire_department,
-    'dim': Icons.brightness_low,
-    'blood': Icons.bloodtype_outlined,
-    'brittle': Icons.heart_broken_outlined,
-    'stone': Icons.landscape_outlined,
-    'lore': Icons.menu_book_outlined,
-    'toll': Icons.paid_outlined,
-    'builders': Icons.construction,
-    'scarcity': Icons.remove_shopping_cart_outlined,
-    'bastions': Icons.fort,
-    'spoils': Icons.card_giftcard,
-    'meager': Icons.money_off,
-    'starfall': Icons.auto_awesome,
-    'void': Icons.blur_on,
-    'ancients': Icons.visibility_outlined,
-    'bloom': Icons.local_florist_outlined,
-    'swift': Icons.bolt,
-    'viscous': Icons.hourglass_bottom,
-    'balance': Icons.balance,
-    'eclipse': Icons.brightness_3_outlined,
-  };
 
   /// Круглая кнопка в стиле кнопок масштаба карты
   Widget _sqBtn(Widget child, VoidCallback f, {bool on = false, String? tip}) {
@@ -285,7 +240,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sqBtn(
-            Icon(_eraIcons[e.id] ?? Icons.hourglass_empty, size: 22, color: C.kind(e.kind)),
+            Icon(eraIcons[e.id] ?? Icons.hourglass_empty, size: 22, color: C.kind(e.kind)),
             () => setState(() => tab = MenuTab.era),
             tip: 'Эры',
           ),
@@ -442,12 +397,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
       ];
       buttons = [
-        ActBtn(
-          'Укрепить',
-          g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null,
-          right: Fmt.n(dc),
-          primary: danger,
-        ),
+        ActBtn('Укрепить', g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null, right: Fmt.n(dc), primary: danger),
         open('Развитие', MenuTab.cell),
       ];
     } else if (!c.alive) {
@@ -478,50 +428,46 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
     return Container(
       key: const ValueKey('cell-block'),
-      padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       decoration: BoxDecoration(
         color: const Color(0xF21C1733),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: c.own ? C.gold.withValues(alpha: 0.4) : C.line),
         boxShadow: const [BoxShadow(color: Color(0x80000000), blurRadius: 12)],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontWeight: FontWeight.w700, color: c.own ? C.gold : C.ink),
-                      ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.w700, color: c.own ? C.gold : C.ink),
                     ),
-                    if (chip != null) ...[const SizedBox(width: 6), chip],
-                  ],
-                ),
-                const SizedBox(height: 2),
-                ...info,
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          IntrinsicWidth(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (var i = 0; i < buttons.length; i++) ...[
-                  if (i > 0) const SizedBox(height: 6),
-                  SizedBox(height: 36, child: buttons[i]),
+                  ),
+                  if (chip != null) ...[const SizedBox(width: 6), chip],
                 ],
+              ),
+              const SizedBox(height: 2),
+              ...info,
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              for (var i = 0; i < buttons.length; i++) ...[
+                if (i > 0) const SizedBox(width: 6),
+                Expanded(child: SizedBox(height: 34, child: buttons[i])),
               ],
-            ),
+            ],
           ),
         ],
       ),
@@ -530,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   static const _tabIcons = {
     MenuTab.cell: Icons.hexagon_outlined,
-    MenuTab.char: Icons.person_outline,
+    MenuTab.char: Icons.radar,
     MenuTab.abil: Icons.auto_awesome_outlined,
     MenuTab.art: Icons.diamond_outlined,
     MenuTab.tech: Icons.science_outlined,
@@ -542,14 +488,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   /// Строка меню внизу экрана: все пункты в один ряд, выбранный подсвечен
   Widget _menu() {
     // «Клетка» открывается из блока выбранной клетки, «Эры» — кнопкой эры слева вверху
-    final tabs = [
-      MenuTab.char,
-      MenuTab.abil,
-      MenuTab.art,
-      MenuTab.tech,
-      if (ctl.sync?.on ?? false) MenuTab.top,
-      MenuTab.acc,
-    ];
+    final tabs = [MenuTab.char, MenuTab.abil, MenuTab.art, MenuTab.tech, if (ctl.sync?.on ?? false) MenuTab.top, MenuTab.acc];
     return Container(
       key: const ValueKey('menu-bar'),
       decoration: const BoxDecoration(
@@ -560,40 +499,46 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 760),
-          child: Row(
-            children: [
-              for (final t in tabs)
-                Expanded(
-                  child: InkWell(
-                    key: ValueKey('menu-${t.name}'),
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () => setState(() => tab = tab == t ? null : t),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: tab == t ? C.gold.withValues(alpha: 0.18) : null,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(_tabIcons[t], size: 22, color: tab == t ? C.gold : C.muted),
-                          const SizedBox(height: 2),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              tabTitles[t]!,
-                              maxLines: 1,
-                              style: TextStyle(fontSize: 11, color: tab == t ? C.ink : C.muted),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final t in tabs)
+                  Expanded(
+                    // длинной подписи «Характеристики искры» — шире ячейка и две строки
+                    flex: t == MenuTab.char ? 3 : 2,
+                    child: InkWell(
+                      key: ValueKey('menu-${t.name}'),
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () => setState(() => tab = tab == t ? null : t),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: tab == t ? C.gold.withValues(alpha: 0.18) : null,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(_tabIcons[t], size: 22, color: tab == t ? C.gold : C.muted),
+                            const SizedBox(height: 2),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                t == MenuTab.char ? 'Характеристики\nискры' : tabTitles[t]!,
+                                maxLines: 2,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 11, height: 1.15, color: tab == t ? C.ink : C.muted),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -640,31 +585,4 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     ),
   );
-}
-
-/// Сообщает высоту ребёнка после раскладки
-class _MeasureSize extends SingleChildRenderObjectWidget {
-  const _MeasureSize({required this.onChange, required super.child});
-  final ValueChanged<double> onChange;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) => _RenderMeasure(onChange);
-
-  @override
-  void updateRenderObject(BuildContext context, _RenderMeasure renderObject) => renderObject.onChange = onChange;
-}
-
-class _RenderMeasure extends RenderProxyBox {
-  _RenderMeasure(this.onChange);
-  ValueChanged<double> onChange;
-  double? _h;
-
-  @override
-  void performLayout() {
-    super.performLayout();
-    final h = size.height;
-    if (h == _h) return;
-    _h = h;
-    WidgetsBinding.instance.addPostFrameCallback((_) => onChange(h));
-  }
 }

@@ -99,6 +99,57 @@ void main() {
     expect(g.own.length, 1);
   });
 
+  test('технологии: порядок изучения, ранги 3/9/27 и множители поверх остальных', () {
+    final g = Game(random: math.Random(7))..newGame();
+    final grow = Defs.techById['grow']!, fort = Defs.techById['fort']!, inc = Defs.techById['income']!;
+    expect([for (var r = 0; r < 3; r++) grow.rankCost(r)], [3, 9, 27]);
+    g.s.pulsars = 100;
+    // без «Прыжка» второй уровень закрыт
+    g.researchTech('grow');
+    expect(g.techRank('grow'), 0);
+    g.researchTech('jump');
+    expect(g.hasTech('jump'), isTrue);
+    // третий уровень закрыт, пока не изучен 1-й ранг родителя, и пока не готов
+    expect(g.techOpen(Defs.techById['grow-a']!), isFalse);
+    final inc0 = g.income();
+    g.researchTech('income');
+    expect(g.techRank('income'), 1);
+    expect(g.s.pulsars, 100 - 1 - 3);
+    expect(g.income(), closeTo(inc0 * (1 + inc.per), 1e-9));
+    g.researchTech('income');
+    g.researchTech('income');
+    g.researchTech('income'); // четвёртого ранга нет
+    expect(g.techRank('income'), 3);
+    expect(g.s.pulsars, 100 - 1 - 3 - 9 - 27);
+    expect(g.techOpen(Defs.techById['income-a']!), isTrue);
+    g.researchTech('income-a'); // «скоро» — не изучается
+    expect(g.techRank('income-a'), 0);
+
+    // укрепление: защита от уровня укрепления растёт на 25% за ранг
+    final c = g.s.cells.values.firstWhere((c) => !c.own)
+      ..own = true
+      ..alive = false
+      ..def = 100
+      ..defLvl = 2;
+    final pct0 = g.fortPct(c);
+    g.researchTech('fort');
+    expect(g.fortPct(c), closeTo(pct0 * (1 + fort.per), 1e-9));
+
+    // рост: время владения клеткой идёт быстрее
+    g.refresh();
+    g.researchTech('grow');
+    final h0 = c.held;
+    g.tick(1);
+    expect(c.held - h0, closeTo(g.eraV('held') * (1 + grow.per), 1e-9));
+
+    // технологии сохраняются при прыжке и в сохранении
+    g.s.worldMax = 10;
+    g.rebirth();
+    expect(g.techRank('income'), 3);
+    final back = GameState.fromJson(jsonDecode(jsonEncode(g.s.toJson())) as Map<String, dynamic>);
+    expect(back.tech, {'jump': 1, 'income': 3, 'fort': 1, 'grow': 1});
+  });
+
   test('симуляция: бот играет час без ошибок на нескольких сидах', () {
     for (final seed in [1, 2, 3]) {
       final r = runSim(seed: seed, minutes: 60);

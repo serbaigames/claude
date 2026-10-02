@@ -17,7 +17,7 @@ class SimResult {
     return 'matter ${Fmt.n(s.matter)}, earned ${Fmt.n(s.earned)}, cells ${game.own.length}, best ${s.bestCells}, '
         'rebirths ${s.rebirths}, bonus ${s.bonus}, battles $battles, wins $wins, defends $defends, '
         'kills ${k['low']}/${k['rare']}/${k['epic']}/${k['legend']}, arts ${s.artifacts.length}, cores ${s.cores.length}, '
-        'pulsars ${s.pulsars}, logs $logs\n  char ${s.char.values.join('/')}, abilities $abs, era ${game.eraNow.name}, '
+        'pulsars ${s.pulsars}, tech ${s.tech}, logs $logs\n  char ${s.char.values.join('/')}, abilities $abs, era ${game.eraNow.name}, '
         'trend ${game.worldTrend().text}';
   }
 }
@@ -67,9 +67,16 @@ SimResult runSim({int seed = 1, double minutes = 60, bool rich = false}) {
       }
       continue;
     }
-    if (rich && frames % 600 == 0) g.s.matter += 1e5 * (1 + t / 600);
+    if (rich && frames % 600 == 0) {
+      g.s.matter += 1e5 * (1 + t / 600);
+      g.s.pulsars += 5;
+    }
     if (frames % 10 != 0) continue;
     g.s.paused = false;
+    // технологии: самый дешёвый доступный ранг
+    final techs = Defs.tech.where((t) => !t.soon && g.techOpen(t) && g.techNextCost(t) != null).toList()
+      ..sort((a, b) => g.techNextCost(a)!.compareTo(g.techNextCost(b)!));
+    if (techs.isNotEmpty) g.researchTech(techs.first.id);
     // покупки
     for (final c in g.own.toList()) {
       if (c.spark) continue;

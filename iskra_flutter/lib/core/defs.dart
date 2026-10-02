@@ -40,7 +40,31 @@ class TechDef {
   final int lvl, cost;
   final List<String> req;
   final bool soon;
-  const TechDef(this.id, this.lvl, this.name, this.icon, this.cost, this.req, this.desc, {this.soon = false});
+
+  /// Число рангов; каждый следующий ранг втрое дороже (3, 9, 27 пульсаров)
+  final int ranks;
+
+  /// Прибавка за ранг к множителю (0,25 → ×1,25 / ×1,5 / ×1,75); 0 — без числового эффекта
+  final double per;
+
+  /// Что усиливает, для описания: «развитие ваших клеток», «защита от укреплений»…
+  final String what;
+  const TechDef(
+    this.id,
+    this.lvl,
+    this.name,
+    this.icon,
+    this.cost,
+    this.req,
+    this.desc, {
+    this.soon = false,
+    this.ranks = 1,
+    this.per = 0,
+    this.what = '',
+  });
+
+  /// Цена ранга r (с нуля)
+  int rankCost(int r) => cost * [1, 3, 9, 27, 81][r];
 }
 
 class ParamDef {
@@ -198,7 +222,7 @@ class Defs {
   };
 
   /// Технологии: дерево развития, изучается за пульсары; сохраняется при прыжке
-  static const tech = <TechDef>[
+  static final tech = <TechDef>[
     TechDef(
       'jump',
       1,
@@ -208,10 +232,49 @@ class Defs {
       [],
       'Открывает прыжок искры в новую область вселенной с бонусами от текущего воплощения.',
     ),
-    TechDef('t2a', 2, 'Неизвестная технология', 'target', 0, ['jump'], 'Откроется в следующих версиях.', soon: true),
-    TechDef('t2b', 2, 'Неизвестная технология', 'target', 0, ['jump'], 'Откроется в следующих версиях.', soon: true),
-    TechDef('t2c', 2, 'Неизвестная технология', 'target', 0, ['jump'], 'Откроется в следующих версиях.', soon: true),
+    // второй уровень: открывается после «Прыжка», 3 ранга по 3 / 9 / 27 пульсаров
+    TechDef(
+      'grow',
+      2,
+      'Рост',
+      'grow',
+      3,
+      ['jump'],
+      'Ускоряет развитие ваших клеток: уровни, новые ячейки строений и всё, что зависит от времени владения.',
+      ranks: 3,
+      per: 0.25,
+      what: 'скорость развития клеток',
+    ),
+    TechDef(
+      'fort',
+      2,
+      'Укрепление',
+      'fort',
+      3,
+      ['jump'],
+      'Каждый уровень укрепления клетки даёт больше защиты.',
+      ranks: 3,
+      per: 0.25,
+      what: 'защита от укреплений',
+    ),
+    TechDef(
+      'income',
+      2,
+      'Доход',
+      'income',
+      3,
+      ['jump'],
+      'Увеличивает приток материи: множитель ко всей добыче, поверх заводов, эры и бонуса прыжка.',
+      ranks: 3,
+      per: 0.15,
+      what: 'вся добыча материи',
+    ),
+    // третий уровень: по две ветки от каждой технологии второго уровня, пока неизвестны
+    for (final p in ['grow', 'fort', 'income'])
+      for (final x in ['a', 'b'])
+        TechDef('$p-$x', 3, 'Неизвестная технология', 'unknown', 0, [p], 'Откроется в следующих версиях.', soon: true),
   ];
+  static final techById = {for (final t in tech) t.id: t};
 
   static const buildings = <String, BuildingDef>{
     'mine': BuildingDef('mine', 'Шахта', 'шахта', '⛏'),

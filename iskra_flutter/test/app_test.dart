@@ -32,7 +32,7 @@ void main() {
     expect(ctl.game.b, isNull);
 
     for (final (t, key) in [
-      ('Персонаж', 'char'),
+      ('Характеристики\nискры', 'char'),
       ('Способности', 'abil'),
       ('Артефакты', 'art'),
       ('Технологии', 'tech'),
