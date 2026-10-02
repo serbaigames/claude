@@ -565,17 +565,22 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 border: Border.all(color: C.line),
                 boxShadow: const [BoxShadow(color: Color(0x80000000), blurRadius: 18)],
               ),
-              child: Stack(
+              // крестик отдельной строкой сверху, чтобы не наезжать на кнопки в заголовке окна
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  SingleChildScrollView(padding: const EdgeInsets.fromLTRB(14, 10, 14, 16), child: panelFor(t, ctl)),
-                  Positioned(
-                    right: 2,
-                    top: 2,
+                  SizedBox(
+                    height: 34,
                     child: IconButton(
                       tooltip: 'Закрыть',
+                      padding: EdgeInsets.zero,
                       icon: const Icon(Icons.close, size: 20, color: C.muted),
                       onPressed: () => setState(() => tab = null),
                     ),
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(14, 0, 14, 16), child: panelFor(t, ctl)),
                   ),
                 ],
               ),
