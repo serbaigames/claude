@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ui/controller.dart';
+import 'ui/gfx.dart';
 import 'ui/home_screen.dart';
 import 'ui/theme.dart';
 
@@ -43,8 +44,15 @@ class IskraApp extends StatelessWidget {
     debugShowCheckedModeBanner: false,
     theme: iskraTheme(),
     // первое касание разрешает звук (браузеры не дают играть его раньше)
-    builder: (context, child) =>
-        Listener(behavior: HitTestBehavior.translucent, onPointerDown: (_) => controller.sound.unlock(), child: child),
+    builder: (context, child) => Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => controller.sound.unlock(),
+      // масштаб интерфейса: ×1 или авто по размеру экрана
+      child: ValueListenableBuilder<bool>(
+        valueListenable: controller.uiAuto,
+        builder: (context, auto, _) => UiScale(auto: auto, child: child!),
+      ),
+    ),
     home: HomeScreen(ctl: controller),
   );
 }

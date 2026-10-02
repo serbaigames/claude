@@ -71,6 +71,15 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Масштаб интерфейса: true — авто по размеру экрана, false — ×1
+  final uiAuto = ValueNotifier<bool>(true);
+  static const uiKey = 'iskra-ui-scale';
+  void setUiAuto(bool v) {
+    uiAuto.value = v;
+    prefs.setString(uiKey, v ? 'auto' : '1');
+    notifyListeners();
+  }
+
   final List<FeedItem> feed = [];
 
   bool jumpDefeat = false; // материя ушла в минус — окно прыжка без кнопки «Остаться»
@@ -80,6 +89,7 @@ class GameController extends ChangeNotifier {
 
   void _boot() {
     Gfx.level = Gfx.parse(prefs.getString(gfxKey));
+    uiAuto.value = prefs.getString(uiKey) != '1';
     game = _newGameObject();
     final raw = prefs.getString(saveKey);
     if (raw == null || !_attach(raw)) game.newGame();
@@ -239,6 +249,7 @@ class GameController extends ChangeNotifier {
   void dispose() {
     frameTick.dispose();
     paintTick.dispose();
+    uiAuto.dispose();
     sound.dispose();
     sync?.api.close();
     super.dispose();

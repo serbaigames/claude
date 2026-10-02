@@ -264,26 +264,32 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     );
     final thr = g.threatCount;
+    // показатели собраны к центру, по бокам широкого экрана остаётся пустое поле
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      child: Row(
-        children: [
-          res('Материя', Fmt.n(g.s.matter), color: C.gold),
-          res(
-            'Добыча',
-            g.s.paused ? 'пауза' : '+${Fmt.n1(g.income())}/с',
-            color: g.s.paused ? C.muted : C.ok,
-            tip: 'Суммарная добыча материи в секунду',
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Row(
+            children: [
+              res('Материя', Fmt.n(g.s.matter), color: C.gold),
+              res(
+                'Добыча',
+                g.s.paused ? 'пауза' : '+${Fmt.n1(g.income())}/с',
+                color: g.s.paused ? C.muted : C.ok,
+                tip: 'Суммарная добыча материи в секунду',
+              ),
+              res(
+                'Заводы',
+                '+${Fmt.n1(g.incomeParts().fac)}%',
+                tip: 'Бонус заводов ко всей добыче: сумма процентов всех заводов ÷ число клеток',
+              ),
+              res('Клетки', '${g.own.length} ($thr)', color: thr > 0 ? C.bad : C.ink, tip: 'Всего клеток (из них под угрозой)'),
+              res('Бонус', '×${Fmt.x(g.bonusMul, 2)}'),
+              res('Пульсары', '${g.s.pulsars}', tip: 'Пульсары — валюта технологий'),
+            ],
           ),
-          res(
-            'Заводы',
-            '+${Fmt.n1(g.incomeParts().fac)}%',
-            tip: 'Бонус заводов ко всей добыче: сумма процентов всех заводов ÷ число клеток',
-          ),
-          res('Клетки', '${g.own.length} ($thr)', color: thr > 0 ? C.bad : C.ink, tip: 'Всего клеток (из них под угрозой)'),
-          res('Бонус', '×${Fmt.x(g.bonusMul, 2)}'),
-          res('Пульсары', '${g.s.pulsars}', tip: 'Пульсары — валюта технологий'),
-        ],
+        ),
       ),
     );
   }

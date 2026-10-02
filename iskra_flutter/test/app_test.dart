@@ -70,6 +70,16 @@ void main() {
     expect(prefs.getString(GameController.gfxKey), 'low');
     ctl.setGfx(GfxLevel.high);
     await tester.pump(const Duration(milliseconds: 100));
+    // масштаб интерфейса: ×1 или авто
+    expect(ctl.uiAuto.value, isTrue);
+    final one = find.descendant(of: find.byKey(const ValueKey('ui-scale')), matching: find.text('×1'));
+    await tester.ensureVisible(one);
+    await tester.tap(one);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(ctl.uiAuto.value, isFalse);
+    expect(prefs.getString(GameController.uiKey), '1');
+    ctl.setUiAuto(true);
+    await tester.pump(const Duration(milliseconds: 100));
     // громкость музыки сохраняется
     ctl.sound.setMusic(0.25);
     expect(prefs.getDouble('iskra-vol-music'), 0.25);

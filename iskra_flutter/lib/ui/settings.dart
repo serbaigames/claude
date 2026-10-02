@@ -167,6 +167,25 @@ class AppSettings extends StatelessWidget {
               style: TextStyle(color: C.muted, fontSize: 12),
             ),
         ]),
+        _head('Масштаб интерфейса', Icons.zoom_out_map),
+        _card([
+          SegmentedButton<bool>(
+            key: const ValueKey('ui-scale'),
+            showSelectedIcon: false,
+            segments: [
+              const ButtonSegment(value: false, label: Text('×1')),
+              ButtonSegment(value: true, label: Text('Авто (сейчас ×${Fmt.x(_autoNow(context), 2)})')),
+            ],
+            selected: {ctl.uiAuto.value},
+            onSelectionChanged: (v) => ctl.setUiAuto(v.first),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Авто увеличивает кнопки, значки и текст на больших экранах и мониторах по размеру окна. '
+            'На телефоне масштаб остаётся ×1.',
+            style: TextStyle(color: C.muted, fontSize: 13),
+          ),
+        ]),
         _head('Звук', Icons.volume_up_outlined),
         ListenableBuilder(
           listenable: snd,
@@ -208,6 +227,12 @@ class AppSettings extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Авто-масштаб по настоящему размеру окна (MediaQuery внутри уже уменьшен)
+  double _autoNow(BuildContext context) {
+    final v = View.of(context);
+    return autoUiScale(v.physicalSize / v.devicePixelRatio);
   }
 
   Widget _slider(String key, IconData icon, String label, double v, void Function(double) set) => Row(
