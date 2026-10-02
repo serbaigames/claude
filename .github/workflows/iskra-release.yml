@@ -1,10 +1,13 @@
 # Релиз Flutter-версии «Искры»: APK для Android и веб-сборка с PHP-сервером.
-# Запускается тегом iskra-v* (например, iskra-v0.2.0) или вручную из вкладки Actions.
+# Запускается изменением iskra_flutter/RELEASE_NOTES.md в ветке (тег — iskra-v<версия из pubspec.yaml>),
+# тегом iskra-v* или вручную из вкладки Actions.
 name: iskra-release
 
 on:
   push:
     tags: ['iskra-v*']
+    branches: ['claude/project-thread-ioiybu', 'main', 'master']
+    paths: ['iskra_flutter/RELEASE_NOTES.md']
   workflow_dispatch:
     inputs:
       tag:
@@ -20,10 +23,14 @@ jobs:
     defaults:
       run:
         working-directory: iskra_flutter
-    env:
-      TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
+      - name: Тег релиза
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then t="${{ github.event.inputs.tag }}"
+          elif [ "${{ github.ref_type }}" = tag ]; then t="${{ github.ref_name }}"
+          else t="iskra-v$(sed -n 's/^version: *\([^+]*\).*/\1/p' pubspec.yaml)"; fi
+          echo "TAG=$t" >> "$GITHUB_ENV"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
