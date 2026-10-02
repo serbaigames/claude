@@ -8,6 +8,7 @@ import '../core/game.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
 import 'controller.dart';
+import 'portraits.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -113,13 +114,20 @@ class CellPanel extends StatelessWidget {
     );
   }
 
+  Widget _portrait(Widget p) => ClipRRect(
+    borderRadius: BorderRadius.circular(12),
+    child: SizedBox(height: 150, child: p),
+  );
+
   Widget _spark(Game g) {
     final x = g.incomeParts();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Искра', style: h2(C.gold)),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
+        _portrait(PlasmaPortrait.spark(cores: g.s.cores.length, speed: g.sparkSpeed)),
+        const SizedBox(height: 8),
         KV([
           ('Клетки × бонус', Fmt.n1(g.sparkMatter)),
           ('Ядра искры${g.s.cores.isEmpty ? '' : ' (${g.s.cores.length})'}', '×${g.coreMul}'),
@@ -259,7 +267,9 @@ class CellPanel extends StatelessWidget {
         ),
         if (c.tier == 'epic') const Text('очень опасна', style: TextStyle(color: C.bad)),
         if (c.tier == 'legend') const Text('смертельно опасна, соседи растут ×2', style: TextStyle(color: C.bad)),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
+        _portrait(PlasmaPortrait.entity(tier: c.tier)),
+        const SizedBox(height: 8),
         KV([
           ('Здоровье', Fmt.n(f.maxHp.round())),
           ('Удар по вам', '${Fmt.n(hit.round())} раз в ${Fmt.x(f.cd)} с'),
