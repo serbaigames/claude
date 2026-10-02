@@ -2,12 +2,14 @@
 // Тексты и подсказки взяты из веб-версии.
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/game.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
 import 'controller.dart';
+import 'gfx.dart';
 import 'icons.dart';
 import 'map_art.dart';
 import 'portraits.dart';
@@ -1688,6 +1690,32 @@ class _AccountPanelState extends State<AccountPanel> {
         const SizedBox(height: 6),
         ...acc,
         if (err != null) Note(err!, kind: 'bad'),
+        const SizedBox(height: 14),
+        Text('Качество графики', style: h2()),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<GfxLevel>(
+            key: const ValueKey('gfx'),
+            showSelectedIcon: false,
+            segments: [
+              for (final l in GfxLevel.values)
+                ButtonSegment(
+                  value: l,
+                  label: FittedBox(fit: BoxFit.scaleDown, child: Text(gfxNames[l]!)),
+                ),
+            ],
+            selected: {ctl.gfx},
+            onSelectionChanged: (v) => ctl.setGfx(v.first),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(gfxInfo[ctl.gfx]!, style: const TextStyle(color: C.muted, fontSize: 13)),
+        if (kIsWeb)
+          const Text(
+            'Чёткость изображения в браузере меняется после перезагрузки страницы.',
+            style: TextStyle(color: C.muted, fontSize: 12),
+          ),
         const SizedBox(height: 14),
         Text('Статистика', style: h2()),
         const SizedBox(height: 6),

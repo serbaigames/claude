@@ -5,6 +5,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import 'gfx.dart';
+
 const _tau = math.pi * 2;
 const _white = Color(0xFFFFFFFF);
 const _sparkHalo = Color(0xFFFFA03C);
@@ -20,6 +22,17 @@ class Seeded {
 
 void plasmaGlow(Canvas cv, Offset c, double r, Color col, double a) {
   if (r <= 0 || a <= 0.003) return;
+  if (!Gfx.gradients) {
+    // лёгкий режим: без градиента — ядро свечения сплошным кружком
+    cv.drawCircle(
+      c,
+      r * .45,
+      Paint()
+        ..blendMode = BlendMode.plus
+        ..color = col.withValues(alpha: (a * .55).clamp(0, 1)),
+    );
+    return;
+  }
   cv.drawCircle(
     c,
     r,

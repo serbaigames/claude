@@ -9,6 +9,7 @@ import 'package:flutter/scheduler.dart';
 import '../core/game.dart';
 import '../net/cloud_sync.dart';
 import 'controller.dart';
+import 'gfx.dart';
 import 'hex_map.dart';
 import 'icons.dart';
 import 'overlays.dart';
@@ -146,15 +147,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               // лёгкое размытие карты под верхними строками, чтобы текст читался
+                              // (при среднем и лёгком качестве — без размытия, фон чуть плотнее)
                               ClipRect(
                                 child: BackdropFilter(
+                                  enabled: Gfx.backdrop,
                                   filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                                   child: DecoratedBox(
-                                    decoration: const BoxDecoration(
+                                    decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         begin: Alignment.topCenter,
                                         end: Alignment.bottomCenter,
-                                        colors: [Color(0x8C0B0816), Color(0x260B0816)],
+                                        colors: Gfx.backdrop
+                                            ? const [Color(0x8C0B0816), Color(0x260B0816)]
+                                            : const [Color(0xC00B0816), Color(0x4D0B0816)],
                                       ),
                                     ),
                                     child: Padding(

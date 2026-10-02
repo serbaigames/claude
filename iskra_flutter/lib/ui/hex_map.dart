@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 
 import '../core/game.dart';
 import 'controller.dart';
+import 'gfx.dart';
 import 'map_art.dart';
 import 'plasma_art.dart';
 import 'theme.dart';
@@ -163,7 +164,7 @@ class _HexMapState extends State<HexMap> {
 }
 
 class _MapPainter extends CustomPainter {
-  _MapPainter(this.ctl, this.cam, this.zoom, this.nebula) : super(repaint: ctl.frameTick);
+  _MapPainter(this.ctl, this.cam, this.zoom, this.nebula) : super(repaint: ctl.paintTick);
   final GameController ctl;
   final Offset Function() cam;
   final double Function() zoom;
@@ -220,7 +221,7 @@ class _MapPainter extends CustomPainter {
       canvas.drawPath(land, Paint()..color = C.gold.withValues(alpha: .09));
       for (final c in own) {
         final p = scr(c);
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < (5 * Gfx.density).ceil(); i++) {
           final u = t * .4 + i * 1.7 + c.q, d = rc * .45 * math.sin(t * .7 + i);
           plasmaGlow(canvas, p + Offset(math.cos(u) * d, math.sin(u * 1.3) * d), rc * .5, const Color(0xFFF2AA3C), .08);
         }

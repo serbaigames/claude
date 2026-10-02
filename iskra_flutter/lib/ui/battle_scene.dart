@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../core/game.dart';
+import 'gfx.dart';
 import 'plasma_art.dart';
 import 'theme.dart';
 
@@ -182,7 +183,9 @@ class _BattleSceneState extends State<BattleScene> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _ticker = createTicker((e) {
-      final dt = ((e - _last).inMicroseconds / 1e6).clamp(0.0, 0.05);
+      final raw = (e - _last).inMicroseconds / 1e6;
+      if (raw + 1e-4 < 1 / Gfx.fps) return; // лимит кадров по качеству графики
+      final dt = raw.clamp(0.0, 0.05);
       _last = e;
       _fx.step(dt);
       _repaint.value++;
@@ -335,17 +338,19 @@ class _ScenePainter extends CustomPainter {
     _particles(canvas, false);
     _hot(canvas, t, rS);
     _nums(canvas, t);
-    // bloom: горячие элементы ещё раз, размытые и сложенные поверх
-    canvas.saveLayer(
-      Offset.zero & Size(w, h),
-      Paint()
-        ..blendMode = BlendMode.plus
-        ..imageFilter = ui.ImageFilter.blur(sigmaX: 9 * s, sigmaY: 9 * s, tileMode: TileMode.decal),
-    );
-    _hot(canvas, t, rS);
-    _particles(canvas, true);
-    plasmaGlow(canvas, S, rS * 1.2, const Color(0xFFFFE6B4), .6);
-    canvas.restore();
+    // bloom: горячие элементы ещё раз, размытые и сложенные поверх (только при высоком качестве)
+    if (Gfx.bloom) {
+      canvas.saveLayer(
+        Offset.zero & Size(w, h),
+        Paint()
+          ..blendMode = BlendMode.plus
+          ..imageFilter = ui.ImageFilter.blur(sigmaX: 9 * s, sigmaY: 9 * s, tileMode: TileMode.decal),
+      );
+      _hot(canvas, t, rS);
+      _particles(canvas, true);
+      plasmaGlow(canvas, S, rS * 1.2, const Color(0xFFFFE6B4), .6);
+      canvas.restore();
+    }
     canvas.restore();
 
     _post(canvas, t, dx);
@@ -426,8 +431,9 @@ class _ScenePainter extends CustomPainter {
           }
         case 'spiral':
           final o = atP ? S : E;
-          for (var i = 0; i < 24; i++) {
-            final a = i / 24 * _tau, d = _r(70, 110) * s, sp = _r(140, 200) * s;
+          final n = (24 * Gfx.density).ceil();
+          for (var i = 0; i < n; i++) {
+            final a = i / n * _tau, d = _r(70, 110) * s, sp = _r(140, 200) * s;
             fx.parts.add(
               _P(
                 _K.streak,

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../core/game.dart';
+import 'gfx.dart';
 import 'map_art.dart';
 import 'plasma_art.dart';
 import 'theme.dart';
@@ -66,7 +67,11 @@ class _PlasmaPortraitState extends State<PlasmaPortrait> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _ticker = createTicker((e) => _time.value = e.inMicroseconds / 1e6)..start();
+    _ticker = createTicker((e) {
+      final t = e.inMicroseconds / 1e6;
+      if (Gfx.still || t - _time.value + 1e-4 < 1 / Gfx.fps) return; // лимит кадров по качеству графики
+      _time.value = t;
+    })..start();
   }
 
   @override
@@ -99,7 +104,7 @@ class _PlasmaPortraitState extends State<PlasmaPortrait> with SingleTickerProvid
     final mq = MediaQuery.maybeOf(context);
     final paint = RepaintBoundary(
       child: CustomPaint(
-        painter: _PortraitPainter(this, _time, mq?.devicePixelRatio ?? 1, mq?.disableAnimations ?? false),
+        painter: _PortraitPainter(this, _time, mq?.devicePixelRatio ?? 1, (mq?.disableAnimations ?? false) || Gfx.still),
         size: Size.infinite,
       ),
     );

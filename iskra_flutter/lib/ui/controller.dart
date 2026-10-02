@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/game.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
+import 'gfx.dart';
 
 class FeedItem {
   final String text, kind;
@@ -54,6 +55,20 @@ class GameController extends ChangeNotifier {
 
   /// Перерисовка карты и окна боя — каждый кадр; остальной интерфейс — через notifyListeners
   final frameTick = ValueNotifier<int>(0);
+
+  /// Перерисовка анимаций карты с лимитом кадров по качеству графики
+  final paintTick = ValueNotifier<int>(0);
+  final _gate = FrameGate();
+  static const gfxKey = 'iskra-gfx';
+
+  GfxLevel get gfx => Gfx.level;
+  void setGfx(GfxLevel l) {
+    Gfx.level = l;
+    prefs.setString(gfxKey, l.name);
+    paintTick.value++;
+    notifyListeners();
+  }
+
   final List<FeedItem> feed = [];
 
   bool jumpDefeat = false; // материя ушла в минус — окно прыжка без кнопки «Остаться»
@@ -62,6 +77,7 @@ class GameController extends ChangeNotifier {
   double _panelT = 0, _saveT = 0, _cloudT = 0;
 
   void _boot() {
+    Gfx.level = Gfx.parse(prefs.getString(gfxKey));
     game = _newGameObject();
     final raw = prefs.getString(saveKey);
     if (raw == null || !_attach(raw)) game.newGame();
@@ -116,6 +132,7 @@ class GameController extends ChangeNotifier {
       notifyListeners();
     }
     frameTick.value++;
+    if (_gate.pass(dt)) paintTick.value++;
     _panelT += dt;
     if (_panelT > 0.3) {
       _panelT = 0;
@@ -215,6 +232,7 @@ class GameController extends ChangeNotifier {
   @override
   void dispose() {
     frameTick.dispose();
+    paintTick.dispose();
     sync?.api.close();
     super.dispose();
   }

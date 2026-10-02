@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iskra/main.dart';
 import 'package:iskra/ui/controller.dart';
+import 'package:iskra/ui/gfx.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -54,6 +55,15 @@ void main() {
     await tester.tap(find.text('Отмена'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const ValueKey('reset-dialog')), findsNothing);
+    // качество графики переключается и сохраняется
+    expect(ctl.gfx, GfxLevel.high);
+    await tester.ensureVisible(find.text('Лёгкий режим'));
+    await tester.tap(find.text('Лёгкий режим'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(ctl.gfx, GfxLevel.low);
+    expect(prefs.getString(GameController.gfxKey), 'low');
+    ctl.setGfx(GfxLevel.high);
+    await tester.pump(const Duration(milliseconds: 100));
     await tester.tap(find.byTooltip('Закрыть'));
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Статистика'), findsNothing);

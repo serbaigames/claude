@@ -1,6 +1,20 @@
 // Экран загрузки «Искры»: убирается, когда Flutter нарисовал игру,
 // а если запуск сорвался — показывает причину и подсказку для настройки хостинга.
 (function () {
+  // Качество графики (настройка в окне «Аккаунт»): в браузере ограничиваем чёткость —
+  // на телефонах с плотным экраном это главный расход ресурсов
+  try {
+    var real = window.devicePixelRatio || 1;
+    var lvl = JSON.parse(localStorage.getItem('flutter.iskra-gfx') || 'null');
+    if (!lvl) lvl = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'medium' : 'high';
+    var cap = { high: 3, medium: 2, low: 1.5 }[lvl] || 3;
+    if (real > cap) {
+      Object.defineProperty(window, 'devicePixelRatio', { get: function () { return cap; }, configurable: true });
+    }
+  } catch (e) { /* без localStorage — как есть */ }
+})();
+
+(function () {
   var box = document.getElementById('loading');
   if (!box) return;
   var errors = [];
