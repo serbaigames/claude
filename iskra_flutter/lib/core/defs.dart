@@ -88,6 +88,7 @@ class Bal {
   static const legendChance = 0.01;
   static const earlyMul = 1.6; // сущности сильнее в 1,6 раза во всех мирах
   // Сила тьмы растёт с прыжками: 1 + a × прыжки^p (×2 после 3 прыжков, ×5 после 10, ×10 после 20)
+  static const startMatter = 100.0; // материи в начале игры и после каждого прыжка
   static const darkJumpA = 0.282, darkJumpP = 1.151;
   static const dotT = 6.0, mendT = 6.0; // длительность метки и восстановления, с
   static const ptGrow = 1.015; // каждое следующее ОП/ОС дороже на 1,5%

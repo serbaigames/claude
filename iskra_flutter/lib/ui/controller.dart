@@ -247,16 +247,11 @@ class GameController extends ChangeNotifier {
     save();
   }
 
-  /// Начать заново: мир, искра и всё накопленное сбрасываются,
-  /// но изученные технологии и неистраченные пульсары остаются у игрока
+  /// Начать заново: обнуляется всё, включая технологии и пульсары
   void resetAll() {
     _noSave = true;
-    final tech = Map.of(game.s.tech), pulsars = game.s.pulsars;
     prefs.remove(saveKey);
     game = _newGameObject()..newGame();
-    game.s
-      ..tech = tech
-      ..pulsars = pulsars;
     _noSave = false;
     save();
     sync?.cloudSave(force: true);

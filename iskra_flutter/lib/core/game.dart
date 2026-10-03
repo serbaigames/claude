@@ -223,7 +223,7 @@ class Game {
     s.cells = {};
     s.worldStart = nowMs();
     s.worldMax = 1;
-    s.matter = 60;
+    s.matter = Bal.startMatter;
     s.sel = null;
     s.lostOnce = false;
     final sp = _split();

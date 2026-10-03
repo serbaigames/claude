@@ -1522,7 +1522,7 @@ class _AccountPanelState extends State<AccountPanel> {
       'параметры искры, ОП и ОС',
       'способности и сборки',
       'артефакты',
-      'бонус прыжка и прыжки',
+      'технологии, пульсары, бонус прыжка и прыжки',
       'статистика и рекорды',
     ];
     final ok = await showDialog<bool>(
@@ -1535,7 +1535,11 @@ class _AccountPanelState extends State<AccountPanel> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(login != null ? 'Будет стёрт прогресс учётной записи «$login»:' : 'Будет стёрт прогресс на этом устройстве:'),
+            Text(
+              login != null
+                  ? 'Будет стёрт весь прогресс учётной записи «$login»:'
+                  : 'Будет стёрт весь прогресс на этом устройстве:',
+            ),
             const SizedBox(height: 6),
             for (final t in lost)
               Padding(
@@ -1552,20 +1556,6 @@ class _AccountPanelState extends State<AccountPanel> {
                   ],
                 ),
               ),
-            const SizedBox(height: 6),
-            const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(top: 3),
-                  child: Icon(Icons.check, size: 14, color: C.ok),
-                ),
-                SizedBox(width: 6),
-                Expanded(
-                  child: Text('Останутся: изученные технологии и неистраченные пульсары.', style: TextStyle(color: C.ok)),
-                ),
-              ],
-            ),
             const SizedBox(height: 8),
             Text(
               login != null

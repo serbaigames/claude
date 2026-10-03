@@ -129,23 +129,23 @@ void main() {
     expect(prefs.getString(GameController.saveKey), isNotNull);
   });
 
-  test('прыжок и «Начать заново» сохраняют технологии и неистраченные пульсары', () async {
+  test('прыжок оставляет технологии и пульсары, «Начать заново» обнуляет всё; на старте 100 материи', () async {
     Sound.enabled = false;
     SharedPreferences.setMockInitialValues({});
     final ctl = GameController(await SharedPreferences.getInstance());
+    expect(ctl.game.s.matter, 100);
     ctl.game.s
       ..tech = {'jump': 1, 'grow': 2}
       ..pulsars = 7
-      ..rebirths = 3
       ..matter = 9999;
-    // прыжок тоже их не трогает
     ctl.game.rebirth();
     expect(ctl.game.s.tech, {'jump': 1, 'grow': 2});
     expect(ctl.game.s.pulsars, 7);
+    expect(ctl.game.s.matter, 100);
     ctl.resetAll();
-    expect(ctl.game.s.tech, {'jump': 1, 'grow': 2});
-    expect(ctl.game.s.pulsars, 7);
+    expect(ctl.game.s.tech, isEmpty);
+    expect(ctl.game.s.pulsars, 1);
     expect(ctl.game.s.rebirths, 0);
-    expect(ctl.game.s.matter, lessThan(9999));
+    expect(ctl.game.s.matter, 100);
   });
 }

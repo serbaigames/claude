@@ -164,7 +164,7 @@ class EraState {
 }
 
 class GameState {
-  double matter = 60, earned = 0;
+  double matter = 100, earned = 0; // = Bal.startMatter
   int op = 0, os = 0, opB = 0, osB = 0; // очки параметров / способностей и сколько их куплено в этом мире
   Map<String, int> char = {
     for (final p in ['life', 'defense', 'power', 'meditation', 'speed', 'control']) p: 1,
