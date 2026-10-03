@@ -101,6 +101,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ctl.act((g) => g.closeBattle());
       return true;
     }
+    if (ctl.showEra) {
+      ctl.closeEra();
+      return true;
+    }
     if (ctl.showJump && !ctl.jumpDefeat) {
       ctl.closeJump();
       return true;
@@ -199,6 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             if (g.def != null && g.b == null) DefendOverlay(ctl),
             if (g.b != null) BattleOverlay(ctl),
             if (ctl.showJump) JumpOverlay(ctl),
+            if (ctl.showEra && g.b == null && g.def == null && !ctl.showJump && g.s.introSeen) EraOverlay(ctl),
             if (!g.s.introSeen) IntroOverlay(ctl),
             if (guestAsk && g.s.introSeen && conflict == null && g.b == null && !ctl.showJump) _guestOverlay(),
             if (conflict != null)
@@ -515,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         line('+${Fmt.n1(x.base)} материи/с · ядро ×${g.coreMul}', color: C.ok),
         line('бонус прыжка ×${Fmt.x(g.bonusMul, 2)} · искру нельзя потерять'),
       ];
-      buttons = [open('Параметры', MenuTab.char)];
+      buttons = [open('Статистика', MenuTab.world)];
     } else if (c.own) {
       final def = g.cellDef(c), th = g.maxAdjMight(c), danger = th >= def * 0.8, dc = g.defCost(c);
       final lv = Game.cellLvl(c);
@@ -626,6 +631,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     MenuTab.era: Icons.hourglass_empty,
     MenuTab.acc: Icons.settings_outlined,
     MenuTab.top: Icons.leaderboard_outlined,
+    MenuTab.world: Icons.insights_outlined,
   };
 
   /// Строка меню внизу экрана: все пункты в один ряд, выбранный подсвечен

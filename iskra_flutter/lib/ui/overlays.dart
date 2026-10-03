@@ -8,6 +8,7 @@ import '../net/cloud_sync.dart';
 import 'battle_scene.dart';
 import 'controller.dart';
 import 'icons.dart';
+import 'panels.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -445,7 +446,7 @@ class JumpOverlay extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(
             'Сгорит: клетки, материя, параметры персонажа, ОП, ОС и навыки (кроме Искрового удара). '
-            'Останется: бонус искры, ядра, артефакты, рекорды и учётная запись.',
+            'Останется: бонус искры, ядра, артефакты, изученные технологии и пульсары, рекорды и учётная запись.',
             style: TextStyle(color: C.muted, fontSize: 12),
           ),
           const SizedBox(height: 10),
@@ -562,4 +563,51 @@ class IntroOverlay extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Окно новой эры: название, длительность и что она меняет. Мир при этом не встаёт
+class EraOverlay extends StatelessWidget {
+  const EraOverlay(this.ctl, {super.key});
+  final GameController ctl;
+
+  @override
+  Widget build(BuildContext context) {
+    final g = ctl.game, e = g.eraNow, st = g.s.era!, col = e.kind == 'mixed' ? C.warn : C.kind(e.kind);
+    final who = switch (e.kind) {
+      'good' => 'Эра на стороне искры',
+      'bad' => 'Эра на стороне тьмы',
+      _ => 'Смешанная эра',
+    };
+    return Overlay2(
+      key: const ValueKey('era-overlay'),
+      onClose: ctl.closeEra,
+      maxWidth: 420,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Новая эра',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: C.muted),
+          ),
+          const SizedBox(height: 8),
+          Icon(eraIcons[e.id] ?? Icons.hourglass_empty, size: 44, color: col),
+          const SizedBox(height: 6),
+          Text(e.name, textAlign: TextAlign.center, style: h2(col)),
+          Text(
+            who,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: col, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          Text('${e.desc[0].toUpperCase()}${e.desc.substring(1)}.', textAlign: TextAlign.center),
+          const SizedBox(height: 10),
+          KV([('Длительность', Fmt.time(st.dur)), ('Осталось', Fmt.clock(st.left))]),
+          const SizedBox(height: 12),
+          ActBtn('Понятно', ctl.closeEra, primary: true),
+        ],
+      ),
+    );
+  }
 }

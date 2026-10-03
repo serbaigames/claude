@@ -70,8 +70,22 @@ class Game {
   void sfx(String id) => onSfx?.call(id);
 
   /// Прибавка к накопительной статистике s.st
-  void stat(String k, [double v = 1]) => s.st[k] = (s.st[k] ?? 0) + v;
+  /// Счётчик копится за всё время (k) и отдельно за текущий мир (w.k — обнуляется при прыжке)
+  void stat(String k, [double v = 1]) {
+    s.st[k] = (s.st[k] ?? 0) + v;
+    s.st['w.$k'] = (s.st['w.$k'] ?? 0) + v;
+  }
+
+  /// Рекорд: за всё время и за текущий мир
+  void statMax(String k, double v) {
+    if (v > stv(k)) s.st[k] = v;
+    if (v > stv('w.$k')) s.st['w.$k'] = v;
+  }
+
   double stv(String k) => s.st[k] ?? 0;
+
+  /// Новая эра (не тихая, при смене во время игры) — интерфейс показывает окно эры
+  void Function()? onEra;
 
   static String k(int q, int r) => '$q,$r';
   static double hexDist(int q1, int r1, int q2, int r2) => ((q1 - q2).abs() + (r1 - r2).abs() + (q1 + r1 - q2 - r2).abs()) / 2;
@@ -109,6 +123,7 @@ class Game {
     if (!silent) {
       log('Новая эра: «${e.name}» — ${e.desc}.', e.kind == 'bad' ? 'bad' : 'good');
       sfx('era');
+      onEra?.call();
     }
   }
 
@@ -199,6 +214,7 @@ class Game {
 
   void freshWorld() {
     trendHist.clear();
+    s.st.removeWhere((k, _) => k.startsWith('w.'));
     s.wk = 0;
     s.we = 0;
     s.worldTime = 0;

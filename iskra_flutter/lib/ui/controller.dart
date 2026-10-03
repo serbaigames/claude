@@ -80,6 +80,18 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Окно новой эры: показывается при смене эры во время игры
+  bool showEra = false;
+  void _eraChanged() {
+    showEra = true;
+    notifyListeners();
+  }
+
+  void closeEra() {
+    showEra = false;
+    notifyListeners();
+  }
+
   final List<FeedItem> feed = [];
 
   bool jumpDefeat = false; // материя ушла в минус — окно прыжка без кнопки «Остаться»
@@ -98,7 +110,8 @@ class GameController extends ChangeNotifier {
   Game _newGameObject() => Game()
     ..onLog = log
     ..onDefend = notifyListeners
-    ..onSfx = sound.play;
+    ..onSfx = sound.play
+    ..onEra = _eraChanged;
 
   bool _attach(String raw) {
     try {
@@ -234,11 +247,16 @@ class GameController extends ChangeNotifier {
     save();
   }
 
-  /// Начать заново (для отладки и для игроков, которые хотят сбросить прогресс)
+  /// Начать заново: мир, искра и всё накопленное сбрасываются,
+  /// но изученные технологии и неистраченные пульсары остаются у игрока
   void resetAll() {
     _noSave = true;
+    final tech = Map.of(game.s.tech), pulsars = game.s.pulsars;
     prefs.remove(saveKey);
     game = _newGameObject()..newGame();
+    game.s
+      ..tech = tech
+      ..pulsars = pulsars;
     _noSave = false;
     save();
     sync?.cloudSave(force: true);

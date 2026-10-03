@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:iskra/core/game.dart';
 import 'package:iskra/main.dart';
 import 'package:iskra/ui/controller.dart';
 import 'package:iskra/ui/gfx.dart';
@@ -104,8 +105,47 @@ void main() {
     expect(find.byKey(const ValueKey('window-tech')), findsOneWidget);
     await tester.tap(find.byTooltip('Закрыть'));
     await tester.pump(const Duration(milliseconds: 100));
+    // кнопка в блоке искры открывает статистику искры и текущего мира
+    ctl.select(ctl.game.s.cells.values.firstWhere((c) => c.spark).key);
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.descendant(of: find.byKey(const ValueKey('cell-block')), matching: find.text('Статистика')));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byKey(const ValueKey('world-stats')), findsOneWidget);
+    await tester.tap(find.byTooltip('Закрыть'));
+    await tester.pump(const Duration(milliseconds: 100));
+    ctl.select(null);
+
+    // смена эры показывает окно новой эры
+    ctl.game.newEra();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byKey(const ValueKey('era-overlay')), findsOneWidget);
+    expect(find.text(ctl.game.eraNow.name), findsWidgets);
+    await tester.tap(find.text('Понятно'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byKey(const ValueKey('era-overlay')), findsNothing);
+
     expect(prefs.getString(GameController.saveKey), isNull, reason: 'сохранение раз в 5 секунд');
     await tester.pump(const Duration(seconds: 6));
     expect(prefs.getString(GameController.saveKey), isNotNull);
+  });
+
+  test('прыжок и «Начать заново» сохраняют технологии и неистраченные пульсары', () async {
+    Sound.enabled = false;
+    SharedPreferences.setMockInitialValues({});
+    final ctl = GameController(await SharedPreferences.getInstance());
+    ctl.game.s
+      ..tech = {'jump': 1, 'grow': 2}
+      ..pulsars = 7
+      ..rebirths = 3
+      ..matter = 9999;
+    // прыжок тоже их не трогает
+    ctl.game.rebirth();
+    expect(ctl.game.s.tech, {'jump': 1, 'grow': 2});
+    expect(ctl.game.s.pulsars, 7);
+    ctl.resetAll();
+    expect(ctl.game.s.tech, {'jump': 1, 'grow': 2});
+    expect(ctl.game.s.pulsars, 7);
+    expect(ctl.game.s.rebirths, 0);
+    expect(ctl.game.s.matter, lessThan(9999));
   });
 }

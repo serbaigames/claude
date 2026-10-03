@@ -486,3 +486,95 @@ class SupportView extends StatelessWidget {
     ],
   );
 }
+
+/* ---------- искра и текущий мир (кнопка «Статистика» в блоке искры) ---------- */
+class WorldPanel extends StatelessWidget {
+  const WorldPanel(this.g, {super.key});
+  final Game g;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = g.s, x = g.incomeParts(), tr = g.worldTrend();
+    double w(String k) => g.stv('w.$k');
+    final battles = w('battles'), wins = w('wins');
+    final era = s.era == null ? null : Defs.eras[s.era!.i];
+    final abil = [
+      for (final a in s.abilities)
+        if (a != null) '${Defs.abilities[a.id]!.name} ${a.lvl}',
+    ];
+    return Column(
+      key: const ValueKey('world-stats'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Искра и мир', style: h2(C.gold)),
+        const SizedBox(height: 4),
+        _head('Искра в этом мире', Icons.auto_awesome),
+        _card([
+          KV([
+            ('Добыча искры', '+${Fmt.n1(x.base)} материи/с'),
+            ('Ядро / скорость искры', '×${g.coreMul} / ×${Fmt.x(g.sparkSpeed, 2)}'),
+            ('Бонус прыжка', '×${Fmt.x(g.bonusMul, 2)}'),
+            ('Здоровье в бою', Fmt.n(g.maxHp())),
+            ('Сила удара', '≈${Fmt.n(10 * g.med() * g.powMul())}'),
+            ('ОП / ОС свободно', '${s.op} / ${s.os}'),
+            ('Куплено ОП / ОС', '${s.opB} / ${s.osB}'),
+          ]),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final p in Defs.params)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Color(p.color).withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Color(p.color).withValues(alpha: 0.5)),
+                  ),
+                  child: Text(
+                    '${p.name} ${s.char[p.id] ?? 1}${g.eff(p.id).pen > 0 ? ' (−${(g.eff(p.id).pen * 100).round()}%)' : ''}',
+                    style: TextStyle(fontSize: 12, color: g.eff(p.id).pen > 0 ? C.bad : C.ink),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text('Способности: ${abil.isEmpty ? 'нет' : abil.join(', ')}', style: const TextStyle(color: C.muted, fontSize: 13)),
+        ]),
+        _head('Сражения в этом мире', Icons.flash_on),
+        _card([
+          KV([
+            ('Боёв', Fmt.n(battles)),
+            ('Победы / поражения / отступления', '${Fmt.n(wins)} / ${Fmt.n(w('losses'))} / ${Fmt.n(w('fled'))}'),
+            ('Доля побед', battles > 0 ? '${(wins / battles * 100).round()}%' : '—'),
+            ('Урон нанесён / получен', '${Fmt.n(w('dmg'))} / ${Fmt.n(w('taken'))}'),
+            ('Сильнейший удар', Fmt.n(w('maxHit'))),
+            ('Применено способностей', Fmt.n(w('abil'))),
+          ]),
+        ]),
+        _head('Этот мир', Icons.public),
+        _card([
+          KV([
+            ('Время в мире', Fmt.time(s.worldTime)),
+            ('Клеток сейчас / рекорд мира', '${g.own.length} / ${s.worldMax}'),
+            ('Под угрозой', '${g.threatCount}'),
+            ('Захвачено / потеряно', '${Fmt.n(w('captured'))} / ${Fmt.n(w('lost'))}'),
+            ('Построено / укреплений', '${Fmt.n(w('built'))} / ${Fmt.n(w('fort'))}'),
+            ('Доход', '${Fmt.n1(g.income())} материи/с'),
+            ('Добыто материи', Fmt.n(s.we)),
+            ('Агрессивность', g.aggrText),
+            if (era != null) ('Эра', '«${era.name}», ещё ${Fmt.clock(s.era!.left)}'),
+            ('Прыжок сейчас даст', '+${Fmt.x(g.rebirthGain(), 2)} к бонусу'),
+          ]),
+          const SizedBox(height: 6),
+          Text(tr.text.substring(2), style: TextStyle(color: C.kind(tr.kind))),
+        ]),
+        const Text(
+          'Счётчики боёв, захватов и строек в этом мире ведутся с версии 0.4.2 и обнуляются при прыжке.',
+          style: TextStyle(color: C.muted, fontSize: 12),
+        ),
+      ],
+    );
+  }
+}

@@ -107,7 +107,7 @@ extension GameBattle on Game {
     d = jsRound(d);
     bt.foe.hp -= d;
     stat('dmg', d);
-    if (d > stv('maxHit')) s.st['maxHit'] = d;
+    statMax('maxHit', d);
     bt.shF = now + 0.25;
     _vfx('num', 'f', 0xFFFFE3A3, '−${d.toInt()}');
     return d;
