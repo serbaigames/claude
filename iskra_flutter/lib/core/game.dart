@@ -249,7 +249,7 @@ class Game {
     return true;
   }
 
-  // Уровни персонажа слабо усиливают тьму; прыжки — никак
+  // Уровни персонажа слабо усиливают тьму; прыжки умножают её мощь через darkMul (в _genDark)
   double _strength() {
     final lv = s.char.values.fold<int>(0, (a, b) => a + b) - 6;
     return lv * 0.3 + own.length * 0.6;
@@ -269,7 +269,7 @@ class Game {
 
   Cell _genDark(int q, int r) {
     final d = hexDist(q, r, 0, 0);
-    final base = (5 + _strength() * 1.5) * (1 + d * 0.09);
+    final base = (5 + _strength() * 1.5) * (1 + d * 0.09) * darkMul;
     final tier = rollTier(d);
     final sp = _split();
     return Cell(
@@ -667,7 +667,7 @@ class Game {
   Foe foeFromCell(Cell c) {
     final t = Defs.tiers[c.tier]!;
     final dm = foeDist(c);
-    final base = c.might * t.mult * aggr * Bal.earlyMul * darkMul;
+    final base = c.might * t.mult * aggr * Bal.earlyMul; // прыжки уже в мощи клетки (darkMul)
     return Foe(
       name: t.foe,
       tier: c.tier,
