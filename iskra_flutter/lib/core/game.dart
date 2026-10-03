@@ -390,7 +390,7 @@ class Game {
   // Чем больше клеток у игрока, тем быстрее растёт тьма: по ×1,25 при 7 клетках, ×1,5 при 30
   double get darkF => 1 + 0.1 * math.sqrt(math.max(0, own.length - 1));
   // Бонус прыжка замедляет тьму
-  double growRate(Cell c) => Bal.growthRate * growMul(c) * aggr * eraV('grow') * darkF / math.sqrt(bonusMul);
+  double growRate(Cell c) => Bal.growthRate * growMul(c) * aggr * eraV('grow') * darkF;
 
   double maxAdjMight(Cell c) {
     var m = 0.0;
@@ -660,10 +660,14 @@ class Game {
 
   double leechAmt() => (3 * med()).ceilToDouble();
 
+  /// Сила тьмы от числа прыжков: ×1 в первом мире, ×2 после 3 прыжков, ×5 после 10
+  static double darkMulFor(int jumps) => 1 + Bal.darkJumpA * math.pow(jumps, Bal.darkJumpP);
+  double get darkMul => darkMulFor(s.rebirths);
+
   Foe foeFromCell(Cell c) {
     final t = Defs.tiers[c.tier]!;
     final dm = foeDist(c);
-    final base = c.might * t.mult * aggr * Bal.earlyMul;
+    final base = c.might * t.mult * aggr * Bal.earlyMul * darkMul;
     return Foe(
       name: t.foe,
       tier: c.tier,

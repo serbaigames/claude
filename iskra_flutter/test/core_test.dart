@@ -27,6 +27,12 @@ const webSave = '''
 ''';
 
 void main() {
+  test('сила тьмы растёт с прыжками: ×2 после 3, ×5 после 10', () {
+    expect(Game.darkMulFor(0), 1);
+    expect(Game.darkMulFor(3), closeTo(2, 0.02));
+    expect(Game.darkMulFor(10), closeTo(5, 0.03));
+  });
+
   test('версия в приложении совпадает с pubspec.yaml', () {
     final pub = File('pubspec.yaml').readAsStringSync();
     expect(RegExp(r'^version: (\S+)\+', multiLine: true).firstMatch(pub)!.group(1), appVersion);

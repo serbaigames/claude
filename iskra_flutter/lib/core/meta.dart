@@ -42,7 +42,7 @@ extension GameMeta on Game {
   }
 
   // Бонус прыжка удешевляет очки (цена ÷ √бонуса), эра может удешевить или удорожить их
-  double _ptBase(double base) => base * eraV('pt') / math.sqrt(bonusMul);
+  double _ptBase(double base) => base * eraV('pt');
 
   ({int n, double cost, double next}) opBuyInfo(BuyMode mode) => _ptInfo(_ptBase(20), s.opB, mode);
   ({int n, double cost, double next}) osBuyInfo(BuyMode mode) => _ptInfo(_ptBase(10), s.osB, mode);

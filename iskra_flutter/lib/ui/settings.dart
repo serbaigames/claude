@@ -564,6 +564,7 @@ class WorldPanel extends StatelessWidget {
             ('Доход', '${Fmt.n1(g.income())} материи/с'),
             ('Добыто материи', Fmt.n(s.we)),
             ('Агрессивность', g.aggrText),
+            ('Сила тьмы от прыжков', '×${Fmt.x(g.darkMul, 2)}'),
             if (era != null) ('Эра', '«${era.name}», ещё ${Fmt.clock(s.era!.left)}'),
             ('Прыжок сейчас даст', '+${Fmt.x(g.rebirthGain(), 2)} к бонусу'),
           ]),
