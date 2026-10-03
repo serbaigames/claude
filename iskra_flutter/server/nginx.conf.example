@@ -1,0 +1,50 @@
+# «Искра» — пример блока server для nginx (VPS / свой сервер).
+# Замените example.com и путь root, получите сертификат (например, certbot --nginx).
+
+server {
+    listen 80;
+    server_name example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    root  /var/www/iskra;
+    index index.html;
+    charset utf-8;
+
+    gzip on;
+    gzip_types text/css text/javascript application/javascript application/json application/wasm image/svg+xml;
+
+    # Общие заголовки лежат в отдельном файле: в nginx add_header внутри location
+    # отменяет заголовки уровня server, поэтому подключаем их в каждом блоке.
+    include snippets/iskra-security.conf;
+
+    # Файлы, которые меняются с каждым выпуском
+    location ~ ^/(index\.html|flutter_bootstrap\.js|flutter_service_worker\.js|version\.json|main\.dart\.js|loader\.js)$ {
+        include snippets/iskra-security.conf; add_header Cache-Control "no-cache" always;
+    }
+    # Движок игры: без типа application/wasm браузер его не запустит (в старых mime.types его нет)
+    location ~* \.wasm$ { include snippets/iskra-security.conf; default_type application/wasm; types { } expires 1h; }
+    location ~* \.(png|svg|ico)$ { expires 30d; }
+
+    # --- Учётные записи (PHP) ---
+    # База данных: доступ из браузера закрыт
+    location ^~ /data/ { deny all; return 404; }
+    # В папке api выполняется только index.php, остальные файлы закрыты
+    location = /api/index.php {
+        include snippets/iskra-security.conf;
+        add_header Cache-Control "no-store" always;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;   # путь к сокету PHP-FPM на вашем сервере
+    }
+    location ^~ /api/ { deny all; return 404; }
+
+    location / { try_files $uri $uri/ /index.html; }
+}

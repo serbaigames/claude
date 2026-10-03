@@ -1,0 +1,145 @@
+# Релиз Flutter-версии «Искры»: Android (APK), веб с PHP-сервером, Windows (zip) и iOS (неподписанный IPA).
+# Запускается изменением iskra_flutter/RELEASE_NOTES.md в ветке (тег — iskra-v<версия из pubspec.yaml>),
+# тегом iskra-v* или вручную из вкладки Actions.
+name: iskra-release
+
+on:
+  push:
+    tags: ['iskra-v*']
+    branches: ['claude/project-thread-ioiybu', 'main', 'master']
+    paths: ['iskra_flutter/RELEASE_NOTES.md']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Тег релиза, например iskra-v0.3.0'
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_VERSION: '3.47.6'
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.t.outputs.tag }}
+      ver: ${{ steps.t.outputs.ver }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: t
+        name: Тег релиза
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then t="${{ github.event.inputs.tag }}"
+          elif [ "${{ github.ref_type }}" = tag ]; then t="${{ github.ref_name }}"
+          else t="iskra-v$(sed -n 's/^version: *\([^+]*\).*/\1/p' iskra_flutter/pubspec.yaml)"; fi
+          echo "tag=$t" >> "$GITHUB_OUTPUT"
+          echo "ver=${t#iskra-v}" >> "$GITHUB_OUTPUT"
+
+  android-web:
+    needs: meta
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: iskra_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter test
+      - name: APK
+        run: |
+          flutter build apk --release
+          mkdir -p ../out
+          cp build/app/outputs/flutter-apk/app-release.apk "../out/iskra-${{ needs.meta.outputs.ver }}.apk"
+      - name: Веб-сборка с сервером
+        run: |
+          flutter build web --release --no-web-resources-cdn
+          mkdir -p ../web-pkg
+          cp -r build/web/. ../web-pkg/
+          cp -r server/api server/data ../web-pkg/
+          cp server/site.htaccess ../web-pkg/.htaccess
+          cd ../web-pkg && zip -qr "../out/iskra-web-${{ needs.meta.outputs.ver }}.zip" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-web
+          path: out/*
+
+  windows:
+    needs: meta
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: iskra_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - name: Архив
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force ../out | Out-Null
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "../out/iskra-windows-${{ needs.meta.outputs.ver }}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: out/*
+
+  ios:
+    needs: meta
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: iskra_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+      - name: Неподписанный IPA
+        run: |
+          mkdir -p ../out Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qr "../out/iskra-ios-${{ needs.meta.outputs.ver }}-unsigned.ipa" Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: out/*
+
+  release:
+    needs: [meta, android-web, windows, ios]
+    # релиз выходит, даже если упала сборка Windows или iOS: в нём будет то, что собралось
+    if: ${{ !cancelled() && needs.android-web.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Искра ${{ needs.meta.outputs.tag }}
+          body_path: iskra_flutter/RELEASE_NOTES.md
+          prerelease: true
+          files: out/*
