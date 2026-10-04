@@ -36,6 +36,10 @@ CAPS = [
     ('game.dart', "      default:\n        return d.base + 0.2 * l;",
      "      default:\n        final cap = 0.5 * d.cd;\n        return cap - (cap - d.base) * math.exp(-0.2 * l / (cap - d.base));"),
 ]
+HEAL = [
+    # лечение растёт на 5% за уровень вместо 15%
+    ('game.dart', "return maxHp() * d.base / 100 * (1 + 0.15 * l); // лечение", "return maxHp() * d.base / 100 * (1 + 0.05 * l); // лечение"),
+]
 PULSAR = [
     # пульсары за прыжок: 1 + рекорд клеток / 5 (дерево технологий иначе недостижимо)
     ('meta.dart', '    s.rebirths++;\n', '    s.rebirths++;\n    s.pulsars += 1 + s.worldMax ~/ 5;\n'),
@@ -73,6 +77,7 @@ def jump(a):
 
 VARIANTS = {
     'caps': CAPS,
+    'caps_heal': CAPS + HEAL,
     'econB': ECON_B,
     'econC': ECON_C,
     'base': [],
@@ -87,6 +92,16 @@ VARIANTS = {
     'B_power': ECON_B + SOFT + JUMP + POWER,
     'B_full': ECON_B + SOFT + JUMP + POWER + CAPS + PULSAR,
     'F1': ECON_B + SOFT + jump(0.08) + power(0.3) + CAPS + PULSAR + GAIN_LIN,
+    # итоговый рекомендованный набор
+    'R': ECON_B + SOFT + jump(0.04) + power(0.3) + CAPS + HEAL + PULSAR + GAIN_LIN,
+    'R2': ECON_B + SOFT + jump(0.04) + power(0.3) + CAPS + HEAL + PULSAR + GAIN_LIN + [
+        ('game.dart', '..might = c.might + 1', '..might = c.might * 0.5 + 1')],
+    'R3': ECON_B + SOFT + jump(0.04) + power(0.3) + CAPS + HEAL + PULSAR + GAIN_LIN + [
+        ('game.dart', '..might = c.might + 1', '..might = c.might * 0.5 + 1'),
+        ('defs.dart', 'bonusPow = 0.75', 'bonusPow = 0.6')],
+    'R4': ECON_B + SOFT + jump(0.04) + power(0.3) + CAPS + HEAL + PULSAR + GAIN_LIN + [
+        ('game.dart', '..might = c.might + 1', '..might = c.might * 0.5 + 1'),
+        ('defs.dart', 'bonusPow = 0.75', 'bonusPow = 0.5')],
     'F3': ECON_B + SOFT + jump(0.04) + power(0.3) + CAPS + PULSAR + GAIN_LIN,
     'F4': ECON_B + SOFT + jump(0.06) + power(0.35) + CAPS + PULSAR + GAIN_LIN,
     'F2': ECON_B + SOFT + jump(0.08) + power(0.3) + CAPS + PULSAR,
