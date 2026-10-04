@@ -1,4 +1,4 @@
-# Релиз Flutter-версии «Искры»: Android (APK), веб с PHP-сервером, Windows (zip) и iOS (неподписанный IPA).
+# Релиз Flutter-версии «Искры»: Android (APK), веб, Windows (zip) и iOS (неподписанный IPA).
 # Запускается изменением iskra_flutter/RELEASE_NOTES.md в ветке (тег — iskra-v<версия из pubspec.yaml>),
 # тегом iskra-v* или вручную из вкладки Actions.
 name: iskra-release
@@ -55,18 +55,22 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - run: flutter pub get
+      - name: PocketBase для проверки клиента сервера
+        run: |
+          curl -fsSL -o /tmp/pb.zip https://github.com/pocketbase/pocketbase/releases/download/v0.40.4/pocketbase_0.40.4_linux_amd64.zip
+          unzip -qo /tmp/pb.zip pocketbase -d /tmp/pb
+          echo "ISKRA_POCKETBASE=/tmp/pb/pocketbase" >> "$GITHUB_ENV"
       - run: flutter test
       - name: APK
         run: |
           flutter build apk --release
           mkdir -p ../out
           cp build/app/outputs/flutter-apk/app-release.apk "../out/iskra-${{ needs.meta.outputs.ver }}.apk"
-      - name: Веб-сборка с сервером
+      - name: Веб-сборка
         run: |
           flutter build web --release --no-web-resources-cdn
           mkdir -p ../web-pkg
           cp -r build/web/. ../web-pkg/
-          cp -r server/api server/data ../web-pkg/
           cp server/site.htaccess ../web-pkg/.htaccess
           cd ../web-pkg && zip -qr "../out/iskra-web-${{ needs.meta.outputs.ver }}.zip" .
       - uses: actions/upload-artifact@v4

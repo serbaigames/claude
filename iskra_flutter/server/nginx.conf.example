@@ -33,18 +33,7 @@ server {
     location ~* \.wasm$ { include snippets/iskra-security.conf; default_type application/wasm; types { } expires 1h; }
     location ~* \.(png|svg|ico)$ { expires 30d; }
 
-    # --- Учётные записи (PHP) ---
-    # База данных: доступ из браузера закрыт
-    location ^~ /data/ { deny all; return 404; }
-    # В папке api выполняется только index.php, остальные файлы закрыты
-    location = /api/index.php {
-        include snippets/iskra-security.conf;
-        add_header Cache-Control "no-store" always;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_pass unix:/run/php/php8.3-fpm.sock;   # путь к сокету PHP-FPM на вашем сервере
-    }
-    location ^~ /api/ { deny all; return 404; }
+    # Учётные записи и рейтинги — на отдельном сервере (server/pocketbase), здесь только сама игра
 
     location / { try_files $uri $uri/ /index.html; }
 }

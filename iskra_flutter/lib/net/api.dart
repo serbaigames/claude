@@ -1,6 +1,6 @@
-// Клиент сервера учётных записей веб-версии (api/index.php): вход, сохранения в облаке, рейтинги.
-// Сервер не меняется. Сеанс держится в cookie iskra_sid; все POST-запросы несут заголовок X-Iskra: 1,
-// иначе сервер их отклоняет (защита от подделки запросов с чужих сайтов).
+// Клиент сервера учётных записей «Искры» (PocketBase с правилами из server/pocketbase): вход, сохранения в облаке, рейтинги.
+// Запросы и ответы те же, что у прежнего PHP-сервера веб-версии, только вход держится в токене:
+// сервер отдаёт его в поле token, клиент хранит его сам и шлёт в заголовке Authorization.
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -10,7 +10,7 @@ class ApiError implements Exception {
   final String message;
   final Map<String, dynamic>? data;
 
-  /// true — ответ не от сервера «Искры» (нет PHP, нет сети): учётные записи просто недоступны
+  /// true — ответ не от сервера «Искры» (нет сети или по адресу не тот сервер): учётные записи просто недоступны
   final bool noApi;
   ApiError(this.status, this.message, {this.data, this.noApi = false});
 
@@ -57,30 +57,23 @@ class TopTable {
 }
 
 class IskraApi {
-  /// [base] — адрес сайта с игрой, например https://example.com/iskra/ (рядом лежит папка api/).
-  /// [manageCookies] — хранить cookie сеанса самим (Android, iOS). В браузере cookie держит сам браузер.
-  IskraApi(Uri base, {http.Client? client, this.manageCookies = true, this.session, this.onSession})
-    : endpoint = base.resolve('api/index.php'),
+  /// [base] — адрес сервера, например https://api.iskraplay.ru/ (запросы идут в api/iskra/…).
+  IskraApi(Uri base, {http.Client? client, this.session, this.onSession})
+    : endpoint = base.resolve('api/iskra/'),
       _client = client ?? http.Client();
 
   final Uri endpoint;
   final http.Client _client;
-  final bool manageCookies;
 
-  /// Значение cookie iskra_sid; сохраняйте его между запусками через [onSession]
+  /// Токен входа; сохраняйте его между запусками через [onSession]
   String? session;
   void Function(String? session)? onSession;
 
-  static const cookieName = 'iskra_sid';
-
   Future<Map<String, dynamic>> _call(String a, {Map<String, dynamic>? body, Map<String, String>? query}) async {
-    final uri = endpoint.replace(queryParameters: {'a': a, ...?query});
+    final uri = endpoint.resolve(a).replace(queryParameters: query);
     final headers = <String, String>{};
-    if (body != null) {
-      headers['Content-Type'] = 'application/json';
-      headers['X-Iskra'] = '1';
-    }
-    if (manageCookies && session != null) headers['Cookie'] = '$cookieName=$session';
+    if (body != null) headers['Content-Type'] = 'application/json';
+    if (session != null) headers['Authorization'] = session!;
     http.Response r;
     try {
       r = body == null
@@ -89,7 +82,6 @@ class IskraApi {
     } catch (e) {
       throw ApiError(0, 'Сервер недоступен', noApi: true);
     }
-    if (manageCookies) _readCookie(r.headers['set-cookie']);
     Object? j;
     try {
       j = jsonDecode(utf8.decode(r.bodyBytes));
@@ -98,26 +90,24 @@ class IskraApi {
     if (r.statusCode < 200 || r.statusCode >= 300) {
       throw ApiError(r.statusCode, '${j['error'] ?? 'Ошибка сервера'}', data: j);
     }
+    // вход, регистрация и смена пароля выдают новый токен, «кто я» — продлённый
+    final t = j['token'];
+    if (t is String && t.isNotEmpty) _setSession(t);
     return j;
   }
 
-  void _readCookie(String? header) {
-    if (header == null) return;
-    final m = RegExp('$cookieName=([^;,]*)').firstMatch(header);
-    if (m == null) return;
-    final v = m.group(1)!;
-    // сервер стирает cookie пустым значением при выходе и удалении
-    final next = v.isEmpty || v == 'deleted' ? null : v;
-    if (next != session) {
-      session = next;
-      onSession?.call(session);
-    }
+  void _setSession(String? next) {
+    if (next == session) return;
+    session = next;
+    onSession?.call(next);
   }
 
   /// Кто вошёл и метка его сохранения; ApiError(noApi) — сервера нет, играем без учётной записи
   Future<({AccountUser? user, SaveMeta? save})> me() async {
     final j = await _call('me');
     final u = j['user'];
+    // токен истёк или аккаунт удалён на другом устройстве — забываем его
+    if (u == null) _setSession(null);
     return (user: u is Map<String, dynamic> ? AccountUser.fromJson(u) : null, save: SaveMeta.fromJson(j['save']));
   }
 
@@ -132,10 +122,10 @@ class IskraApi {
   }
 
   Future<void> logout() async {
-    await _call('logout', body: {});
-    if (session != null) {
-      session = null;
-      onSession?.call(null);
+    try {
+      await _call('logout', body: {});
+    } finally {
+      _setSession(null);
     }
   }
 
@@ -165,14 +155,13 @@ class IskraApi {
     );
   }
 
-  /// Смена пароля: остальные устройства выйдут
+  /// Смена пароля: остальные устройства выйдут, это получит новый токен
   Future<void> changePassword(String oldPassword, String newPassword) =>
       _call('password', body: {'old': oldPassword, 'new': newPassword});
 
   Future<void> deleteAccount(String password) async {
     await _call('delete', body: {'password': password});
-    session = null;
-    onSession?.call(null);
+    _setSession(null);
   }
 
   void close() => _client.close();

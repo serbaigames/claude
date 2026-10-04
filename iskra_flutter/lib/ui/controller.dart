@@ -35,7 +35,6 @@ class GameController extends ChangeNotifier {
     if (server != null) {
       final api = IskraApi(
         server,
-        manageCookies: !kIsWeb, // в браузере cookie сеанса держит сам браузер
         session: prefs.getString(_sessionKey),
         onSession: (v) => v == null ? prefs.remove(_sessionKey) : prefs.setString(_sessionKey, v),
       );
