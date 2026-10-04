@@ -1,8 +1,10 @@
 # Сервер учётных записей и рейтингов «Искры» (PocketBase)
 
 Один сервер на все сборки: Android, iOS, Windows и веб ходят на `https://api.iskraplay.ru/`.
-Это [PocketBase](https://pocketbase.io) — одна программа с базой SQLite, HTTPS и панелью управления,
-плюс правила «Искры» в `pb_hooks/` и схема базы в `pb_migrations/`.
+Это [PocketBase](https://pocketbase.io) — одна программа с базой SQLite и панелью управления,
+плюс правила «Искры» в `pb_hooks/` и схема базы в `pb_migrations/`. Снаружи перед ним стоит nginx
+с сертификатом Let's Encrypt, только TLS 1.2 и HTTP/2: у части операторов в России соединения TLS 1.3
+обрываются по пути (рекомендация хостинга AdminVPS).
 
 ## Установка на VPS
 
@@ -15,9 +17,10 @@
    curl -fsSL https://raw.githubusercontent.com/serbaigames/claude/claude/project-thread-ioiybu/iskra_flutter/server/pocketbase/install.sh | sudo bash -s -- api.iskraplay.ru
    ```
 
-   Скрипт поставит PocketBase службой `iskra-pb`, получит сертификат HTTPS, проверит, что сервер отвечает,
-   и попросит почту и пароль для панели управления `https://api.iskraplay.ru/_/`.
-   Порты 80 и 443 должны быть свободны (не ставьте на этот VPS nginx или Apache).
+   Скрипт поставит PocketBase службой `iskra-pb` (слушает 127.0.0.1:8090), nginx и certbot, получит
+   сертификат HTTPS, проверит, что сервер отвечает, и попросит почту и пароль для панели управления
+   `https://api.iskraplay.ru/_/`. Если сертификат не получен, значит DNS-запись ещё не разошлась:
+   подождите и запустите команду снова.
 
 Повторный запуск той же команды обновляет PocketBase и правила, данные остаются.
 
@@ -37,6 +40,7 @@ sudo -u pocketbase /opt/iskra-pb/pocketbase iskra-import /tmp/iskra-export.json 
 ## Обслуживание
 
 - Журнал: `journalctl -u iskra-pb -f`; перезапуск: `systemctl restart iskra-pb`.
+- nginx: `/etc/nginx/sites-available/iskra-api`; сертификат продлевает certbot сам.
 - База: `/opt/iskra-pb/pb_data/data.db`. Резервные копии — каждую ночь в 3:00, последние 7, в `pb_data/backups`
   (их же видно и можно скачать в панели: Settings → Backups).
 - Игроки, сохранения и рейтинги — в панели управления, коллекции `players`, `saves`, `stats`.

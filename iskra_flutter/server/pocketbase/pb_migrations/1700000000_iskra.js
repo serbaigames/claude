@@ -79,6 +79,8 @@ migrate((app) => {
   settings.meta.appName = "Искра";
   settings.backups.cron = "0 3 * * *";
   settings.backups.cronMaxKeep = 7;
+  // PocketBase слушает только 127.0.0.1 за nginx: настоящий IP игрока — в заголовке X-Real-IP
+  settings.trustedProxy.headers = ["X-Real-IP"];
   app.save(settings);
 }, (app) => {
   for (const name of ["attempts", "stats", "saves", "players"]) {
