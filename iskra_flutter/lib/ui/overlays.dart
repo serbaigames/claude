@@ -405,16 +405,30 @@ class JumpOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final g = ctl.game, defeat = ctl.jumpDefeat;
+    final g = ctl.game, defeat = ctl.jumpDefeat, advice = ctl.jumpAdvice && !defeat;
     final gain = g.rebirthGain(), b0 = g.bonusMul, b1 = b0 + gain;
     double inc(double x) => math.pow(x, Bal.bonusPow).toDouble();
+    double fight(double x) => math.pow(x, Bal.bonusFightPow).toDouble();
     String x2(double v) => Fmt.x(v, 2);
     return Overlay2(
       onClose: ctl.closeJump,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(defeat ? 'Искра угасает — прыжок неизбежен' : 'Прыжок искры', style: h2(defeat ? C.bad : C.gold)),
+          Text(
+            defeat
+                ? 'Искра угасает — прыжок неизбежен'
+                : advice
+                ? 'Тьма поглотила этот мир'
+                : 'Прыжок искры',
+            style: h2(defeat || advice ? C.bad : C.gold),
+          ),
+          if (advice)
+            Text(
+              'Из ${g.s.worldMax} клеток осталось ${g.own.length}: здесь рост уже не вернуть. '
+              'Прыжок даст +${x2(gain)} к бонусу и новый мир, где искра станет сильнее.',
+              style: const TextStyle(color: C.bad),
+            ),
           if (defeat)
             const Text(
               'Материя ушла в минус: в этой области вселенной искре больше не на что опереться.',
@@ -439,6 +453,8 @@ class JumpOverlay extends StatelessWidget {
           Text('Что даст прыжок', style: h2()),
           _change('Бонус искры', '×${x2(b0)}', '×${x2(b1)}'),
           _change('Добыча от бонуса', '×${x2(inc(b0))}', '×${x2(inc(b1))}'),
+          _change('Сила в бою от бонуса', '×${x2(fight(b0))}', '×${x2(fight(b1))}'),
+          _change('Пульсары', '${g.s.pulsars}', '${g.s.pulsars + g.rebirthPulsars()}'),
           _change('Сила тьмы', '×${x2(g.darkMul)}', '×${x2(Game.darkMulFor(g.s.rebirths + 1))}'),
           _change('Скорость искры', '×${x2(g.sparkSpeed)}', '×${x2(1 + 0.15 * (g.s.rebirths + 1))}'),
           _change('Новая область', null, '×${x2(g.s.nextAggr ?? 1)} — ${Game.aggrName(g.s.nextAggr ?? 1)}'),

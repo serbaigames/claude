@@ -27,10 +27,36 @@ const webSave = '''
 ''';
 
 void main() {
-  test('сила тьмы растёт с прыжками: ×2 после 3, ×5 после 10', () {
+  test('сила тьмы растёт с прыжками медленно: ×1,4 после 10, ×2,2 после 30', () {
     expect(Game.darkMulFor(0), 1);
-    expect(Game.darkMulFor(3), closeTo(2, 0.02));
-    expect(Game.darkMulFor(10), closeTo(5, 0.03));
+    expect(Game.darkMulFor(10), closeTo(1.4, 0.001));
+    expect(Game.darkMulFor(30), closeTo(2.2, 0.001));
+  });
+
+  test('баланс: длительности способностей не дольше половины отката, поглощение не больше 35%', () {
+    final g = Game(random: math.Random(1))..newGame();
+    for (final d in Defs.abilityList) {
+      final v = g.abVal(AbilitySlot(d.id)..lvl = 500);
+      if (d.kind == 'absorb') expect(v, lessThanOrEqualTo(0.35));
+      if (const ['shield', 'haste', 'immune', 'stunfoe', 'weaken', 'reflect', 'dispel'].contains(d.kind)) {
+        expect(v, lessThanOrEqualTo(d.cd * 0.5), reason: d.id);
+        // первые уровни растут как прежде: +0,2 с
+        final v1 = g.abVal(AbilitySlot(d.id)), v2 = g.abVal(AbilitySlot(d.id)..lvl = 2);
+        expect(v1, closeTo(d.base, 1e-9));
+        expect(v2 - v1, closeTo(0.2, 0.02), reason: d.id);
+      }
+    }
+  });
+
+  test('прыжок: бонус линеен по рекорду клеток, пульсары 1 + рекорд / 5, бонус усиливает бой', () {
+    final g = Game(random: math.Random(1))..newGame();
+    g.s.worldMax = 20;
+    expect(g.rebirthGain(), closeTo(1.6, 1e-9)); // 0,08 × 20 при агрессивности 1
+    final hp0 = g.maxHp(), p0 = g.s.pulsars;
+    g.rebirth();
+    expect(g.s.pulsars, p0 + 5);
+    expect(g.s.bonus, 1.6);
+    expect(g.maxHp() / hp0, closeTo(math.pow(2.6, 0.3), 1e-9));
   });
 
   test('версия в приложении совпадает с pubspec.yaml', () {

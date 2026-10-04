@@ -140,7 +140,7 @@ void main() {
       ..matter = 9999;
     ctl.game.rebirth();
     expect(ctl.game.s.tech, {'jump': 1, 'grow': 2});
-    expect(ctl.game.s.pulsars, 7);
+    expect(ctl.game.s.pulsars, 8); // +1 пульсар за прыжок (рекорд 1 клетка)
     expect(ctl.game.s.matter, 100);
     ctl.resetAll();
     expect(ctl.game.s.tech, isEmpty);

@@ -270,7 +270,7 @@ class Game {
   Cell _genDark(int q, int r) {
     final d = hexDist(q, r, 0, 0);
     final base = (5 + _strength() * 1.5) * (1 + d * 0.09) * darkMul;
-    final tier = rollTier(d);
+    final tier = d <= 1 ? 'low' : rollTier(d); // соседи искры всегда низшие: без «пустых» стартов
     final sp = _split();
     return Cell(
       q: q,
@@ -372,7 +372,7 @@ class Game {
   static double towerPct(int l) => l > 0 ? 25 * math.pow(2, l - 1).toDouble() : 0; // 25%, 50%, 100%, 200%…
   // Комплекс: каждое следующее одинаковое строение на клетке +10% ко всем таким строениям (5 шахт → ×1,4)
   static double _syn(int l) => l > 0 ? 1 + 0.1 * (l - 1) : 0;
-  double mineRate(Cell c, int l) => l * 1.2 * mult(st(c, 'm')) * _syn(l);
+  double mineRate(Cell c, int l) => l * Bal.mineRate * mult(st(c, 'm')) * _syn(l);
   double factPct(Cell c, int l) => l * 8 * mult(st(c, 'e')) * _syn(l);
   double defCost(Cell c) => (Bal.defCost * math.pow(Bal.defGrow, c.defLvl) * eraV('def')).ceilToDouble();
 
@@ -431,9 +431,11 @@ class Game {
     return Eff(v * (1 - pen), pen);
   }
 
-  double maxHp() => 60 + 40 * eff('life').v;
+  /// Бонус прыжка усиливает искру в бою: здоровье и урон × (1 + бонус)^0,3
+  double get fightBonus => math.pow(bonusMul, Bal.bonusFightPow).toDouble();
+  double maxHp() => (60 + 40 * eff('life').v) * fightBonus;
   double defDiv() => 1 + 0.125 * (eff('defense').v - 1);
-  double powMul() => (1 + 0.125 * (eff('power').v - 1)) * eraV('pAtk');
+  double powMul() => (1 + 0.125 * (eff('power').v - 1)) * eraV('pAtk') * fightBonus;
   double med() => 1 + 0.5 * (eff('meditation').v - 1);
   double turnCd() => 1.4 / (1 + 0.06 * (eff('speed').v - 1)) * eraV('cd');
 
@@ -450,11 +452,14 @@ class Game {
       case 'dmg' || 'drain' || 'dot' || 'pierce' || 'harvest' || 'execute':
         return d.base * (1 + 0.15 * l) * med(); // урон навыков растёт от Медитации, как и атака
       case 'heal' || 'regenme':
-        return maxHp() * d.base / 100 * (1 + 0.15 * l); // лечение — доля здоровья
+        return maxHp() * d.base / 100 * (1 + 0.05 * l); // лечение — доля здоровья, +5% за уровень
       case 'absorb':
-        return d.base + 0.01 * l;
+        // +1% за уровень, плавно упирается в 35% здоровья врага
+        return 0.35 - (0.35 - d.base) * math.exp(-0.01 * l / (0.35 - d.base));
       default:
-        return d.base + 0.2 * l;
+        // длительность: +0,2 с за уровень, плавно упирается в половину отката — вечной не становится
+        final cap = 0.5 * d.cd;
+        return cap - (cap - d.base) * math.exp(-0.2 * l / (cap - d.base));
     }
   }
 
@@ -560,7 +565,8 @@ class Game {
   void loseCell(Cell n, Cell c) {
     n
       ..own = false
-      ..might = c.might + 1
+      // половина мощи напавшей: потеря одной клетки не обрушивает соседние
+      ..might = c.might * 0.5 + 1
       ..dev = rnd(Bal.devMin, Bal.devMax)
       ..growth = rnd(7, 18)
       ..t = 0

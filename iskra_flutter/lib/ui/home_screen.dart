@@ -408,6 +408,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           _sqBtn(
             Icon(Icons.rocket_launch_outlined, size: 20, color: jump ? C.gold : C.muted),
             () => jump ? ctl.openJump() : setState(() => tab = MenuTab.tech),
+            on: g.jumpAdvised,
             tip: jump ? 'Прыжок искры' : 'Прыжок: нужна технология',
           ),
         ],
