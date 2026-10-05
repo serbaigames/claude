@@ -289,6 +289,13 @@ const enCore = <String, String>{
   '5 октября 2026': 'October 5, 2026',
   '3 октября 2026': 'October 3, 2026',
   '2 октября 2026': 'October 2, 2026',
+  'Магазин в настройках: видео за награду удваивает добычу материи на 10 минут; покупка «Без рекламы + поддержать автора» включает ускорение без видео (Android, RuStore).': 'Shop in settings: a rewarded video doubles matter income for 10 minutes; the "No ads + support the author" purchase turns the boost on without video (Android, RuStore).',
+  'Четыре платных стиля искры: стимпанк, готика, биология и кристалл. Стиль меняет искру, захваченные клетки, каналы, границы и фон поля.': 'Four paid Spark styles: steampunk, gothic, bio and crystal. A style changes the Spark, captured cells, channels, borders and the field background.',
+  'Английский язык: переключатель «Русский / English» в «Настройки → Приложение».':
+      'English language: a Russian / English switch in Settings → App.',
+  'Новая иконка приложения в виде искры.': 'A new app icon showing the Spark.',
+  'Бой: здоровье и урон врагов растут в одном масштабе с искрой, без резких скачков.':
+      'Battle: enemy health and damage grow on the same scale as the Spark, without sudden jumps.',
   'Сайт: вместо веб-архива в загрузках — игра в браузере; версия для iOS помечена «в разработке», пока можно играть в браузере.': 'Website: downloads now offer the in-browser game instead of a web archive; the iOS version is marked "in development" — play in the browser for now.',
   'Сайт iskraplay.ru: страница игры с кнопкой «Играть», выпусками, ссылками на все сборки и рейтингами. Сама игра — по адресу iskraplay.ru/play/.': 'Website iskraplay.ru: a game page with a "Play" button, releases, links to all builds and leaderboards. The game itself is at iskraplay.ru/play/.',
   'Учётные записи и рейтинги на новом общем сервере для всех устройств. Старые аккаунты и сохранения перенесены.':
