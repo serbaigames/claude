@@ -78,6 +78,7 @@ h1, h2, h3 { font-family: 'Philosopher', 'PT Sans', serif; margin: 0; }
   transition: border-color .2s, transform .15s; }
 .dl:hover { border-color: var(--gold); transform: translateY(-2px); }
 .dl h3 { font-size: 20px; }
+.dl h3 .badge { vertical-align: middle; margin-left: 4px; font-family: "PT Sans", sans-serif; }
 .dl p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
 .dl[aria-disabled=true] { opacity: .45; pointer-events: none; }
 .dl .size { color: var(--gold); font-size: 13px; }

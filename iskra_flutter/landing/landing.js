@@ -11,20 +11,19 @@
     for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0);
     return true;
   };
-  // Файлы выпуска: Windows и iOS собираются начиная с 0.3.0
+  // Файлы выпуска: Windows собирается начиная с 0.3.0; iOS на сайте не раздаётся (в разработке)
   const files = (v) => {
     const base = `${GH}/download/iskra-v${v}/`;
     const f = { apk: ['Android', `iskra-${v}.apk`] };
     if (newer(v, '0.3.0')) {
       f.win = ['Windows', `iskra-windows-${v}.zip`];
-      f.ios = ['iOS', `iskra-ios-${v}-unsigned.ipa`];
     }
     for (const k in f) f[k] = [f[k][0], base + f[k][1]];
     return f;
   };
   const fileLinks = (v) => {
     const f = files(v);
-    return `<div class="files">${['apk', 'win', 'ios'].filter((k) => f[k])
+    return `<div class="files">${['apk', 'win'].filter((k) => f[k])
       .map((k) => `<a href="${f[k][1]}">${f[k][0]}</a>`).join('')}<a href="${GH}/tag/iskra-v${v}">Страница выпуска</a></div>`;
   };
 
