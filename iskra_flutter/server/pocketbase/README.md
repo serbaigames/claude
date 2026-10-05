@@ -31,7 +31,7 @@
 
 ```bash
 python3 /opt/iskra-pb/import_php.py /root/iskra.sqlite /tmp/iskra-export.json
-sudo -u pocketbase /opt/iskra-pb/pocketbase iskra-import /tmp/iskra-export.json --dir /opt/iskra-pb/pb_data
+cd /opt/iskra-pb && sudo -u pocketbase /opt/iskra-pb/pocketbase iskra-import /tmp/iskra-export.json --dir /opt/iskra-pb/pb_data
 ```
 
 Переносятся имена, пароли (тот же хеш bcrypt, игрокам ничего вводить заново не нужно), даты регистрации,

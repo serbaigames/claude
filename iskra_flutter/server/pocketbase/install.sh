@@ -177,7 +177,8 @@ if [ ! -f "$DIR/.superuser" ] && [ -r /dev/tty ]; then
   read -r -p "Почта администратора: " SU_EMAIL </dev/tty
   read -r -s -p "Пароль (не короче 10 символов): " SU_PASS </dev/tty
   echo
-  if runuser -u pocketbase -- "$DIR/pocketbase" superuser upsert "$SU_EMAIL" "$SU_PASS" --dir "$DIR/pb_data"; then
+  # из /root пользователь pocketbase не может прочитать текущую папку — запускаем из своей
+  if (cd "$DIR" && runuser -u pocketbase -- "$DIR/pocketbase" superuser upsert "$SU_EMAIL" "$SU_PASS" --dir "$DIR/pb_data"); then
     touch "$DIR/.superuser"
   fi
 fi
@@ -185,4 +186,4 @@ fi
 echo
 echo "Готово. Перенос аккаунтов со старого сервера:"
 echo "  python3 $DIR/import_php.py iskra.sqlite /tmp/iskra-export.json"
-echo "  sudo -u pocketbase $DIR/pocketbase iskra-import /tmp/iskra-export.json --dir $DIR/pb_data"
+echo "  cd $DIR && sudo -u pocketbase $DIR/pocketbase iskra-import /tmp/iskra-export.json --dir $DIR/pb_data"
