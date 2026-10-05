@@ -111,12 +111,40 @@ VARIANTS = {
     'p40j20': ECON_B + SOFT + jump(0.2) + power(0.4) + CAPS + PULSAR,
 }
 
+# Ровный рост (2026-10-05), поверх ядра ветки интерфейса (CORE=.../lib/core)
+PAR = [
+    ('game.dart', "double defDiv() => 1 + 0.125 * (eff('defense').v - 1);", "double defDiv() => 1 + 0.2 * (eff('defense').v - 1);"),
+    ('game.dart', "(1 + 0.125 * (eff('power').v - 1))", "(1 + 0.2 * (eff('power').v - 1))"),
+    ('game.dart', "double med() => 1 + 0.5 * (eff('meditation').v - 1);", "double med() => 1 + 0.3 * (eff('meditation').v - 1);"),
+    ('game.dart', "1.4 / (1 + 0.06 * (eff('speed').v - 1))", "1.4 / (1 + 0.1 * (eff('speed').v - 1))"),
+]
+
+
+def foe(h, a):
+    return [('defs.dart', 'foeHp = 2.5, foeAtk = 0.5,', f'foeHp = {h}, foeAtk = {a},')]
+
+
+for h, a in [(1.0, 1.25), (1.25, 1.0), (0.8, 1.5), (1.5, 0.8), (1.2, 1.4), (1.0, 1.6), (1.3, 1.3), (0.9, 1.8), (1.2, 1.6), (1.1, 1.5)]:
+    VARIANTS[f'E{h}_{a}'] = foe(h, a)
+    VARIANTS[f'P{h}_{a}'] = PAR + foe(h, a)
+VARIANTS['P'] = PAR
+
+
+def cost(c):
+    return [('battle.dart', '(4 * med()).ceil()', f'({c} * med()).ceil()'),
+            ('forecast.dart', '(4 * md).ceil()', f'({c} * md).ceil()'),
+            ('forecast.dart', '(4 * med()).ceil()', f'({c} * med()).ceil()')]
+
+
+for c in (5, 6, 8):
+    VARIANTS[f'C{c}'] = PAR + foe(1.0, 1.6) + cost(c)
+
 
 def build(name, extra=None):
     patches = VARIANTS[name] + (extra or [])
     d = os.path.join(OUT, name)
     shutil.rmtree(d, ignore_errors=True)
-    shutil.copytree(os.path.join(ROOT, 'lib', 'core'), os.path.join(d, 'lib', 'core'))
+    shutil.copytree(os.environ.get('CORE') or os.path.join(ROOT, 'lib', 'core'), os.path.join(d, 'lib', 'core'))
     os.makedirs(os.path.join(d, 'tool', 'balance'))
     for f in ('bot.dart', 'run.dart', 'abtest.dart'):
         shutil.copy(os.path.join(ROOT, 'tool', 'balance', f), os.path.join(d, 'tool', 'balance', f))

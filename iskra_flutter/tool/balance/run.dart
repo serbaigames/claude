@@ -60,6 +60,7 @@ void main(List<String> args) {
             '${w.dur.toStringAsFixed(1)} мин, макс ${w.maxCells}, конец ${w.endCells}, '
             '5/10/15/20 к. на ${w.t5.toStringAsFixed(0)}/${w.t10.toStringAsFixed(0)}/${w.t15.toStringAsFixed(0)}/${w.t20.toStringAsFixed(0)} мин, '
             'бои ${w.battles} (поб ${w.wins}, пор ${w.losses}), потеряно ${w.lost}, +бонус ${w.gain}, '
+            '${_fs(w.fights)} '
             'макс материи ${w.maxMatter.toStringAsFixed(0)}, ${w.end} | ${w.chars} | ${w.abil}');
       }
       out.add({
@@ -102,4 +103,14 @@ void main(List<String> args) {
   }
   final f = File(args.length > 3 ? args[3] : 'balance_out.json');
   f.writeAsStringSync(const JsonEncoder.withIndent(' ').convert(out));
+}
+
+String _fs(List<List<double>> f) {
+  if (f.isEmpty) return 'боёв нет';
+  double med(int i) {
+    final v = f.map((x) => x[i]).toList()..sort();
+    return v[v.length ~/ 2];
+  }
+  String r(double x) => x.toStringAsFixed(x < 10 ? 1 : 0);
+  return 'ударов до победы ${r(med(0))} / до гибели ${r(med(1))} (удар ${r(med(2))}, хп ${r(med(3))}, враг ${r(med(4))}/${r(med(5))})';
 }

@@ -85,6 +85,7 @@ class WorldRec {
   final Map<int, int> cellsAt = {}; // минута → клеток
   final List<String> eras = [];
   String abil = '', chars = '';
+  final List<List<double>> fights = []; // [ударов до победы, ударов до гибели, урон удара, здоровье, здоровье врага, удар врага]
   double t5 = 0, t10 = 0, t15 = 0, t20 = 0; // минута, когда клеток стало 5/10/15/20
   WorldRec(this.idx, this.aggr, this.bonusBefore, this.darkMul);
 }
@@ -371,7 +372,10 @@ class Bot {
     final fc = g.fightForecast(best);
     if (fc.p >= st.attackP) {
       s.sel = best.key;
-      g.startBattle(g.foeFromCell(best), best.key);
+      final foe = g.foeFromCell(best);
+      final hit = 10 * g.med() * g.powMul(), fh = foe.atk / g.defDiv();
+      cur.fights.add([foe.maxHp / hit, g.maxHp() / fh, hit, g.maxHp(), foe.maxHp, fh]);
+      g.startBattle(foe, best.key);
       cur.battles++;
       reserve = 0;
       return true;
