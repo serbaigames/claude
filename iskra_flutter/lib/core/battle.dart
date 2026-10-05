@@ -80,7 +80,7 @@ extension GameBattle on Game {
   /// Цена и готовность хода: 'attack' или 'ab0'…'ab3'
   ({double cost, bool ready})? actInfo(String act) {
     final bt = b;
-    if (act == 'attack') return (cost: math.max(1, (4 * med()).ceil()).toDouble(), ready: true);
+    if (act == 'attack') return (cost: math.max(1, (Bal.atkCost * med()).ceil()).toDouble(), ready: true);
     final i = int.parse(act.substring(2));
     final a = s.abilities[i];
     if (a == null || bt == null) return null;

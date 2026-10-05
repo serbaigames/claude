@@ -1,8 +1,10 @@
-// «Искра» — форматирование чисел и времени в русском стиле (запятая, «k», «M»), как fmt/fmt1/fmtTime в веб-версии.
+// «Искра» — форматирование чисел и времени (по-русски запятая, по-английски точка; «k», «M»), как fmt/fmt1/fmtTime в веб-версии.
 import 'dart:math' as math;
 
+import '../l10n/l10n.dart';
+
 class Fmt {
-  static String _fixed(double v, int d) => v.toStringAsFixed(d).replaceAll('.', ',');
+  static String _fixed(double v, int d) => isEn ? v.toStringAsFixed(d) : v.toStringAsFixed(d).replaceAll('.', ',');
 
   /// Целые числа, а с 10 000 — в тысячах и миллионах
   static String n(num n) {
@@ -21,10 +23,10 @@ class Fmt {
     final t = sec.floor();
     final h = t ~/ 3600, m = t % 3600 ~/ 60, s = t % 60;
     return h > 0
-        ? '$h ч $m мин'
+        ? tx('{h} ч {m} мин', {'h': h, 'm': m})
         : m > 0
-        ? '$m мин $s с'
-        : '$s с';
+        ? tx('{m} мин {s} с', {'m': m, 's': s})
+        : tx('{s} с', {'s': s});
   }
 
   static String clock(num sec) {

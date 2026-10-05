@@ -50,7 +50,7 @@ extension GameForecast on Game {
     if (cached != null && cached.key == key && now - cached.at < 2) return cached.v;
 
     final hp0 = maxHp(), dd = defDiv(), pm = powMul(), tc = turnCd(), md = med();
-    final atkC = math.max(1, (4 * md).ceil()).toDouble();
+    final atkC = math.max(1, (Bal.atkCost * md).ceil()).toDouble();
     final capCost = c.might.ceilToDouble();
     final ab = [for (final a in s.abilities) a == null ? null : (d: Defs.abilities[a.id]!, v: abVal(a), cost: Game.abCost(a))];
     final tr = f.traits, lch = leechAmt();
@@ -243,7 +243,7 @@ extension GameForecast on Game {
   /// Быстрая оценка боя (без прогона): урон в секунду игрока и сущности с учётом особенностей
   ({bool beat, double tKill, double cost}) quickFight(Cell c) {
     final f = foeFromCell(c), tr = f.traits, pm = powMul(), tc = turnCd();
-    final atkC = math.max(1, (4 * med()).ceil());
+    final atkC = math.max(1, (Bal.atkCost * med()).ceil());
     var dps = 10 * med() * pm / tc, abCostPs = 0.0;
     for (final a in s.abilities) {
       if (a == null) continue;

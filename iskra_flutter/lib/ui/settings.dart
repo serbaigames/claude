@@ -1,9 +1,9 @@
 // Окно «Настройки»: вкладки сверху (как в рейтингах), под ними разделы выбранной вкладки.
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../core/game.dart';
+import '../l10n/l10n.dart';
 import '../shop/shop.dart';
 import '../version.dart';
 import 'controller.dart';
@@ -150,6 +150,16 @@ class AppSettings extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _head('Язык', Icons.translate),
+        _card([
+          SegmentedButton<Lang>(
+            key: const ValueKey('lang'),
+            showSelectedIcon: false,
+            segments: [for (final l in Lang.values) ButtonSegment(value: l, label: Text(l.title))],
+            selected: {lang},
+            onSelectionChanged: (v) => ctl.setLang(v.first),
+          ),
+        ]),
         _head('Графика и производительность', Icons.speed),
         _card([
           SegmentedButton<GfxLevel>(
@@ -568,9 +578,6 @@ class ShopView extends StatelessWidget {
 }
 
 /* ---------- развитие проекта ---------- */
-/// Перевод через СБП: ссылка из QR-кода (Т-Банк или Сбербанк). Пустая строка — показывается заглушка
-const donateUrl = 'https://t.tb.ru/c2c-qr-choose-bank?requisiteNumber=+79163956434&bankCode=100000000004';
-
 class SupportView extends StatelessWidget {
   const SupportView({super.key});
 
@@ -581,13 +588,14 @@ class SupportView extends StatelessWidget {
       _head('Поддержать «Искру»', Icons.favorite_border),
       _card(const [
         Text(
+          key: ValueKey('support-text'),
           '«Искра» — независимый проект одного автора. Реклама в игре только по желанию: видео, за которое '
           'добыча ускоряется на несколько минут. Платные стили меняют лишь вид Искры, а не силу.',
         ),
         SizedBox(height: 8),
         Text(
-          'Если игра вам нравится и вы хотите, чтобы она росла, можно поддержать проект и автора добровольным '
-          'пожертвованием любого размера. Это помогает оплачивать сервер учётных записей и рейтингов, '
+          'Если игра вам нравится и вы хотите, чтобы она росла, поддержать проект можно во вкладке «Магазин». '
+          'Это помогает оплачивать сервер учётных записей и рейтингов, '
           'выпускать сборки для разных устройств и находить время на новые эры, технологии, сущности и способности.',
         ),
         SizedBox(height: 8),
@@ -596,50 +604,6 @@ class SupportView extends StatelessWidget {
           'Рассказать об «Искре» друзьям и прислать идеи — тоже большая помощь.',
           style: TextStyle(color: C.muted),
         ),
-      ]),
-      _head('Реквизиты', Icons.account_balance_wallet_outlined),
-      _card([
-        if (donateUrl.isEmpty)
-          const Text(
-            'Реквизиты для поддержки появятся здесь в ближайшем обновлении.',
-            key: ValueKey('donate-empty'),
-            style: TextStyle(color: C.muted),
-          )
-        else ...[
-          const Text(
-            'Перевести через Т-Банк или Сбербанк',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 10),
-          Center(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                'assets/images/donate_qr.png',
-                key: const ValueKey('donate-qr'),
-                width: 200,
-                height: 200,
-                filterQuality: FilterQuality.none,
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Наведите камеру телефона на код. На телефоне можно сразу нажать кнопку ниже и выбрать банк.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: C.muted, fontSize: 12),
-          ),
-          const SizedBox(height: 10),
-          Center(
-            child: FilledButton.icon(
-              key: const ValueKey('donate-open'),
-              onPressed: () => launchUrl(Uri.parse(donateUrl), mode: LaunchMode.externalApplication),
-              icon: const Icon(Icons.favorite),
-              label: const Text('Перевести'),
-            ),
-          ),
-        ],
       ]),
       const Text(
         'Спасибо, что играете!',

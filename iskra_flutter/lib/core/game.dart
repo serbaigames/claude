@@ -437,10 +437,10 @@ class Game {
   /// Бонус прыжка усиливает искру в бою: здоровье и урон × (1 + бонус)^0,3
   double get fightBonus => math.pow(bonusMul, Bal.bonusFightPow).toDouble();
   double maxHp() => (60 + 40 * eff('life').v) * fightBonus;
-  double defDiv() => 1 + 0.125 * (eff('defense').v - 1);
-  double powMul() => (1 + 0.125 * (eff('power').v - 1)) * eraV('pAtk') * fightBonus;
-  double med() => 1 + 0.5 * (eff('meditation').v - 1);
-  double turnCd() => 1.4 / (1 + 0.06 * (eff('speed').v - 1)) * eraV('cd');
+  double defDiv() => 1 + 0.2 * (eff('defense').v - 1);
+  double powMul() => (1 + 0.2 * (eff('power').v - 1)) * eraV('pAtk') * fightBonus;
+  double med() => 1 + 0.3 * (eff('meditation').v - 1);
+  double turnCd() => 1.4 / (1 + 0.1 * (eff('speed').v - 1)) * eraV('cd');
 
   /// Стоимость навыка: база × (низш. 1 / ред. 1,25 / эпич. 1,5) × (1 + 12% за уровень)
   static double abCost(AbilitySlot a) {

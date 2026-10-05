@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   testWidgets('приложение запускается, вступление закрывается, вкладки открываются', (tester) async {
     Sound.enabled = false;
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'iskra-lang': 'ru'});
     final prefs = await SharedPreferences.getInstance();
     final ctl = GameController(prefs);
     await tester.pumpWidget(IskraApp(controller: ctl));
@@ -84,7 +84,7 @@ void main() {
     // громкость музыки сохраняется
     ctl.sound.setMusic(0.25);
     expect(prefs.getDouble('iskra-vol-music'), 0.25);
-    for (final (t, key) in [('shop', 'shop-unavailable'), ('stats', 'stats'), ('about', 'app-version'), ('dev', 'donate-qr')]) {
+    for (final (t, key) in [('shop', 'shop-unavailable'), ('stats', 'stats'), ('about', 'app-version'), ('dev', 'support-text')]) {
       await tester.ensureVisible(find.byKey(ValueKey('set-$t')));
       await tester.tap(find.byKey(ValueKey('set-$t')));
       await tester.pump(const Duration(milliseconds: 100));
@@ -131,7 +131,7 @@ void main() {
 
   test('прыжок оставляет технологии и пульсары, «Начать заново» обнуляет всё; на старте 100 материи', () async {
     Sound.enabled = false;
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'iskra-lang': 'ru'});
     final ctl = GameController(await SharedPreferences.getInstance());
     expect(ctl.game.s.matter, 100);
     ctl.game.s
