@@ -12,7 +12,7 @@ class AsbStudioApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ASB studio',
+      title: 'ASB studio — вселенная связанных миров',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       initialRoute: '/',

@@ -9,5 +9,6 @@ class SupportConfig {
 }
 
 class Links {
+  static const site = 'asbworls.ru';
   static const iskra = 'https://iskraplay.ru';
 }

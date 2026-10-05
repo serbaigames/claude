@@ -82,7 +82,10 @@ class SectionHead extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (eyebrow != null) ...[Eyebrow(eyebrow!), const SizedBox(height: 10)],
+          if (eyebrow != null) ...[
+            Eyebrow(eyebrow!),
+            const SizedBox(height: 10),
+          ],
           Text(title, style: h2(context)),
           if (text != null) ...[
             const SizedBox(height: 14),
@@ -96,16 +99,16 @@ class SectionHead extends StatelessWidget {
 }
 
 TextStyle h1(BuildContext context) => TextStyle(
-      fontSize: isMobile(context) ? 38 : 60,
-      height: 1.1,
-      fontWeight: FontWeight.w800,
-    );
+  fontSize: isMobile(context) ? 38 : 60,
+  height: 1.1,
+  fontWeight: FontWeight.w800,
+);
 
 TextStyle h2(BuildContext context) => TextStyle(
-      fontSize: isMobile(context) ? 28 : 38,
-      height: 1.15,
-      fontWeight: FontWeight.w800,
-    );
+  fontSize: isMobile(context) ? 28 : 38,
+  height: 1.15,
+  fontWeight: FontWeight.w800,
+);
 
 const h3 = TextStyle(fontSize: 20, fontWeight: FontWeight.w700, height: 1.3);
 
@@ -122,9 +125,9 @@ class GradientText extends StatelessWidget {
   Widget build(BuildContext context) {
     return ShaderMask(
       blendMode: BlendMode.srcIn,
-      shaderCallback: (rect) => const LinearGradient(
-        colors: [AppColors.accent, AppColors.accent2],
-      ).createShader(rect),
+      shaderCallback: (rect) =>
+          const LinearGradient(colors: [AppColors.accent, AppColors.accent2])
+              .createShader(rect),
       child: Text(text, style: style),
     );
   }
@@ -178,36 +181,46 @@ class ResponsiveGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, c) {
-      final cols = ((c.maxWidth + gap) / (minItemWidth + gap))
-          .floor()
-          .clamp(1, children.length);
-      final rows = <Widget>[];
-      for (var i = 0; i < children.length; i += cols) {
-        final rowItems = children.sublist(i, (i + cols).clamp(0, children.length));
-        rows.add(IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var j = 0; j < cols; j++) ...[
-                if (j > 0) SizedBox(width: gap),
-                Expanded(
-                  child: j < rowItems.length ? rowItems[j] : const SizedBox(),
-                ),
-              ],
+    return LayoutBuilder(
+      builder: (context, c) {
+        final cols = ((c.maxWidth + gap) / (minItemWidth + gap)).floor().clamp(
+          1,
+          children.length,
+        );
+        final rows = <Widget>[];
+        for (var i = 0; i < children.length; i += cols) {
+          final rowItems = children.sublist(
+            i,
+            (i + cols).clamp(0, children.length),
+          );
+          rows.add(
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var j = 0; j < cols; j++) ...[
+                    if (j > 0) SizedBox(width: gap),
+                    Expanded(
+                      child: j < rowItems.length
+                          ? rowItems[j]
+                          : const SizedBox(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        }
+        return Column(
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              if (i > 0) SizedBox(height: gap),
+              rows[i],
             ],
-          ),
-        ));
-      }
-      return Column(
-        children: [
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0) SizedBox(height: gap),
-            rows[i],
           ],
-        ],
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -224,7 +237,9 @@ class PillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(999));
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(999),
+    );
     const padding = EdgeInsets.symmetric(horizontal: 22, vertical: 18);
     const textStyle = TextStyle(fontWeight: FontWeight.w700, fontSize: 15);
     if (primary) {
@@ -276,12 +291,23 @@ class SiteHeader extends StatelessWidget implements PreferredSizeWidget {
         child: Row(
           children: [
             InkWell(
-              onTap: () => Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/', (_) => false),
-              child: const Row(children: [Logo(), SizedBox(width: 10), Text(
-                'ASB studio',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17, letterSpacing: 0.6),
-              )]),
+              onTap: () =>
+                  Navigator.of(context)
+                      .pushNamedAndRemoveUntil('/', (_) => false),
+              child: const Row(
+                children: [
+                  Logo(),
+                  SizedBox(width: 10),
+                  Text(
+                    'ASB studio',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 17,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const Spacer(),
             if (mobile)
@@ -345,7 +371,10 @@ class SiteFooter extends StatelessWidget {
           spacing: 16,
           runSpacing: 8,
           children: [
-            Text('© ${DateTime.now().year} ASB studio', style: style),
+            Text(
+              '© ${DateTime.now().year} ASB studio · ${Links.site}',
+              style: style,
+            ),
             InkWell(
               onTap: () => openUrl(Links.iskra),
               child: Text('iskraplay.ru', style: style),

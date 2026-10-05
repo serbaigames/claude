@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import '../config.dart';
@@ -18,21 +16,23 @@ class _HomePageState extends State<HomePage> {
   final _projectsKey = GlobalKey();
 
   void _scrollTo(GlobalKey key) => Scrollable.ensureVisible(
-        key.currentContext!,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
+    key.currentContext!,
+    duration: const Duration(milliseconds: 500),
+    curve: Curves.easeInOut,
+  );
 
   void _openSupport() => Navigator.of(context).pushNamed('/support');
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SiteHeader(items: {
-        'Идея': () => _scrollTo(_ideaKey),
-        'Проекты': () => _scrollTo(_projectsKey),
-        'Поддержать': _openSupport,
-      }),
+      appBar: SiteHeader(
+        items: {
+          'Идея': () => _scrollTo(_ideaKey),
+          'Проекты': () => _scrollTo(_projectsKey),
+          'Поддержать': _openSupport,
+        },
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -59,35 +59,56 @@ class _Hero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Eyebrow('Инди-студия'),
+          const Eyebrow('ASB studio · ${Links.site}'),
           const SizedBox(height: 14),
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.end,
-            children: [
-              Text('Мы строим ', style: style),
-              GradientText('вселенную,', style: style),
-            ],
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: Text.rich(
+              TextSpan(
+                style: style,
+                children: [
+                  TextSpan(
+                    text: 'Вселенная',
+                    style: TextStyle(
+                      foreground: Paint()
+                        ..shader =
+                            const LinearGradient(
+                              colors: [AppColors.accent, AppColors.accent2],
+                            ).createShader(
+                              Rect.fromLTWH(0, 0, style.fontSize! * 5, 1),
+                            ),
+                    ),
+                  ),
+                  const TextSpan(
+                    text: ' непрерывно развивающихся, связанных между собой миров',
+                  ),
+                ],
+              ),
+            ),
           ),
-          Text('а не отдельные игры', style: style),
           const SizedBox(height: 20),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
             child: Text(
-              'ASB studio создаёт серию игр-миров, связанных между собой. '
-              'Каждая игра самостоятельна, но вместе они складываются в одну '
-              'большую историю: события, герои и открытия переходят из мира в мир.',
+              'ASB studio создаёт не отдельные игры, а вселенную. Каждый мир '
+              'самостоятелен, но все они связаны и продолжают развиваться: '
+              'события, герои и открытия переходят из мира в мир.',
               style: mutedText(isMobile(context) ? 17 : 19),
             ),
           ),
           const SizedBox(height: 32),
-          Wrap(spacing: 12, runSpacing: 12, children: [
-            PillButton(
-              label: 'Играть в «Искру»',
-              primary: true,
-              onPressed: () => openUrl(Links.iskra),
-            ),
-            PillButton(label: 'Поддержать разработку', onPressed: onSupport),
-          ]),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              PillButton(
+                label: 'Играть в «Искру»',
+                primary: true,
+                onPressed: () => openUrl(Links.iskra),
+              ),
+              PillButton(label: 'Поддержать разработку', onPressed: onSupport),
+            ],
+          ),
         ],
       ),
     );
@@ -106,73 +127,80 @@ class _IdeaSection extends StatelessWidget {
         children: [
           const SectionHead(
             eyebrow: 'Идея студии',
-            title: 'Серия миров, связанных между собой',
-            text: 'Небольшая команда разработчиков делает не одну большую игру, '
-                'а цепочку миров. Каждый мир можно пройти отдельно, но тот, кто '
-                'путешествует по всем, видит общую картину.',
+            title: 'Миры, которые растут и связаны между собой',
+            text:
+                'Небольшая команда разработчиков делает не одну большую игру, '
+                'а вселенную миров. Миры не замирают после выхода: они непрерывно '
+                'развиваются, а тот, кто путешествует по всем, видит общую картину.',
           ),
-          ResponsiveGrid(children: [
-            InfoCard(
-              icon: Icons.public,
-              title: 'Каждый мир самостоятелен',
-              child: Text(
-                'Своя механика, свой жанр и свой финал. Чтобы начать, не нужно '
-                'знать о других играх.',
-                style: mutedText(),
+          ResponsiveGrid(
+            children: [
+              InfoCard(
+                icon: Icons.public,
+                title: 'Каждый мир самостоятелен',
+                child: Text(
+                  'Своя механика, свой жанр и свой финал. Чтобы начать, не нужно '
+                  'знать о других играх.',
+                  style: mutedText(),
+                ),
               ),
-            ),
-            InfoCard(
-              icon: Icons.link,
-              title: 'Миры связаны',
-              child: Text(
-                'Общая история, сквозные персонажи и находки, которые '
-                'откликаются в следующих играх серии.',
-                style: mutedText(),
+              InfoCard(
+                icon: Icons.link,
+                title: 'Миры связаны',
+                child: Text(
+                  'Общая история, сквозные персонажи и находки, которые '
+                  'откликаются в следующих играх серии.',
+                  style: mutedText(),
+                ),
               ),
-            ),
-            InfoCard(
-              icon: Icons.explore_outlined,
-              title: 'Вселенная растёт',
-              child: Text(
-                'Каждый новый мир открывает ещё один фрагмент общей карты. '
-                'Игроки видят, как она складывается.',
-                style: mutedText(),
+              InfoCard(
+                icon: Icons.explore_outlined,
+                title: 'Вселенная растёт',
+                child: Text(
+                  'Каждый новый мир открывает ещё один фрагмент общей карты. '
+                  'Игроки видят, как она складывается.',
+                  style: mutedText(),
+                ),
               ),
-            ),
-            InfoCard(
-              icon: Icons.groups_outlined,
-              title: 'Вместе с игроками',
-              child: Text(
-                'Мы выпускаем рано, слушаем отзывы и развиваем миры вместе с '
-                'теми, кто в них играет.',
-                style: mutedText(),
+              InfoCard(
+                icon: Icons.groups_outlined,
+                title: 'Вместе с игроками',
+                child: Text(
+                  'Мы выпускаем рано, слушаем отзывы и развиваем миры вместе с '
+                  'теми, кто в них играет.',
+                  style: mutedText(),
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
           const SizedBox(height: 56),
           const Text('Карта миров', style: h3),
           const SizedBox(height: 18),
-          const ResponsiveGrid(minItemWidth: 200, gap: 16, children: [
-            _WorldTile(
-              number: '01',
-              tag: 'Доступен',
-              title: 'Искра',
-              text: 'Мир шестигранников, тьмы и искры.',
-              live: true,
-            ),
-            _WorldTile(
-              number: '02',
-              tag: 'В разработке',
-              title: 'Скоро',
-              text: 'Следующая глава вселенной.',
-            ),
-            _WorldTile(
-              number: '03',
-              tag: 'Задумано',
-              title: '???',
-              text: 'Пока это тайна.',
-            ),
-          ]),
+          const ResponsiveGrid(
+            minItemWidth: 200,
+            gap: 16,
+            children: [
+              _WorldTile(
+                number: '01',
+                tag: 'Доступен',
+                title: 'Искра',
+                text: 'Мир шестигранников, тьмы и искры.',
+                live: true,
+              ),
+              _WorldTile(
+                number: '02',
+                tag: 'В разработке',
+                title: 'Скоро',
+                text: 'Следующая глава вселенной.',
+              ),
+              _WorldTile(
+                number: '03',
+                tag: 'Задумано',
+                title: '???',
+                text: 'Пока это тайна.',
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -217,8 +245,10 @@ class _WorldTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('МИР $number',
-                style: mutedText(13).copyWith(letterSpacing: 1.3)),
+            Text(
+              'МИР $number',
+              style: mutedText(13).copyWith(letterSpacing: 1.3),
+            ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -246,49 +276,122 @@ class _WorldTile extends StatelessWidget {
   }
 }
 
+/// Цвета «Искры» с iskraplay.ru: блок проекта оформлен в стиле самой игры.
+class _IskraColors {
+  static const bg = Color(0xFF141026);
+  static const panel = Color(0xFF1C1733);
+  static const line = Color(0xFF342B55);
+  static const ink = Color(0xFFECE6FA);
+  static const muted = Color(0xFFA79FC2);
+  static const gold = Color(0xFFF2B441);
+  static const violet = Color(0xFFA88BE0);
+  static const title = Color(0xFFFFF3D6);
+}
+
 class _ProjectsSection extends StatelessWidget {
   const _ProjectsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 820;
-    final art = SizedBox(
-      height: wide ? null : 220,
-      child: const CustomPaint(painter: _HexPainter(), child: SizedBox.expand()),
+    final art = Image.asset(
+      'assets/images/iskra_cover.jpg',
+      fit: BoxFit.cover,
+      alignment: Alignment.topCenter,
+      height: wide ? null : 240,
+      width: double.infinity,
+      semanticLabel: 'Искра среди шестигранников',
     );
     final body = Padding(
-      padding: const EdgeInsets.all(36),
+      padding: EdgeInsets.all(wide ? 40 : 28),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Eyebrow('Мир 01'),
-          const SizedBox(height: 8),
-          Text('Искра', style: h2(context)),
-          const SizedBox(height: 14),
-          Text(
-            'Браузерная игра о мире шестигранников, поглощённом тьмой. '
-            'Вы — искра: прыгайте по клеткам, отвоёвывайте мир у тьмы, '
-            'развивайте способности и сражайтесь.',
-            style: mutedText(16),
+          const Text(
+            'СТРАТЕГИЯ В МИРЕ ШЕСТИГРАННИКОВ',
+            style: TextStyle(
+              color: _IskraColors.violet,
+              letterSpacing: 1.8,
+              fontSize: 12,
+            ),
           ),
-          const SizedBox(height: 16),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final c in ['Браузер', 'Стратегия', 'Шестигранники'])
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: AppColors.line),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  'assets/images/iskra_icon.png',
+                  width: 52,
+                  height: 52,
                 ),
-                child: Text(c, style: mutedText(13)),
               ),
-          ]),
-          const SizedBox(height: 24),
-          PillButton(
-            label: 'Открыть iskraplay.ru',
-            primary: true,
-            onPressed: () => openUrl(Links.iskra),
+              const SizedBox(width: 14),
+              const Text(
+                'Искра',
+                style: TextStyle(
+                  fontFamily: 'Philosopher',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 46,
+                  height: 1,
+                  color: _IskraColors.title,
+                  shadows: [
+                    Shadow(color: Color(0xAAF2B441), blurRadius: 28),
+                    Shadow(color: Color(0x55F2B441), blurRadius: 60),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            'Маленькая искра во тьме бесконечного мира. Захватывайте клетки, '
+            'сражайтесь с сущностями тьмы, изучайте технологии и совершайте '
+            'прыжки в новые области вселенной.',
+            style: TextStyle(
+              color: _IskraColors.ink,
+              fontSize: 16,
+              height: 1.6,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final c in [
+                'Мир шестигранников',
+                'Бои с сущностями',
+                'Технологии и прыжки',
+                '24 эры',
+              ])
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _IskraColors.bg,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: _IskraColors.line),
+                  ),
+                  child: Text(
+                    c,
+                    style: const TextStyle(
+                      color: _IskraColors.muted,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 26),
+          const _IskraPlayButton(),
+          const SizedBox(height: 12),
+          const Text(
+            'В браузере, на Android и Windows · прогресс общий для всех устройств',
+            style: TextStyle(color: _IskraColors.muted, fontSize: 13),
           ),
         ],
       ),
@@ -301,14 +404,22 @@ class _ProjectsSection extends StatelessWidget {
           const SectionHead(
             eyebrow: 'Реализованные проекты',
             title: 'Наши игры',
-            text: 'Первый мир серии уже открыт. Остальные появятся здесь по мере выхода.',
+            text: 'Первый мир вселенной уже открыт. Остальные появятся здесь по мере выхода.',
           ),
           Container(
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.line),
+              color: _IskraColors.panel,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _IskraColors.line),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33F2B441),
+                  blurRadius: 60,
+                  spreadRadius: -20,
+                  offset: Offset(0, 20),
+                ),
+              ],
             ),
             child: wide
                 ? IntrinsicHeight(
@@ -318,7 +429,7 @@ class _ProjectsSection extends StatelessWidget {
                         Expanded(
                           flex: 11,
                           child: ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: 320),
+                            constraints: const BoxConstraints(minHeight: 380),
                             child: art,
                           ),
                         ),
@@ -337,68 +448,59 @@ class _ProjectsSection extends StatelessWidget {
   }
 }
 
-/// Обложка «Искры»: сетка шестигранников, светящаяся искра в центре.
-class _HexPainter extends CustomPainter {
-  const _HexPainter();
+/// Золотая кнопка «Играть», как на iskraplay.ru.
+class _IskraPlayButton extends StatelessWidget {
+  const _IskraPlayButton();
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final center = Offset(size.width / 2, size.height * 0.55);
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = RadialGradient(
-          center: Alignment(0, 0.1),
-          radius: 0.9,
-          colors: const [Color(0xFF1B1F33), Color(0xFF07080E)],
-        ).createShader(rect),
-    );
-
-    const r = 26.0;
-    final w = sqrt(3) * r;
-    final h = 1.5 * r;
-    final maxDist = size.shortestSide * 0.7;
-    for (var row = -1; row * h < size.height + r; row++) {
-      for (var col = -1; col * w < size.width + w; col++) {
-        final x = col * w + (row.isOdd ? w / 2 : 0);
-        final y = row * h;
-        final dist = (Offset(x, y) - center).distance;
-        final opacity = max(0.08, 1 - dist / maxDist) * 0.4;
-        final path = Path();
-        for (var i = 0; i < 6; i++) {
-          final a = pi / 180 * (60 * i - 90);
-          final p = Offset(x + r * cos(a), y + r * sin(a));
-          i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
-        }
-        path.close();
-        canvas.drawPath(
-          path,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.5
-            ..color = const Color(0xFFFFB45A).withValues(alpha: opacity),
-        );
-      }
-    }
-
-    final glow = size.shortestSide * 0.35;
-    canvas.drawCircle(
-      center,
-      glow,
-      Paint()
-        ..shader = RadialGradient(colors: const [
-          Color(0xF2FFBE5A),
-          Color(0x80FF8C28),
-          Color(0x00FF8C28),
-        ], stops: const [0.15, 0.4, 1]).createShader(
-          Rect.fromCircle(center: center, radius: glow),
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFD47A), _IskraColors.gold, Color(0xFFD9922A)],
+          stops: [0, 0.55, 1],
         ),
+        border: Border.all(color: const Color(0xFFFFE2A3)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66F2B441),
+            blurRadius: 30,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => openUrl(Links.iskra),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 26, vertical: 14),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.play_arrow_rounded, color: Color(0xFF2A1B03)),
+                SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Играть на iskraplay.ru',
+                    style: TextStyle(
+                      color: Color(0xFF2A1B03),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _SupportCta extends StatelessWidget {
@@ -421,8 +523,11 @@ class _SupportCta extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text('Помогите вселенной расти',
-              style: h2(context), textAlign: TextAlign.center),
+          Text(
+            'Помогите вселенной расти',
+            style: h2(context),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 14),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 560),

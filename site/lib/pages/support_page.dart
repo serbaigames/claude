@@ -23,10 +23,12 @@ class SupportPage extends StatelessWidget {
                 children: [
                   const Eyebrow('Поддержка'),
                   const SizedBox(height: 14),
-                  Wrap(children: [
-                    Text('Поддержите ', style: h1(context)),
-                    GradientText('разработчика', style: h1(context)),
-                  ]),
+                  Wrap(
+                    children: [
+                      Text('Поддержите ', style: h1(context)),
+                      GradientText('разработчика', style: h1(context)),
+                    ],
+                  ),
                   const SizedBox(height: 20),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 680),
@@ -49,29 +51,34 @@ class SupportPage extends StatelessWidget {
                     title: 'Как помочь',
                     text: 'Выберите удобный способ. Любая сумма важна.',
                   ),
-                  ResponsiveGrid(minItemWidth: 260, children: [
-                    const _DonateCard(),
-                    InfoCard(
-                      icon: Icons.star_outline,
-                      title: 'Ежемесячная подписка',
-                      child: _CardBody(
-                        text: 'Регулярная поддержка на Boosty: ранний доступ к '
-                            'новым мирам, дневники разработки и закрытые тесты.',
-                        action: PillButton(
-                          label: 'Стать спонсором',
-                          onPressed: () => openUrl(SupportConfig.subscribeUrl),
+                  ResponsiveGrid(
+                    minItemWidth: 260,
+                    children: [
+                      const _DonateCard(),
+                      InfoCard(
+                        icon: Icons.star_outline,
+                        title: 'Ежемесячная подписка',
+                        child: _CardBody(
+                          text:
+                              'Регулярная поддержка на Boosty: ранний доступ к '
+                              'новым мирам, дневники разработки и закрытые тесты.',
+                          action: PillButton(
+                            label: 'Стать спонсором',
+                            onPressed: () =>
+                                openUrl(SupportConfig.subscribeUrl),
+                          ),
                         ),
                       ),
-                    ),
-                    const InfoCard(
-                      icon: Icons.account_balance_outlined,
-                      title: 'Перевод по реквизитам',
-                      child: _CardBody(
-                        text: 'Перевод по номеру карты или через СБП.',
-                        action: _CopyRow(value: SupportConfig.cardNumber),
+                      const InfoCard(
+                        icon: Icons.account_balance_outlined,
+                        title: 'Перевод по реквизитам',
+                        child: _CardBody(
+                          text: 'Перевод по номеру карты или через СБП.',
+                          action: _CopyRow(value: SupportConfig.cardNumber),
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -80,35 +87,37 @@ class SupportPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SectionHead(title: 'Помочь можно и без денег'),
-                  ResponsiveGrid(children: [
-                    InfoCard(
-                      icon: Icons.sports_esports_outlined,
-                      title: 'Играйте',
-                      child: Text(
-                        'Заходите в «Искру» на iskraplay.ru и проходите миры. '
-                        'Это лучшая мотивация.',
-                        style: mutedText(),
+                  ResponsiveGrid(
+                    children: [
+                      InfoCard(
+                        icon: Icons.sports_esports_outlined,
+                        title: 'Играйте',
+                        child: Text(
+                          'Заходите в «Искру» на iskraplay.ru и проходите миры. '
+                          'Это лучшая мотивация.',
+                          style: mutedText(),
+                        ),
                       ),
-                    ),
-                    InfoCard(
-                      icon: Icons.chat_bubble_outline,
-                      title: 'Делитесь отзывами',
-                      child: Text(
-                        'Расскажите, что понравилось и что улучшить. Мы читаем '
-                        'каждый отзыв.',
-                        style: mutedText(),
+                      InfoCard(
+                        icon: Icons.chat_bubble_outline,
+                        title: 'Делитесь отзывами',
+                        child: Text(
+                          'Расскажите, что понравилось и что улучшить. Мы читаем '
+                          'каждый отзыв.',
+                          style: mutedText(),
+                        ),
                       ),
-                    ),
-                    InfoCard(
-                      icon: Icons.campaign_outlined,
-                      title: 'Расскажите друзьям',
-                      child: Text(
-                        'Поделитесь ссылкой на игру или на этот сайт. Чем больше '
-                        'игроков, тем быстрее растёт вселенная.',
-                        style: mutedText(),
+                      InfoCard(
+                        icon: Icons.campaign_outlined,
+                        title: 'Расскажите друзьям',
+                        child: Text(
+                          'Поделитесь ссылкой на игру или на этот сайт. Чем больше '
+                          'игроков, тем быстрее растёт вселенная.',
+                          style: mutedText(),
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -157,26 +166,33 @@ class _DonateCardState extends State<_DonateCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Быстрый перевод картой через сервис донатов.',
-              style: mutedText()),
+          Text(
+            'Быстрый перевод картой через сервис донатов.',
+            style: mutedText(),
+          ),
           const SizedBox(height: 16),
-          Wrap(spacing: 10, runSpacing: 10, children: [
-            for (final a in SupportConfig.donateAmounts)
-              OutlinedButton(
-                onPressed: () => setState(() => _amount = a),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor:
-                      a == _amount ? AppColors.accent : AppColors.text,
-                  side: BorderSide(
-                    color: a == _amount ? AppColors.accent : AppColors.line,
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              for (final a in SupportConfig.donateAmounts)
+                OutlinedButton(
+                  onPressed: () => setState(() => _amount = a),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: a == _amount
+                        ? AppColors.accent
+                        : AppColors.text,
+                    side: BorderSide(
+                      color: a == _amount ? AppColors.accent : AppColors.line,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  child: Text('$a ₽'),
                 ),
-                child: Text('$a ₽'),
-              ),
-          ]),
+            ],
+          ),
           const SizedBox(height: 20),
           PillButton(
             label: 'Поддержать на $_amount ₽',
@@ -209,18 +225,15 @@ class _CopyRow extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: AppColors.line),
           ),
-          child: SelectableText(
-            value,
-            style: const TextStyle(fontSize: 14),
-          ),
+          child: SelectableText(value, style: const TextStyle(fontSize: 14)),
         ),
         OutlinedButton(
           onPressed: () async {
             await Clipboard.setData(ClipboardData(text: value));
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Номер скопирован')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Номер скопирован')));
             }
           },
           style: OutlinedButton.styleFrom(

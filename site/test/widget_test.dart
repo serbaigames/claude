@@ -9,8 +9,11 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(const AsbStudioApp());
-    expect(find.text('Серия миров, связанных между собой'), findsOneWidget);
-    expect(find.text('Открыть iskraplay.ru'), findsOneWidget);
+    expect(
+      find.text('Миры, которые растут и связаны между собой'),
+      findsOneWidget,
+    );
+    expect(find.text('Играть на iskraplay.ru'), findsOneWidget);
 
     await tester.tap(find.text('Поддержать').first);
     await tester.pumpAndSettle();
