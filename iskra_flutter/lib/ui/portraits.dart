@@ -254,7 +254,7 @@ class _PortraitPainter extends CustomPainter {
     for (final (p, back, type) in sats) {
       if (back) draw(p, true, type);
     }
-    paintSparkStar(c, o, r, t, .1, rays: 30);
+    paintColony(c, o, r, t);
     paintStatRing(c, o, r * 1.15, 3, st.widget.ring);
     for (final (p, back, type) in sats) {
       if (!back) draw(p, false, type);
