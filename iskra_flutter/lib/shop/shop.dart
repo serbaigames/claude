@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/l10n.dart';
 import '../ui/skins.dart';
 
 /// Товар «Без рекламы + поддержать автора»: ускорение без видео и знак поддержки
@@ -32,12 +33,14 @@ class BuyCancelled extends BuyResult {
 
 class BuyFailed extends BuyResult {
   const BuyFailed(this.message);
+
+  /// Причина по-русски; переводится при показе (Shop.buy)
   final String message;
 }
 
 /// Платёжная система магазина приложений
 abstract class Billing {
-  /// Можно ли покупать на этом устройстве; иначе — причина для игрока
+  /// Можно ли покупать на этом устройстве; иначе — причина для игрока (по-русски, переводится в Shop.unavailable)
   Future<String?> unavailableReason();
 
   /// Цены товаров для показа (товар → «149 ₽»)
@@ -74,8 +77,9 @@ class Shop extends ChangeNotifier {
   final Set<String> owned = {};
   final Map<String, String> prices = {};
 
-  /// Почему покупки недоступны (null — доступны)
-  String? unavailable = 'Покупки доступны в версии для Android из RuStore.';
+  /// Почему покупки недоступны (null — доступны); хранится по-русски и переводится при чтении
+  String? _unavailable = 'Покупки доступны в версии для Android из RuStore.';
+  String? get unavailable => _unavailable == null ? null : tx(_unavailable!);
   bool busy = false;
   int _boostUntil = 0;
 
@@ -88,8 +92,8 @@ class Shop extends ChangeNotifier {
     final b = billing;
     if (b == null) return;
     try {
-      unavailable = await b.unavailableReason();
-      if (unavailable == null) {
+      _unavailable = await b.unavailableReason();
+      if (_unavailable == null) {
         prices.addAll(await b.prices(allProducts));
         final got = await b.owned();
         owned
@@ -99,7 +103,7 @@ class Shop extends ChangeNotifier {
         if (!owns(Skins.current)) setSkin(Skin.plasma);
       }
     } catch (e) {
-      unavailable = 'Магазин RuStore сейчас недоступен.';
+      _unavailable = 'Магазин RuStore сейчас недоступен.';
       debugPrint('shop init: $e');
     }
     notifyListeners();
@@ -115,7 +119,7 @@ class Shop extends ChangeNotifier {
   /// Купить товар; возвращает сообщение для ленты (null — покупку отменили)
   Future<(String, String)?> buy(String id) async {
     final b = billing;
-    if (b == null || unavailable != null) return (unavailable ?? 'Покупки недоступны.', 'info');
+    if (b == null || unavailable != null) return (unavailable ?? tx('Покупки недоступны.'), 'info');
     if (busy) return null;
     busy = true;
     notifyListeners();
@@ -125,13 +129,13 @@ class Shop extends ChangeNotifier {
           owned.add(id);
           _saveOwned();
           return (
-            id == supporterProduct ? 'Спасибо за поддержку! Ускорение теперь включается без видео.' : 'Стиль куплен.',
+            id == supporterProduct ? tx('Спасибо за поддержку! Ускорение теперь включается без видео.') : tx('Стиль куплен.'),
             'good',
           );
         case BuyCancelled():
           return null;
         case BuyFailed(:final message):
-          return (message, 'bad');
+          return (tx(message), 'bad');
       }
     } finally {
       busy = false;
@@ -159,7 +163,7 @@ class Shop extends ChangeNotifier {
 
   /// Включить ускорение; возвращает сообщение для ленты
   Future<(String, String)> boost() async {
-    if (!canBoost) return ('Ускорение уже действует.', 'info');
+    if (!canBoost) return (tx('Ускорение уже действует.'), 'info');
     if (!supporter) {
       busy = true;
       notifyListeners();
@@ -174,12 +178,12 @@ class Shop extends ChangeNotifier {
       }
       if (!ok) {
         notifyListeners();
-        return ('Видео не досмотрено или пока недоступно — попробуйте позже.', 'info');
+        return (tx('Видео не досмотрено или пока недоступно — попробуйте позже.'), 'info');
       }
     }
     _boostUntil = DateTime.now().add(boostTime).millisecondsSinceEpoch;
     prefs.setInt(_boostKey, _boostUntil);
     notifyListeners();
-    return ('Добыча материи ×${boostMul.toInt()} на ${boostTime.inMinutes} минут.', 'good');
+    return (tx('Добыча материи ×{x} на {m} минут.', {'x': boostMul.toInt(), 'm': boostTime.inMinutes}), 'good');
   }
 }

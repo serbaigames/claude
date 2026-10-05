@@ -16,6 +16,7 @@ import 'overlays.dart';
 import 'panels.dart';
 import 'theme.dart';
 import 'widgets.dart';
+import '../l10n/l10n.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.ctl});
@@ -226,16 +227,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       children: [
         const Icon(Icons.account_circle_outlined, size: 44, color: C.violet),
         const SizedBox(height: 8),
-        Text('Вы играете без учётной записи', style: h2(), textAlign: TextAlign.center),
+        Text(tx('Вы играете без учётной записи'), style: h2(), textAlign: TextAlign.center),
         const SizedBox(height: 8),
-        const Text(
-          'Прогресс хранится только на этом устройстве. Войдите или зарегистрируйтесь, чтобы сохранять его на сервере, '
-          'продолжать игру на другом устройстве и попасть в рейтинги.',
+        Text(
+          tx(
+            'Прогресс хранится только на этом устройстве. Войдите или зарегистрируйтесь, чтобы сохранять его на сервере, '
+            'продолжать игру на другом устройстве и попасть в рейтинги.',
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 14),
         ActBtn(
-          'Войти или зарегистрироваться',
+          tx('Войти или зарегистрироваться'),
           () => setState(() {
             guestAsk = false;
             tab = MenuTab.acc;
@@ -243,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           primary: true,
         ),
         const SizedBox(height: 6),
-        ActBtn('Играть без входа', () => setState(() => guestAsk = false)),
+        ActBtn(tx('Играть без входа'), () => setState(() => guestAsk = false)),
       ],
     ),
   );
@@ -277,21 +280,26 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           constraints: const BoxConstraints(maxWidth: 520),
           child: Row(
             children: [
-              res('Материя', Fmt.n(g.s.matter), color: C.gold),
+              res(tx('Материя'), Fmt.n(g.s.matter), color: C.gold),
               res(
-                g.boost > 1 ? 'Добыча ×${Fmt.x(g.boost, 0)}' : 'Добыча',
-                g.s.paused ? 'пауза' : '+${Fmt.n1(g.income())}/с',
+                g.boost > 1 ? tx('Добыча ×{x}', {'x': Fmt.x(g.boost, 0)}) : tx('Добыча'),
+                g.s.paused ? tx('пауза') : tx('+{v}/с', {'v': Fmt.n1(g.income())}),
                 color: g.s.paused ? C.muted : (g.boost > 1 ? C.gold : C.ok),
-                tip: g.boost > 1 ? 'Добыча ускорена — подробности в окне Искры' : 'Суммарная добыча материи в секунду',
+                tip: g.boost > 1 ? tx('Добыча ускорена — подробности в окне Искры') : tx('Суммарная добыча материи в секунду'),
               ),
               res(
-                'Заводы',
+                tx('Заводы'),
                 '+${Fmt.n1(g.incomeParts().fac)}%',
-                tip: 'Бонус заводов ко всей добыче: сумма процентов всех заводов ÷ число клеток',
+                tip: tx('Бонус заводов ко всей добыче: сумма процентов всех заводов ÷ число клеток'),
               ),
-              res('Клетки', '${g.own.length} ($thr)', color: thr > 0 ? C.bad : C.ink, tip: 'Всего клеток (из них под угрозой)'),
-              res('Бонус', '×${Fmt.x(g.bonusMul, 2)}'),
-              res('Пульсары', '${g.s.pulsars}', tip: 'Пульсары — валюта технологий'),
+              res(
+                tx('Клетки'),
+                '${g.own.length} ($thr)',
+                color: thr > 0 ? C.bad : C.ink,
+                tip: tx('Всего клеток (из них под угрозой)'),
+              ),
+              res(tx('Бонус'), '×${Fmt.x(g.bonusMul, 2)}'),
+              res(tx('Пульсары'), '${g.s.pulsars}', tip: tx('Пульсары — валюта технологий')),
             ],
           ),
         ),
@@ -330,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           _sqBtn(
             Icon(eraIcons[e.id] ?? Icons.hourglass_empty, size: 22, color: C.kind(e.kind)),
             () => setState(() => tab = MenuTab.era),
-            tip: 'Эры',
+            tip: tx('Эры'),
           ),
           const SizedBox(width: 8),
           // эре — больше места; длинный прогноз справа переносится, а не сжимает название эры
@@ -374,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '+${Fmt.x(g.rebirthGain(), 2)} к бонусу',
+                    tx('+{x} к бонусу', {'x': Fmt.x(g.rebirthGain(), 2)}),
                     style: TextStyle(color: jump ? C.gold : C.muted, fontWeight: FontWeight.w700, shadows: shadow),
                   ),
                   Row(
@@ -409,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             Icon(Icons.rocket_launch_outlined, size: 20, color: jump ? C.gold : C.muted),
             () => jump ? ctl.openJump() : setState(() => tab = MenuTab.tech),
             on: g.jumpAdvised,
-            tip: jump ? 'Прыжок искры' : 'Прыжок: нужна технология',
+            tip: jump ? tx('Прыжок искры') : tx('Прыжок: нужна технология'),
           ),
         ],
       ),
@@ -423,7 +431,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         Icon(g.s.paused ? Icons.play_arrow : Icons.pause, size: 20),
         () => ctl.setPaused(!g.s.paused),
         on: g.s.paused,
-        tip: g.s.paused ? 'Продолжить' : 'Пауза',
+        tip: g.s.paused ? tx('Продолжить') : tx('Пауза'),
       ),
       for (final s in [1, 2, 3]) ...[
         const SizedBox(height: 6),
@@ -431,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           Text('×$s', style: const TextStyle(fontSize: 13)),
           () => ctl.setSpeed(s),
           on: !g.s.paused && g.speed == s,
-          tip: 'Скорость ×$s',
+          tip: tx('Скорость ×{s}', {'s': s}),
         ),
       ],
     ],
@@ -462,9 +470,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     if (i >= g.s.artifacts.length) return const SizedBox.shrink();
     final a = g.s.artifacts[i], d = Defs.arts[a.type]!;
     final what = switch (d.target) {
-      'spark' => 'искру',
-      'own' => 'свою клетку',
-      _ => 'клетку тьмы',
+      'spark' => tx('искру'),
+      'own' => tx('свою клетку'),
+      _ => tx('клетку тьмы'),
     };
     return Container(
       key: const ValueKey('art-pick'),
@@ -492,9 +500,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ],
           ),
           const SizedBox(height: 4),
-          Text('Выберите на карте $what — артефакт применится к ней.', style: const TextStyle(color: C.ink, fontSize: 13)),
+          Text(
+            tx('Выберите на карте {what} — артефакт применится к ней.', {'what': what}),
+            style: const TextStyle(color: C.ink, fontSize: 13),
+          ),
           const SizedBox(height: 8),
-          SizedBox(height: 34, child: ActBtn('Отмена', ctl.cancelArtPick)),
+          SizedBox(height: 34, child: ActBtn(tx('Отмена'), ctl.cancelArtPick)),
         ],
       ),
     );
@@ -516,16 +527,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final List<Widget> info, buttons;
     if (c.spark) {
       final x = g.incomeParts();
-      title = 'Искра';
+      title = tx('Искра');
       info = [
-        line('+${Fmt.n1(x.base)} материи/с · ядро ×${g.coreMul}', color: C.ok),
-        line('бонус прыжка ×${Fmt.x(g.bonusMul, 2)} · искру нельзя потерять'),
+        line(tx('+{v} материи/с · ядро ×{c}', {'v': Fmt.n1(x.base), 'c': g.coreMul}), color: C.ok),
+        line(tx('бонус прыжка ×{x} · искру нельзя потерять', {'x': Fmt.x(g.bonusMul, 2)})),
       ];
-      buttons = [open('Статистика', MenuTab.world)];
+      buttons = [open(tx('Статистика'), MenuTab.world)];
     } else if (c.own) {
       final def = g.cellDef(c), th = g.maxAdjMight(c), danger = th >= def * 0.8, dc = g.defCost(c);
       final lv = Game.cellLvl(c);
-      title = 'Ваша клетка · ур. $lv';
+      title = tx('Ваша клетка · ур. {lv}', {'lv': lv});
       info = [
         Row(
           children: [
@@ -533,34 +544,45 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             const SizedBox(width: 4),
             Flexible(
               child: line(
-                '${Fmt.n(def.floor())} · ${danger ? 'угроза' : 'защищена'}${th > 0 ? ' · сосед ${Fmt.n(th.ceil())}' : ''}',
+                '${Fmt.n(def.floor())} · ${danger ? tx('угроза') : tx('защищена')}'
+                '${th > 0 ? tx(' · сосед {n}', {'n': Fmt.n(th.ceil())}) : ''}',
                 color: danger ? C.bad : C.ok,
               ),
             ),
           ],
         ),
         line(
-          'материя ${g.st(c, 'm').round()}% · энергия ${g.st(c, 'e').round()}% · сила ${g.st(c, 'f').round()}%'
-          ' · строения ${Game.usedCap(c)} из ${Game.cap(c)}',
+          tx('материя {m}% · энергия {e}% · сила {f}% · строения {u} из {c}', {
+            'm': g.st(c, 'm').round(),
+            'e': g.st(c, 'e').round(),
+            'f': g.st(c, 'f').round(),
+            'u': Game.usedCap(c),
+            'c': Game.cap(c),
+          }),
           size: 12,
         ),
       ];
       buttons = [
-        ActBtn('Укрепить', g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null, right: Fmt.n(dc), primary: danger),
-        open('Развитие', MenuTab.cell),
+        ActBtn(
+          tx('Укрепить'),
+          g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null,
+          right: Fmt.n(dc),
+          primary: danger,
+        ),
+        open(tx('Развитие'), MenuTab.cell),
       ];
     } else if (!c.alive) {
       final cost = c.might.ceil(), lack = g.s.matter < cost;
-      title = 'Свободная клетка';
+      title = tx('Свободная клетка');
       info = [
         line(
-          lack ? 'нужно ещё ${Fmt.n((cost - g.s.matter).ceil())} материи' : 'защитник побеждён, можно взять',
+          lack ? tx('нужно ещё {n} материи', {'n': Fmt.n((cost - g.s.matter).ceil())}) : tx('защитник побеждён, можно взять'),
           color: lack ? C.bad : C.ok,
         ),
       ];
       buttons = [
-        ActBtn('Захватить', lack ? null : () => ctl.act((g) => g.capture(c.key)), right: Fmt.n(cost), primary: true),
-        open('Клетка', MenuTab.cell),
+        ActBtn(tx('Захватить'), lack ? null : () => ctl.act((g) => g.capture(c.key)), right: Fmt.n(cost), primary: true),
+        open(tx('Клетка'), MenuTab.cell),
       ];
     } else {
       final f = g.foeFromCell(c), fc = g.fightForecast(c), lab = GameForecast.forecastLabel(fc.p);
@@ -568,11 +590,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       chip = tierChip(c.tier, Defs.tiers[c.tier]!.name);
       info = [
         line('${lab.label} · ${(fc.p * 100).round()}%', color: C.kind(lab.kind), size: 14, w: FontWeight.w700),
-        line('мощь ${Fmt.n(c.might.ceil())} · ${g.fcMatter(fc)}', size: 12),
+        line(tx('мощь {m} · {fc}', {'m': Fmt.n(c.might.ceil()), 'fc': g.fcMatter(fc)}), size: 12),
       ];
       buttons = [
-        ActBtn('Атаковать', () => ctl.act((g) => g.startBattle(g.foeFromCell(c), c.key)), primary: true),
-        open('Клетка', MenuTab.cell),
+        ActBtn(tx('Атаковать'), () => ctl.act((g) => g.startBattle(g.foeFromCell(c), c.key)), primary: true),
+        open(tx('Клетка'), MenuTab.cell),
       ];
     }
     return Container(
@@ -677,7 +699,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             const SizedBox(height: 2),
                             // у всех пунктов один размер шрифта и равная ширина; длинные подписи — в две строки
                             Text(
-                              t == MenuTab.char ? 'Параметры\nискры' : tabTitles[t]!,
+                              t == MenuTab.char ? tx('Параметры\nискры') : tx(tabTitles[t]!),
                               maxLines: 2,
                               textAlign: TextAlign.center,
                               style: TextStyle(
@@ -742,7 +764,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 SizedBox(
                   height: 34,
                   child: IconButton(
-                    tooltip: 'Закрыть',
+                    tooltip: tx('Закрыть'),
                     padding: EdgeInsets.zero,
                     icon: const Icon(Icons.close, size: 20, color: C.muted),
                     onPressed: _closeWindow,

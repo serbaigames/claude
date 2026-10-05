@@ -12,6 +12,7 @@ import 'package:flutter_rustore_pay/model/sdk_theme.dart';
 
 import 'shop.dart';
 
+// Сообщения здесь по-русски: их переводит Shop при показе (ключи — в en_core.dart)
 class RuStoreBilling implements Billing {
   RuStorePayClient get _pay => RuStorePayClient.instance;
 

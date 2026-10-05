@@ -5,6 +5,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../l10n/l10n.dart';
+
 class ApiError implements Exception {
   final int status;
   final String message;
@@ -80,15 +82,16 @@ class IskraApi {
           ? await _client.get(uri, headers: headers)
           : await _client.post(uri, headers: headers, body: jsonEncode(body));
     } catch (e) {
-      throw ApiError(0, 'Сервер недоступен', noApi: true);
+      throw ApiError(0, tx('Сервер недоступен'), noApi: true);
     }
     Object? j;
     try {
       j = jsonDecode(utf8.decode(r.bodyBytes));
     } catch (_) {}
-    if (j is! Map<String, dynamic>) throw ApiError(r.statusCode, 'Сервер недоступен', noApi: true);
+    if (j is! Map<String, dynamic>) throw ApiError(r.statusCode, tx('Сервер недоступен'), noApi: true);
     if (r.statusCode < 200 || r.statusCode >= 300) {
-      throw ApiError(r.statusCode, '${j['error'] ?? 'Ошибка сервера'}', data: j);
+      // сервер отвечает по-русски; известные ошибки переводятся по словарю (en_core.dart)
+      throw ApiError(r.statusCode, j['error'] != null ? tx('${j['error']}') : tx('Ошибка сервера'), data: j);
     }
     // вход, регистрация и смена пароля выдают новый токен, «кто я» — продлённый
     final t = j['token'];

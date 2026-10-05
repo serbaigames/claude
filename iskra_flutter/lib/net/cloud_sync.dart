@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import '../core/game.dart';
+import '../l10n/l10n.dart';
 import 'api.dart';
 
 /// Простое хранилище строк (SharedPreferences в приложении, словарь в тестах)
@@ -89,12 +90,12 @@ class CloudSync {
   }
 
   String get statusText {
-    if (busy) return 'сохраняем…';
+    if (busy) return tx('сохраняем…');
     return switch (state) {
-      SyncState.ok => 'сохранено в ${_hhmm(at!)}',
-      SyncState.err => 'нет связи — повторим',
-      SyncState.conflict => 'есть другая версия',
-      SyncState.idle => 'синхронизация включена',
+      SyncState.ok => tx('сохранено в {t}', {'t': _hhmm(at!)}),
+      SyncState.err => tx('нет связи — повторим'),
+      SyncState.conflict => tx('есть другая версия'),
+      SyncState.idle => tx('синхронизация включена'),
     };
   }
 
@@ -138,7 +139,7 @@ class CloudSync {
       _lastData = data;
       state = SyncState.ok;
       at = DateTime.now();
-      if (manual) onLog?.call('Прогресс сохранён на сервере.', 'info');
+      if (manual) onLog?.call(tx('Прогресс сохранён на сервере.'), 'info');
     } on ApiError catch (e) {
       if (e.status == 409) {
         state = SyncState.conflict;
@@ -148,10 +149,10 @@ class CloudSync {
         user = null;
         state = SyncState.idle;
         await _clearSync();
-        onLog?.call('Сеанс истёк — войдите снова, чтобы сохранять прогресс на сервере.', 'bad');
+        onLog?.call(tx('Сеанс истёк — войдите снова, чтобы сохранять прогресс на сервере.'), 'bad');
       } else {
         state = SyncState.err;
-        if (manual) onLog?.call('Не удалось сохранить: ${e.message}', 'bad');
+        if (manual) onLog?.call(tx('Не удалось сохранить: {err}', {'err': e.message}), 'bad');
       }
     } finally {
       busy = false;
@@ -249,11 +250,12 @@ class CloudSync {
   static String saveSummary(Map<String, dynamic> d) {
     final cells = d['cells'];
     final own = cells is Map ? cells.values.where((c) => c is Map && c['own'] == true).length : 0;
-    final word = own % 10 == 1 && own % 100 != 11
-        ? 'клетка'
-        : own % 10 >= 2 && own % 10 <= 4 && (own % 100 < 10 || own % 100 >= 20)
-        ? 'клетки'
-        : 'клеток';
-    return '$own $word, заработано ${Fmt.n((d['earned'] as num?) ?? 0)} материи, прыжков: ${d['rebirths'] ?? 0}';
+    final word = plural(own, 'клетка', 'клетки', 'клеток', en1: 'cell', enMany: 'cells');
+    return tx('{n} {word}, заработано {earned} материи, прыжков: {jumps}', {
+      'n': own,
+      'word': word,
+      'earned': Fmt.n((d['earned'] as num?) ?? 0),
+      'jumps': d['rebirths'] ?? 0,
+    });
   }
 }

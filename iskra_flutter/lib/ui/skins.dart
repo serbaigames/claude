@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import 'gfx.dart';
 import 'plasma_art.dart';
 
@@ -13,8 +14,10 @@ const _tau = math.pi * 2;
 enum Skin { plasma, steampunk, gothic, bio, crystal }
 
 class SkinInfo {
-  const SkinInfo(this.title, this.about, this.accent, [this.product]);
-  final String title, about;
+  const SkinInfo(this.titleRu, this.aboutRu, this.accent, [this.product]);
+  final String titleRu, aboutRu;
+  String get title => tx(titleRu);
+  String get about => tx(aboutRu);
   final Color accent;
 
   /// Товар в магазине; null — стиль бесплатный

@@ -19,6 +19,7 @@ import 'ui/controller.dart';
 import 'ui/gfx.dart';
 import 'ui/home_screen.dart';
 import 'ui/theme.dart';
+import 'l10n/l10n.dart';
 
 const _server = String.fromEnvironment('ISKRA_SERVER', defaultValue: 'https://api.iskraplay.ru/');
 
@@ -54,7 +55,7 @@ class IskraApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'Искра',
+    onGenerateTitle: (_) => tx('Искра'),
     debugShowCheckedModeBanner: false,
     theme: iskraTheme(),
     // первое касание разрешает звук (браузеры не дают играть его раньше)

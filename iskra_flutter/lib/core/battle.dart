@@ -50,7 +50,7 @@ class Battle {
   bool over = false, started = false, noAtk = false, won = false;
   final List<String> log = [];
   BattleChoice? choice;
-  String status = 'Осмотрите противника и нажмите «Начать бой». Каждый ход тратит свободную материю.';
+  String status = tx('Осмотрите противника и нажмите «Начать бой». Каждый ход тратит свободную материю.');
   final List<Vfx> fx = [];
   double shP = 0, shF = 0; // до какого времени трясти искру / врага
 
@@ -100,7 +100,7 @@ extension GameBattle on Game {
     final bt = b!;
     if (!pierce && wardOn()) {
       _vfx('flash', 'f', 0xFFB89BFF);
-      _vfx('num', 'f', 0xFFB89BFF, 'завеса');
+      _vfx('num', 'f', 0xFFB89BFF, tx('завеса'));
       return 0;
     }
     if (!pierce && _has('shell') && bt.foe.hp > bt.foe.maxHp * 0.5) d *= 0.65;
@@ -130,7 +130,7 @@ extension GameBattle on Game {
     final bt = b;
     if (bt == null || bt.started || bt.over) return;
     bt.started = true;
-    bt.status = 'Бой идёт! Каждый ход тратит свободную материю.';
+    bt.status = tx('Бой идёт! Каждый ход тратит свободную материю.');
     stat('battles');
     sfx('start');
     _vfx('flash', 'p', 0xFFFFF3C4);
@@ -146,7 +146,8 @@ extension GameBattle on Game {
     if (act == 'attack') {
       _vfx('bolt', 'p', 0xFFFFD27A);
       sfx('zap');
-      _blog('Атака: ${_hitFoe(10 * med() * powMul() * rnd(.9, 1.1)).toInt()} урона (−${info.cost.toInt()} материи)');
+      final x = _hitFoe(10 * med() * powMul() * rnd(.9, 1.1)).toInt();
+      _blog(tx('Атака: {d} урона (−{c} материи)', {'d': x, 'c': info.cost.toInt()}));
     } else {
       final i = int.parse(act.substring(2));
       final a = s.abilities[i]!, d = Defs.abilities[a.id]!, v = abVal(a);
@@ -157,40 +158,40 @@ extension GameBattle on Game {
       String n(double x) => '${x.toInt()}';
       switch (d.kind) {
         case 'dmg':
-          _blog('${d.name}: ${n(_hitFoe(v * powMul() * rnd(.9, 1.1)))} урона');
+          _blog(tx('{name}: {d} урона', {'name': d.name, 'd': n(_hitFoe(v * powMul() * rnd(.9, 1.1)))}));
         case 'heal':
-          _blog('${d.name}: +${n(_healMe(v))} здоровья');
+          _blog(tx('{name}: +{h} здоровья', {'name': d.name, 'h': n(_healMe(v))}));
         case 'shield':
           bt.shield = v;
-          _blog('${d.name}: урон по вам снижен');
+          _blog(tx('{name}: урон по вам снижен', {'name': d.name}));
         case 'drain':
           final x = _hitFoe(v * powMul());
-          _blog('${d.name}: ${n(x)} урона, +${n(_healMe(x * 0.6))} здоровья');
+          _blog(tx('{name}: {d} урона, +{h} здоровья', {'name': d.name, 'd': n(x), 'h': n(_healMe(x * 0.6))}));
         case 'haste':
           bt.haste = v;
-          _blog('${d.name}: ходы ускорены');
+          _blog(tx('{name}: ходы ускорены', {'name': d.name}));
         case 'immune':
           bt.immune = v;
-          _blog('${d.name}: вы неуязвимы');
+          _blog(tx('{name}: вы неуязвимы', {'name': d.name}));
         case 'absorb':
           final x = _hitFoe(bt.foe.maxHp * v);
-          _blog('${d.name}: ${n(x)} урона, +${n(_healMe(x * 0.5))} здоровья');
+          _blog(tx('{name}: {d} урона, +{h} здоровья', {'name': d.name, 'd': n(x), 'h': n(_healMe(x * 0.5))}));
         case 'dot':
           bt.dot = Bal.dotT;
           bt.dotV = v * powMul();
-          _blog('${d.name}: враг горит');
+          _blog(tx('{name}: враг горит', {'name': d.name}));
         case 'stunfoe':
           bt.foe.t -= v;
-          _blog('${d.name}: удар врага отброшен');
+          _blog(tx('{name}: удар врага отброшен', {'name': d.name}));
         case 'regenme':
           bt.mend = Bal.mendT;
           bt.mendV = v;
-          _blog('${d.name}: здоровье восстанавливается');
+          _blog(tx('{name}: здоровье восстанавливается', {'name': d.name}));
         case 'pierce':
-          _blog('${d.name}: ${n(_hitFoe(v * powMul() * rnd(.9, 1.1), true))} урона');
+          _blog(tx('{name}: {d} урона', {'name': d.name, 'd': n(_hitFoe(v * powMul() * rnd(.9, 1.1), true))}));
         case 'weaken':
           bt.weak = v;
-          _blog('${d.name}: враг ослаблен');
+          _blog(tx('{name}: враг ослаблен', {'name': d.name}));
         case 'harvest':
           final x = _hitFoe(v * powMul() * rnd(.9, 1.1));
           var g = 0.0;
@@ -199,16 +200,25 @@ extension GameBattle on Game {
             s.matter += g;
             _vfx('spiral', 'f', 0xFFF2B441);
           }
-          _blog('${d.name}: ${n(x)} урона${g > 0 ? ', +${n(g)} материи' : ''}');
+          _blog(
+            g > 0
+                ? tx('{name}: {d} урона, +{g} материи', {'name': d.name, 'd': n(x), 'g': n(g)})
+                : tx('{name}: {d} урона', {'name': d.name, 'd': n(x)}),
+          );
         case 'reflect':
           bt.refl = v;
-          _blog('${d.name}: удары отражаются');
+          _blog(tx('{name}: удары отражаются', {'name': d.name}));
         case 'execute':
           final low = bt.foe.hp < bt.foe.maxHp * 0.3;
-          _blog('${d.name}: ${n(_hitFoe(v * powMul() * rnd(.9, 1.1) * (low ? 3 : 1)))} урона${low ? ' — добивание!' : ''}');
+          final x = n(_hitFoe(v * powMul() * rnd(.9, 1.1) * (low ? 3 : 1)));
+          _blog(
+            low
+                ? tx('{name}: {d} урона — добивание!', {'name': d.name, 'd': x})
+                : tx('{name}: {d} урона', {'name': d.name, 'd': x}),
+          );
         case 'dispel':
           bt.dispel = v;
-          _blog('${d.name}: особенности врага отключены');
+          _blog(tx('{name}: особенности врага отключены', {'name': d.name}));
       }
     }
     if (bt.last == act) {
@@ -255,7 +265,7 @@ extension GameBattle on Game {
       var d = f.atk * rnd(.85, 1.15) / defDiv();
       _vfx('bolt', 'f', Defs.tierColor[f.tier] ?? 0xFFEF6B90);
       if (bt.immune > 0) {
-        _blog('${f.name} бьёт, но вы неуязвимы');
+        _blog(tx('{name} бьёт, но вы неуязвимы', {'name': f.name}));
         _vfx('num', 'p', 0xFFFFD27A, '0');
       } else {
         if (bt.shield > 0) d *= 0.5;
@@ -268,22 +278,22 @@ extension GameBattle on Game {
           final r = jsRound(d * 0.6);
           f.hp -= r;
           _vfx('num', 'f', 0xFFDFE8FF, '−${r.toInt()}');
-          _blog('Зеркало: ${r.toInt()} урона обратно');
+          _blog(tx('Зеркало: {d} урона обратно', {'d': r.toInt()}));
         }
-        _blog('${f.name} наносит ${d.toInt()} урона');
+        _blog(tx('{name} наносит {d} урона', {'name': f.name, 'd': d.toInt()}));
         bt.shP = now + 0.3;
         _vfx('num', 'p', 0xFFFF8AA8, '−${d.toInt()}');
         if (_has('leech')) {
           final l = math.min(math.max(0.0, s.matter), leechAmt());
           s.matter -= l;
           if (l > 0) {
-            _blog('Иссушение: −${l.toInt()} материи');
+            _blog(tx('Иссушение: −{m} материи', {'m': l.toInt()}));
             _vfx('spiral', 'p', 0xFFF2B441);
           }
         }
         if (_has('stun') && f.hits % 4 == 0) {
           bt.cd += 1;
-          _blog('Оглушение: ваш ход задержан');
+          _blog(tx('Оглушение: ваш ход задержан'));
           _vfx('stun', 'p', 0xFFFFE08A);
         }
       }
@@ -296,7 +306,7 @@ extension GameBattle on Game {
         doAction('attack');
       } else if (!bt.noAtk) {
         bt.noAtk = true;
-        _blog('Не хватает материи на атаку');
+        _blog(tx('Не хватает материи на атаку'));
       }
     }
   }
@@ -329,18 +339,18 @@ extension GameBattle on Game {
         final cost = c.might.ceil();
         if (s.matter >= cost) {
           capture(bt.cell);
-          capMsg = ' Клетка захвачена за $cost материи.';
+          capMsg = ' ${tx('Клетка захвачена за {c} материи.', {'c': cost})}';
         } else {
-          capMsg = ' На захват не хватило материи: нужно $cost.';
+          capMsg = ' ${tx('На захват не хватило материи: нужно {c}.', {'c': cost})}';
         }
       }
-      msg = 'Победа! +${gain.toInt()} материи. ${_drop(f.tier)}${artDrop(f.tier)}$capMsg';
+      msg = '${tx('Победа! +{g} материи.', {'g': gain.toInt()})} ${_drop(f.tier)}${artDrop(f.tier)}$capMsg';
       log(msg, 'good');
       stat('wins');
       sfx('win');
     } else {
       final p = (f.pen * 0.5).floor();
-      msg = (fled ? 'Вы отступили. ' : 'Поражение. ') + _payPenalty(p);
+      msg = '${fled ? tx('Вы отступили.') : tx('Поражение.')} ${_payPenalty(p)}';
       log(msg, 'bad');
       stat(fled ? 'fled' : 'losses');
       sfx('lose');
@@ -348,11 +358,11 @@ extension GameBattle on Game {
     if (bt.defend != null) {
       final n = s.cells[bt.defend], c = s.cells[bt.cell];
       if (win) {
-        msg += ' Клетка удержана.';
-        log('Клетка удержана!', 'good');
+        msg += ' ${tx('Клетка удержана.')}';
+        log(tx('Клетка удержана!'), 'good');
       } else if (n != null && n.own && c != null) {
         loseCell(n, c);
-        msg += ' Клетка потеряна.';
+        msg += ' ${tx('Клетка потеряна.')}';
       }
     }
     bt.status = msg;
@@ -367,14 +377,14 @@ extension GameBattle on Game {
     final name = Defs.abilities[id]!.name;
     if (!owned && free >= 0) {
       s.abilities[free] = AbilitySlot(id);
-      return 'Новая способность: «$name».';
+      return tx('Новая способность: «{name}».', {'name': name});
     }
     if (!owned) {
       b!.choice = BattleChoice(id, tier);
-      return 'Выпала способность «$name» — выберите для неё ячейку.';
+      return tx('Выпала способность «{name}» — выберите для неё ячейку.', {'name': name});
     }
     b!.choice = BattleChoice(id, tier, dup: true);
-    return 'Выпала «$name», она у вас уже есть — повысить её уровень или взять ОС?';
+    return tx('Выпала «{name}», она у вас уже есть — повысить её уровень или взять ОС?', {'name': name});
   }
 
   /// Выбор после выпадения: 'skip' — взять ОС, 'up' — повысить уровень, '0'…'3' — заменить ячейку
@@ -388,19 +398,22 @@ extension GameBattle on Game {
     String msg;
     if (v == 'skip') {
       s.os += os;
-      msg = 'Способность не взята: +$os ОС.';
+      msg = tx('Способность не взята: +{n} ОС.', {'n': os});
     } else if (v == 'up') {
       final a = s.abilities.firstWhere((x) => x?.id == ch.id, orElse: () => null);
       if (a == null) return;
       a.lvl++;
-      msg = '«$name» повышена до ур. ${a.lvl}.';
+      msg = tx('«{name}» повышена до ур. {l}.', {'name': name, 'l': a.lvl});
     } else {
       final i = int.parse(v);
       final old = s.abilities[i]!;
       final ref = old.inv ~/ 2;
       s.os += ref;
       s.abilities[i] = AbilitySlot(ch.id);
-      msg = '«$name» заняла место «${Defs.abilities[old.id]!.name}»${ref > 0 ? ', вернулось $ref ОС' : ''}.';
+      final oldName = Defs.abilities[old.id]!.name;
+      msg = ref > 0
+          ? tx('«{name}» заняла место «{old}», вернулось {n} ОС.', {'name': name, 'old': oldName, 'n': ref})
+          : tx('«{name}» заняла место «{old}».', {'name': name, 'old': oldName});
     }
     bt.status += ' $msg';
     log(msg, 'info');
@@ -412,18 +425,18 @@ extension GameBattle on Game {
     final fromM = math.min(math.max(s.matter, 0.0), rest);
     s.matter -= fromM;
     rest -= fromM;
-    if (fromM > 0) parts.add('${fromM.floor()} материи');
+    if (fromM > 0) parts.add(tx('{m} материи', {'m': fromM.floor()}));
     if (rest > 0 && s.os > 0) {
       final use = math.min((rest / 5).ceil(), s.os);
       s.os -= use;
       rest -= use * 5;
-      parts.add('$use ОС');
+      parts.add(tx('{n} ОС', {'n': use}));
     }
     if (rest > 0) {
       s.matter -= rest;
-      parts.add('не хватило ${rest.ceil()} материи');
+      parts.add(tx('не хватило {m} материи', {'m': rest.ceil()}));
     }
-    return 'Штраф $p: ${parts.isEmpty ? 'нечего отдавать' : parts.join(', ')}.';
+    return tx('Штраф {p}: {parts}.', {'p': p, 'parts': parts.isEmpty ? tx('нечего отдавать') : parts.join(', ')});
   }
 
   /// «Отступить» / «Закрыть»: до старта — отказ без штрафа, во время боя — штраф, после — закрыть окно

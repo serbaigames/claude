@@ -12,6 +12,7 @@ import 'map_art.dart';
 import 'plasma_art.dart';
 import 'skins.dart';
 import 'theme.dart';
+import '../l10n/l10n.dart';
 
 /// Живой портрет: [PlasmaPortrait.spark] — Искра в своём стиле ([skin]), вокруг которой по наклонным орбитам кружат ядра искры;
 /// [PlasmaPortrait.entity] — чёрная дыра в цвете ранга, с джетами у эпических и легендарных;
@@ -237,7 +238,7 @@ class _PortraitPainter extends CustomPainter {
       if (!back && n <= 6) {
         final tp = TextPainter(
           text: TextSpan(
-            text: type == null ? 'свободно' : bldLabel[type],
+            text: type == null ? tx('свободно') : tx(bldLabel[type]!),
             style: TextStyle(
               fontFamily: bodyFont,
               fontSize: h * .06,

@@ -1,42 +1,56 @@
 // «Искра» — справочники: ранги, способности, эры, особенности, артефакты, технологии и баланс.
 // Перенесено из веб-версии (index.html, sw iskra-v27) без изменения чисел.
+// Тексты хранятся по-русски (поля …Ru) и переводятся геттерами name, desc… на текущий язык (см. l10n.dart).
+import '../l10n/l10n.dart';
 
 class TierDef {
-  final String id, name, foe;
+  final String id, nameRu, foeRu;
   final double mult, cd;
   final int os;
-  const TierDef(this.id, this.name, this.mult, this.cd, this.os, this.foe);
+  const TierDef(this.id, this.nameRu, this.mult, this.cd, this.os, this.foeRu);
+  String get name => tx(nameRu);
+  String get foe => tx(foeRu);
 }
 
 class AbilityDef {
-  final String id, icon, glyph, name, tier, kind;
+  final String id, icon, glyph, nameRu, tier, kind;
   final double cost, base;
   final double cd; // уже с множителем ×1,3, как в веб-версии
-  AbilityDef(this.id, this.glyph, this.icon, this.name, this.tier, this.cost, double cd, this.base, this.kind)
+  AbilityDef(this.id, this.glyph, this.icon, this.nameRu, this.tier, this.cost, double cd, this.base, this.kind)
     : cd = (cd * 1.3 * 10).round() / 10;
+  String get name => tx(nameRu);
 }
 
 class EraDef {
-  final String id, name, icon, kind, desc;
+  final String id, nameRu, icon, kind, descRu;
   final Map<String, double> fx;
-  const EraDef(this.id, this.name, this.icon, this.kind, this.desc, [this.fx = const {}]);
+  const EraDef(this.id, this.nameRu, this.icon, this.kind, this.descRu, [this.fx = const {}]);
+  String get name => tx(nameRu);
+  String get desc => tx(descRu);
 }
 
 class TraitDef {
-  final String id, name, glyph, desc;
-  const TraitDef(this.id, this.name, this.glyph, this.desc);
+  final String id, nameRu, glyph, descRu;
+  const TraitDef(this.id, this.nameRu, this.glyph, this.descRu);
+  String get name => tx(nameRu);
+  String get desc => tx(descRu);
 }
 
 class ArtDef {
-  final String id, name, glyph, target;
-  final String? stat, word;
+  final String id, nameRu, glyph, target;
+  final String? stat, wordRu;
   final int color;
-  final String short;
-  const ArtDef(this.id, this.name, this.glyph, this.target, this.color, this.short, {this.stat, this.word});
+  final String shortRu;
+  const ArtDef(this.id, this.nameRu, this.glyph, this.target, this.color, this.shortRu, {this.stat, this.wordRu});
+  String get name => tx(nameRu);
+  String get short => tx(shortRu);
+
+  /// Что усиливает, в родительном падеже: «энергии», «силы», «материи»
+  String? get word => wordRu == null ? null : tx(wordRu!);
 }
 
 class TechDef {
-  final String id, name, icon, desc;
+  final String id, nameRu, icon, descRu;
   final int lvl, cost;
   final List<String> req;
   final bool soon;
@@ -48,34 +62,41 @@ class TechDef {
   final double per;
 
   /// Что усиливает, для описания: «развитие ваших клеток», «защита от укреплений»…
-  final String what;
+  final String whatRu;
   const TechDef(
     this.id,
     this.lvl,
-    this.name,
+    this.nameRu,
     this.icon,
     this.cost,
     this.req,
-    this.desc, {
+    this.descRu, {
     this.soon = false,
     this.ranks = 1,
     this.per = 0,
-    this.what = '',
+    this.whatRu = '',
   });
+  String get name => tx(nameRu);
+  String get desc => tx(descRu);
+  String get what => whatRu.isEmpty ? '' : tx(whatRu);
 
   /// Цена ранга r (с нуля)
   int rankCost(int r) => cost * [1, 3, 9, 27, 81][r];
 }
 
 class ParamDef {
-  final String id, name, desc;
+  final String id, nameRu, descRu;
   final int color;
-  const ParamDef(this.id, this.name, this.desc, this.color);
+  const ParamDef(this.id, this.nameRu, this.descRu, this.color);
+  String get name => tx(nameRu);
+  String get desc => tx(descRu);
 }
 
 class BuildingDef {
-  final String id, name, short, glyph;
-  const BuildingDef(this.id, this.name, this.short, this.glyph);
+  final String id, nameRu, shortRu, glyph;
+  const BuildingDef(this.id, this.nameRu, this.shortRu, this.glyph);
+  String get name => tx(nameRu);
+  String get short => tx(shortRu);
 }
 
 /// Коэффициенты баланса (набор C8 из веб-версии)
@@ -199,9 +220,9 @@ class Defs {
   static final traitOrder = traits.keys.toList();
 
   static const arts = <String, ArtDef>{
-    'energy': ArtDef('energy', 'Кристалл энергии', '◆', 'own', 0xFF5FB2E6, '+5–50% энергии клетке', stat: 'e', word: 'энергии'),
-    'force': ArtDef('force', 'Осколок силы', '▲', 'own', 0xFFEF6B90, '+5–50% силы клетке', stat: 'f', word: 'силы'),
-    'matter': ArtDef('matter', 'Зерно материи', '●', 'own', 0xFFF2B441, '+5–50% материи клетке', stat: 'm', word: 'материи'),
+    'energy': ArtDef('energy', 'Кристалл энергии', '◆', 'own', 0xFF5FB2E6, '+5–50% энергии клетке', stat: 'e', wordRu: 'энергии'),
+    'force': ArtDef('force', 'Осколок силы', '▲', 'own', 0xFFEF6B90, '+5–50% силы клетке', stat: 'f', wordRu: 'силы'),
+    'matter': ArtDef('matter', 'Зерно материи', '●', 'own', 0xFFF2B441, '+5–50% материи клетке', stat: 'm', wordRu: 'материи'),
     'clot': ArtDef('clot', 'Сгусток материи', '✺', 'dark', 0xFFA88BE0, 'мощь клетки тьмы ÷2'),
     'core': ArtDef('core', 'Ядро искры', '✷', 'spark', 0xFFFF8A3D, 'база искры ×2–5, навсегда'),
     'bulwark': ArtDef('bulwark', 'Осколок бастиона', '⛨', 'own', 0xFF9FD3FF, 'защита клетки +10–40%'),
@@ -251,7 +272,7 @@ class Defs {
       'Ускоряет развитие ваших клеток: уровни, новые ячейки строений и всё, что зависит от времени владения.',
       ranks: 3,
       per: 0.25,
-      what: 'скорость развития клеток',
+      whatRu: 'скорость развития клеток',
     ),
     TechDef(
       'fort',
@@ -263,7 +284,7 @@ class Defs {
       'Каждый уровень укрепления клетки даёт больше защиты.',
       ranks: 3,
       per: 0.25,
-      what: 'защита от укреплений',
+      whatRu: 'защита от укреплений',
     ),
     TechDef(
       'income',
@@ -275,7 +296,7 @@ class Defs {
       'Увеличивает приток материи: множитель ко всей добыче, поверх заводов, эры и бонуса прыжка.',
       ranks: 3,
       per: 0.15,
-      what: 'вся добыча материи',
+      whatRu: 'вся добыча материи',
     ),
     // третий уровень: по две ветки от каждой технологии второго уровня, пока неизвестны
     for (final p in ['grow', 'fort', 'income'])

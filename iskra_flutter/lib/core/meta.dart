@@ -105,7 +105,7 @@ extension GameMeta on Game {
     if (a == null) return;
     s.os += a.inv ~/ 2;
     s.abilities[i] = null;
-    log('Способность «${Defs.abilities[a.id]!.name}» удалена.');
+    log(tx('Способность «{name}» удалена.', {'name': Defs.abilities[a.id]!.name}));
   }
 
   /* ---------- артефакты ---------- */
@@ -122,9 +122,9 @@ extension GameMeta on Game {
     if (d.stat != null || a.type == 'bulwark') return '${d.name} +${a.v}%';
     return switch (a.type) {
       'core' => '${d.name} ×${a.v}',
-      'bloom' => '${d.name} +${a.v} мин',
-      'tome' => '${d.name} +${a.v} ОП',
-      'rune' => '${d.name} +${a.v} ОС',
+      'bloom' => tx('{name} +{v} мин', {'name': d.name, 'v': a.v}),
+      'tome' => tx('{name} +{v} ОП', {'name': d.name, 'v': a.v}),
+      'rune' => tx('{name} +{v} ОС', {'name': d.name, 'v': a.v}),
       _ => d.name,
     };
   }
@@ -136,11 +136,11 @@ extension GameMeta on Game {
     return switch (a.type) {
       'core' => '×${a.v}',
       'clot' => '÷2',
-      'bloom' => '+${a.v}м',
+      'bloom' => tx('+{v}м', {'v': a.v}),
       'frost' => '½',
-      'tome' => '+${a.v}ОП',
-      'rune' => '+${a.v}ОС',
-      _ => 'эра',
+      'tome' => tx('+{v}ОП', {'v': a.v}),
+      'rune' => tx('+{v}ОС', {'v': a.v}),
+      _ => tx('эра'),
     };
   }
 
@@ -148,23 +148,28 @@ extension GameMeta on Game {
     final d = Defs.arts[a.type]!;
     switch (a.type) {
       case 'bulwark':
-        return 'Навсегда усиливает защиту вашей клетки на ${a.v}%.';
+        return tx('Навсегда усиливает защиту вашей клетки на {v}%.', {'v': a.v});
       case 'bloom':
-        return 'Добавляет вашей клетке ${a.v} мин владения — она быстрее набирает уровни.';
+        return tx('Добавляет вашей клетке {v} мин владения — она быстрее набирает уровни.', {'v': a.v});
       case 'frost':
-        return 'Вдвое замедляет развитие клетки тьмы.';
+        return tx('Вдвое замедляет развитие клетки тьмы.');
       case 'tome':
-        return 'Даёт ${a.v} очков параметров.';
+        return tx('Даёт {v} очков параметров.', {'v': a.v});
       case 'rune':
-        return 'Даёт ${a.v} очков способностей.';
+        return tx('Даёт {v} очков способностей.', {'v': a.v});
       case 'glass':
-        return 'Завершает текущую эру и начинает новую, случайную.';
+        return tx('Завершает текущую эру и начинает новую, случайную.');
       case 'core':
         final after = coreSum + (a.v ?? 0);
-        return 'Множитель ×${a.v} прибавляется к множителям прежних ядер: базовая добыча искры навсегда станет '
-            '0,5 × $after = ${Fmt.x(0.5 * after)} за клетку (сейчас ×$coreMul). Применяется к искре.';
+        return tx(
+          'Множитель ×{v} прибавляется к множителям прежних ядер: базовая добыча искры навсегда станет '
+          '{half} × {after} = {res} за клетку (сейчас ×{now}). Применяется к искре.',
+          {'v': a.v, 'half': Fmt.x(0.5), 'after': after, 'res': Fmt.x(0.5 * after), 'now': coreMul},
+        );
     }
-    return d.stat != null ? 'Добавляет захваченной клетке ${a.v}% ${d.word}.' : 'Вдвое снижает мощь не захваченной клетки.';
+    return d.stat != null
+        ? tx('Добавляет захваченной клетке {v}% {word}.', {'v': a.v, 'word': d.word})
+        : tx('Вдвое снижает мощь не захваченной клетки.');
   }
 
   /// Применить артефакт к выбранной клетке (или к игроку)
@@ -186,32 +191,41 @@ extension GameMeta on Game {
         default:
           c!.f += v;
       }
-      log('${d.name}: клетка получила +$v% ${d.word}.', 'good');
+      log(tx('{name}: клетка получила +{v}% {word}.', {'name': d.name, 'v': v, 'word': d.word}), 'good');
     } else if (a.type == 'bulwark') {
       c!.defMul = (c.defMul > 0 ? c.defMul : 1) * (1 + v / 100);
-      log('${d.name}: защита клетки +$v%.', 'good');
+      log(tx('{name}: защита клетки +{v}%.', {'name': d.name, 'v': v}), 'good');
     } else if (a.type == 'bloom') {
       c!.held += v * 60;
-      log('${d.name}: клетка получила $v мин владения.', 'good');
+      log(tx('{name}: клетка получила {v} мин владения.', {'name': d.name, 'v': v}), 'good');
     } else if (a.type == 'frost') {
       c!.dev = 1 + (c.dev - 1) * 0.5;
-      log('${d.name}: развитие клетки тьмы замедлено вдвое.', 'good');
+      log(tx('{name}: развитие клетки тьмы замедлено вдвое.', {'name': d.name}), 'good');
     } else if (a.type == 'tome') {
       s.op += v;
-      log('${d.name}: +$v ОП.', 'good');
+      log(tx('{name}: +{v} ОП.', {'name': d.name, 'v': v}), 'good');
     } else if (a.type == 'rune') {
       s.os += v;
-      log('${d.name}: +$v ОС.', 'good');
+      log(tx('{name}: +{v} ОС.', {'name': d.name, 'v': v}), 'good');
     } else if (a.type == 'glass') {
       newEra();
     } else if (a.type == 'core') {
       final was = coreMul;
       s.cores.add(v);
-      log('${d.name} ×$v: базовая добыча искры навсегда ×$was → ×$coreMul (${Fmt.x(0.5 * coreMul)} за клетку).', 'good');
+      log(
+        tx('{name} ×{v}: базовая добыча искры навсегда ×{was} → ×{now} ({res} за клетку).', {
+          'name': d.name,
+          'v': v,
+          'was': was,
+          'now': coreMul,
+          'res': Fmt.x(0.5 * coreMul),
+        }),
+        'good',
+      );
     } else {
       final was = c!.might.ceil();
       c.might /= 2;
-      log('${d.name}: мощь клетки тьмы $was → ${c.might.ceil()}.', 'good');
+      log(tx('{name}: мощь клетки тьмы {was} → {now}.', {'name': d.name, 'was': was, 'now': c.might.ceil()}), 'good');
     }
     s.artifacts.removeAt(i);
   }
@@ -247,13 +261,13 @@ extension GameMeta on Game {
     var msg = '';
     if (random < Defs.pulsarChance[tier]! * eraV('drop')) {
       s.pulsars++;
-      msg += ' Выпал пульсар!';
+      msg += ' ${tx('Выпал пульсар!')}';
     }
     // ядро: гарантировано за легендарную, 5% за эпическую
     if (tier == 'legend' || (tier == 'epic' && random < 0.05 * aggr)) {
       final a = Artifact('core', _rollCore());
       s.artifacts.add(a);
-      msg += ' Выпало «${artTitle(a)}»!';
+      msg += ' ${tx('Выпало «{name}»!', {'name': artTitle(a)})}';
     }
     if (random >= Defs.artChance[tier]! * aggr * eraV('drop')) return msg;
     final w = Defs.artWeights(tier);
@@ -273,7 +287,7 @@ extension GameMeta on Game {
     if (type == 'bloom') a.v = _r(1, 8);
     if (type == 'tome' || type == 'rune') a.v = _r(5, 25);
     s.artifacts.add(a);
-    return '$msg Выпал артефакт: «${artTitle(a)}»!';
+    return '$msg ${tx('Выпал артефакт: «{name}»!', {'name': artTitle(a)})}';
   }
 
   /* ---------- прыжок искры ---------- */
@@ -305,6 +319,6 @@ extension GameMeta on Game {
     gameOver = false;
     freshWorld();
     sfx('jump');
-    log('Искра совершила прыжок в новую область вселенной. Агрессивность: $aggrText.', 'good');
+    log(tx('Искра совершила прыжок в новую область вселенной. Агрессивность: {a}.', {'a': aggrText}), 'good');
   }
 }

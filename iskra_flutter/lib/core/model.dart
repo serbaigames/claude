@@ -3,6 +3,8 @@
 // а сохранение из браузера загружается сюда без преобразований. Неизвестные поля
 // сохраняются как есть, чтобы не терять данные более новых версий.
 
+import '../l10n/l10n.dart';
+
 double _d(Object? v, [double def = 0]) => v is num ? v.toDouble() : def;
 int _i(Object? v, [int def = 0]) => v is num ? v.round() : def;
 bool _b(Object? v) => v == true;
@@ -279,7 +281,7 @@ class GameState {
           s.abilities[free] = a;
         } else {
           s.os += a.inv + (_tierOs[_abTier[a.id]] ?? 1);
-          onNote?.call('Ячеек способностей теперь 4: одна способность убрана, очки возвращены.');
+          onNote?.call(tx('Ячеек способностей теперь 4: одна способность убрана, очки возвращены.'));
         }
       }
     }

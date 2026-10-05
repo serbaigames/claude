@@ -5,13 +5,20 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../l10n/l10n.dart';
+
 enum GfxLevel { high, medium, low }
 
-const gfxNames = {GfxLevel.high: 'Высокое', GfxLevel.medium: 'Среднее', GfxLevel.low: 'Лёгкий режим'};
-const gfxInfo = {
-  GfxLevel.high: 'Все эффекты, 60 кадров в секунду.',
-  GfxLevel.medium: '30 кадров, без размытий и сияния в бою. Меньше нагрев и расход батареи.',
-  GfxLevel.low: '20 кадров, простые свечения, неподвижные портреты, пониженная чёткость в браузере. Для слабых устройств.',
+// Подписи на текущем языке: геттеры, а не константы, чтобы смена языка сразу их меняла
+Map<GfxLevel, String> get gfxNames => {
+  GfxLevel.high: tx('Высокое'),
+  GfxLevel.medium: tx('Среднее'),
+  GfxLevel.low: tx('Лёгкий режим'),
+};
+Map<GfxLevel, String> get gfxInfo => {
+  GfxLevel.high: tx('Все эффекты, 60 кадров в секунду.'),
+  GfxLevel.medium: tx('30 кадров, без размытий и сияния в бою. Меньше нагрев и расход батареи.'),
+  GfxLevel.low: tx('20 кадров, простые свечения, неподвижные портреты, пониженная чёткость в браузере. Для слабых устройств.'),
 };
 
 class Gfx {

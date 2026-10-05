@@ -15,6 +15,7 @@ import 'map_art.dart';
 import 'plasma_art.dart';
 import 'skins.dart';
 import 'theme.dart';
+import '../l10n/l10n.dart';
 
 const _size = 34.0, _grid = _size * 2;
 final _sq3 = math.sqrt(3);
@@ -383,7 +384,7 @@ class _MapPainter extends CustomPainter {
     if (!c.alive) {
       paintPill(
         canvas,
-        'свободна · $m',
+        tx('свободна · {m}', {'m': m}),
         p + Offset(0, rc * .62),
         fs,
         fg: const Color(0xFFF6DFA6),
@@ -402,7 +403,7 @@ class _MapPainter extends CustomPainter {
     canvas.drawArc(rect, math.pi * .65, math.pi * .7, false, arc);
     canvas.drawArc(rect, math.pi * .65, prog * math.pi * .7, false, arc..color = c.alive ? tier : C.gold.withValues(alpha: .8));
     if (g.nearLegend(c)) {
-      paintPill(canvas, 'рост ×2', p - Offset(0, rc * .62), fs * .9, fg: C.warn, border: C.warn.withValues(alpha: .8));
+      paintPill(canvas, tx('рост ×2'), p - Offset(0, rc * .62), fs * .9, fg: C.warn, border: C.warn.withValues(alpha: .8));
     }
   }
 
@@ -424,7 +425,7 @@ class _MapPainter extends CustomPainter {
       final u = -math.pi / 2 + i / n * math.pi * 2 + math.pi / n;
       paintNode(canvas, slots[i], p + Offset(math.cos(u), math.sin(u)) * rc * .56, s, t);
     }
-    paintPill(canvas, 'ур. ${Game.cellLvl(c)}', p + Offset(0, rc * .27), fs * .85, fg: const Color(0xFFD9C9A0));
+    paintPill(canvas, tx('ур. {n}', {'n': Game.cellLvl(c)}), p + Offset(0, rc * .27), fs * .85, fg: const Color(0xFFD9C9A0));
   }
 
   // Своя клетка вблизи: звезда-колония, строения кружат вокруг неё спутниками
@@ -476,7 +477,7 @@ class _MapPainter extends CustomPainter {
     final dv = g.cellDef(c).floor();
     paintPill(
       canvas,
-      '${dv >= 1e5 ? Fmt.n(dv) : '$dv'} · ур. ${Game.cellLvl(c)}',
+      tx('{d} · ур. {n}', {'d': dv >= 1e5 ? Fmt.n(dv) : '$dv', 'n': Game.cellLvl(c)}),
       p + Offset(0, rc * .66),
       fs,
       fg: threat ? const Color(0xFFFFC2D2) : const Color(0xFFFFE2A8),

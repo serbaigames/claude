@@ -160,11 +160,11 @@ class GameController extends ChangeNotifier {
     game = g;
     if (!_attach(data)) {
       game = old;
-      log('Сохранение с сервера повреждено.', 'bad');
+      log(tx('Сохранение с сервера повреждено.'), 'bad');
       return;
     }
     save();
-    log('Загружен прогресс с сервера.', 'info');
+    log(tx('Загружен прогресс с сервера.'), 'info');
     notifyListeners();
   }
 
@@ -283,7 +283,7 @@ class GameController extends ChangeNotifier {
 
   void openJump() {
     if (!game.hasTech('jump')) {
-      log('Прыжок закрыт: изучите технологию «Прыжок» во вкладке «Технологии».', 'info');
+      log(tx('Прыжок закрыт: изучите технологию «Прыжок» во вкладке «Технологии».'), 'info');
       return;
     }
     jumpDefeat = false;

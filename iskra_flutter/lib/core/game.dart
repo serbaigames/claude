@@ -5,6 +5,7 @@ library;
 
 import 'dart:math' as math;
 
+import '../l10n/l10n.dart';
 import 'defs.dart';
 import 'fmt.dart';
 import 'model.dart';
@@ -121,7 +122,7 @@ class Game {
     s.era = EraState(i, dur, dur);
     final e = Defs.eras[i];
     if (!silent) {
-      log('Новая эра: «${e.name}» — ${e.desc}.', e.kind == 'bad' ? 'bad' : 'good');
+      log(tx('Новая эра: «{name}» — {desc}.', {'name': e.name, 'desc': e.desc}), e.kind == 'bad' ? 'bad' : 'good');
       sfx('era');
       onEra?.call();
     }
@@ -154,7 +155,12 @@ class Game {
     s.pulsars -= cost;
     final r = techRank(id) + 1;
     s.tech[id] = r;
-    log(t.ranks > 1 ? 'Технология «${t.name}»: ранг $r.' : 'Изучена технология «${t.name}».', 'good');
+    log(
+      t.ranks > 1
+          ? tx('Технология «{name}»: ранг {r}.', {'name': t.name, 'r': r})
+          : tx('Изучена технология «{name}».', {'name': t.name}),
+      'good',
+    );
     sfx('tech');
   }
 
@@ -164,12 +170,12 @@ class Game {
   double rollAggr() => jsRound((Bal.aggrMin + random * (Bal.aggrMax - Bal.aggrMin)) * 100) / 100;
   double get aggr => s.aggr > 0 ? s.aggr : 1;
   static String aggrName(double a) => a < 0.85
-      ? 'спокойный'
+      ? tx('спокойный')
       : a < 1.1
-      ? 'обычный'
+      ? tx('обычный')
       : a < 1.35
-      ? 'агрессивный'
-      : 'яростный';
+      ? tx('агрессивный')
+      : tx('яростный');
   String get aggrText => '×${Fmt.x(aggr, 2)} — ${aggrName(aggr)}';
   int get speed => s.speed > 0 ? s.speed : 1;
 
@@ -471,37 +477,37 @@ class Game {
     String r(double x) => '${jsRound(x).toInt()}';
     switch (Defs.abilities[a.id]!.kind) {
       case 'dmg':
-        return 'Урон ${r(v * pm)}';
+        return tx('Урон {d}', {'d': r(v * pm)});
       case 'heal':
-        return 'Лечит ${r(v)}';
+        return tx('Лечит {h}', {'h': r(v)});
       case 'shield':
-        return 'Урон по вам вдвое меньше ${Fmt.x(v)} с';
+        return tx('Урон по вам вдвое меньше {t} с', {'t': Fmt.x(v)});
       case 'drain':
-        return 'Урон ${r(v * pm)}, лечит 60% от него';
+        return tx('Урон {d}, лечит 60% от него', {'d': r(v * pm)});
       case 'haste':
-        return 'Сбрасывает откат, ходы вдвое быстрее ${Fmt.x(v)} с';
+        return tx('Сбрасывает откат, ходы вдвое быстрее {t} с', {'t': Fmt.x(v)});
       case 'immune':
-        return 'Неуязвимость ${Fmt.x(v)} с';
+        return tx('Неуязвимость {t} с', {'t': Fmt.x(v)});
       case 'absorb':
-        return 'Забирает ${r(v * 100)}% здоровья врага, лечит половину';
+        return tx('Забирает {p}% здоровья врага, лечит половину', {'p': r(v * 100)});
       case 'dot':
-        return 'Жжёт ${r(v * pm)} урона в секунду ${Bal.dotT.toInt()} с';
+        return tx('Жжёт {d} урона в секунду {t} с', {'d': r(v * pm), 't': Bal.dotT.toInt()});
       case 'stunfoe':
-        return 'Отбрасывает удар врага на ${Fmt.x(v)} с';
+        return tx('Отбрасывает удар врага на {t} с', {'t': Fmt.x(v)});
       case 'regenme':
-        return 'Лечит ${r(v)} в секунду ${Bal.mendT.toInt()} с';
+        return tx('Лечит {h} в секунду {t} с', {'h': r(v), 't': Bal.mendT.toInt()});
       case 'pierce':
-        return 'Урон ${r(v * pm)} сквозь панцирь и завесу';
+        return tx('Урон {d} сквозь панцирь и завесу', {'d': r(v * pm)});
       case 'weaken':
-        return 'Враг бьёт на 40% слабее ${Fmt.x(v)} с';
+        return tx('Враг бьёт на 40% слабее {t} с', {'t': Fmt.x(v)});
       case 'harvest':
-        return 'Урон ${r(v * pm)}, при попадании возвращает вдвое больше материи, чем стоит';
+        return tx('Урон {d}, при попадании возвращает вдвое больше материи, чем стоит', {'d': r(v * pm)});
       case 'reflect':
-        return '${Fmt.x(v)} с отражает 60% удара врага обратно';
+        return tx('{t} с отражает 60% удара врага обратно', {'t': Fmt.x(v)});
       case 'execute':
-        return 'Урон ${r(v * pm)}, втрое больше по врагу с здоровьем ниже 30%';
+        return tx('Урон {d}, втрое больше по врагу с здоровьем ниже 30%', {'d': r(v * pm)});
       case 'dispel':
-        return 'Отключает особенности врага на ${Fmt.x(v)} с';
+        return tx('Отключает особенности врага на {t} с', {'t': Fmt.x(v)});
     }
     return '';
   }
@@ -525,7 +531,7 @@ class Game {
       } else if (l > c.lv0!) {
         c.lv0 = l;
         if (c.key == s.sel || own.length < 12) {
-          log('Клетка достигла уровня $l: +10% к её силе.', 'good');
+          log(tx('Клетка достигла уровня {l}: +10% к её силе.', {'l': l}), 'good');
           sfx('level');
         }
       }
@@ -585,7 +591,7 @@ class Game {
       ..lv0 = null;
     n.traits = rollTraits(n.tier);
     s.lostOnce = true;
-    log('Тьма захватила клетку. Её мощь теперь ${n.might.ceil()}.', 'bad');
+    log(tx('Тьма захватила клетку. Её мощь теперь {m}.', {'m': n.might.ceil()}), 'bad');
     stat('lost');
     sfx('lost');
     refresh();
@@ -712,7 +718,7 @@ class Game {
     c.def = math.max(cost, maxAdjMight(c)).ceilToDouble() + 1;
     s.worldMax = math.max(s.worldMax, own.length);
     s.bestCells = math.max(s.bestCells, own.length);
-    log('Клетка захвачена. Защита ${Fmt.n(c.def)}.', 'good');
+    log(tx('Клетка захвачена. Защита {d}.', {'d': Fmt.n(c.def)}), 'good');
     stat('captured');
     sfx('capture');
     return true;

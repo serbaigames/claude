@@ -1,11 +1,17 @@
 // Версия приложения и история выпусков для вкладки «Об игре».
 // Номер должен совпадать с version в pubspec.yaml (это проверяет test/core_test.dart).
+import 'l10n/l10n.dart';
+
 const appVersion = '0.5.1';
 
 class Release {
-  final String version, date;
-  final List<String> changes;
-  const Release(this.version, this.date, this.changes);
+  final String version, dateRu;
+  final List<String> changesRu;
+  const Release(this.version, this.dateRu, this.changesRu);
+
+  // Тексты выпусков записаны по-русски (их же читает tool/landing_data.py) и переводятся при показе
+  String get date => tx(dateRu);
+  List<String> get changes => [for (final c in changesRu) tx(c)];
 }
 
 /// Новые выпуски — сверху

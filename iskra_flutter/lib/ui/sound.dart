@@ -7,9 +7,12 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/l10n.dart';
+
 class Track {
-  final String id, name;
-  const Track(this.id, this.name);
+  final String id, nameRu;
+  const Track(this.id, this.nameRu);
+  String get name => tx(nameRu);
 }
 
 const ambientTracks = [

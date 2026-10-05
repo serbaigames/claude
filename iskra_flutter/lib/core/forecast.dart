@@ -218,26 +218,30 @@ extension GameForecast on Game {
   }
 
   static ({String label, String kind}) forecastLabel(double p) => p <= 0
-      ? (label: 'победа невозможна', kind: 'bad')
+      ? (label: tx('победа невозможна'), kind: 'bad')
       : p < 0.15
-      ? (label: 'почти без шансов', kind: 'bad')
+      ? (label: tx('почти без шансов'), kind: 'bad')
       : p < 0.35
-      ? (label: 'маловероятная победа', kind: 'warn')
+      ? (label: tx('маловероятная победа'), kind: 'warn')
       : p < 0.6
-      ? (label: 'исход неясен', kind: 'warn')
+      ? (label: tx('исход неясен'), kind: 'warn')
       : p < 0.85
-      ? (label: 'вероятная победа', kind: 'ok')
+      ? (label: tx('вероятная победа'), kind: 'ok')
       : p < 0.98
-      ? (label: 'уверенная победа', kind: 'good')
-      : (label: 'безоговорочная победа', kind: 'good');
+      ? (label: tx('уверенная победа'), kind: 'good')
+      : (label: tx('безоговорочная победа'), kind: 'good');
 
   /// Строка о материи: сколько нужно на победу и хватает ли
   String fcMatter(Forecast fc) {
-    if (!fc.winnable) return 'даже с любым запасом материи не победить';
+    if (!fc.winnable) return tx('даже с любым запасом материи не победить');
     final need = fc.need.ceil(), total = need + fc.capCost;
-    if (s.matter < need) return 'нужно ≈${Fmt.n(need)} материи — не хватает ${Fmt.n((need - s.matter).ceil())}';
-    if (s.matter < total) return '≈${Fmt.n(need)} на бой, на захват (${Fmt.n(fc.capCost)}) может не хватить';
-    return '≈${Fmt.n(need)} материи на бой · ~${fc.dur.round()} с';
+    if (s.matter < need) {
+      return tx('нужно ≈{need} материи — не хватает {lack}', {'need': Fmt.n(need), 'lack': Fmt.n((need - s.matter).ceil())});
+    }
+    if (s.matter < total) {
+      return tx('≈{need} на бой, на захват ({cap}) может не хватить', {'need': Fmt.n(need), 'cap': Fmt.n(fc.capCost)});
+    }
+    return tx('≈{need} материи на бой · ~{t} с', {'need': Fmt.n(need), 't': fc.dur.round()});
   }
 
   /// Быстрая оценка боя (без прогона): урон в секунду игрока и сущности с учётом особенностей
@@ -303,34 +307,41 @@ extension GameForecast on Game {
     final lost = h.isNotEmpty && own.length < h.first.n;
     final thr = threatCount;
     final heavy = thr >= math.max(2, own.length * 0.25);
-    String m(double x) => x.isFinite ? (x < 90 ? '${x.round()} с' : '${(x / 60).round()} мин') : '—';
-    final info =
-        'Можно победить соседей: $beat из ${front.length}. Ближайшая победа и захват: '
-        '${best.isFinite ? (best < 1 ? 'сейчас' : 'через ${m(best)}') : 'нет'}. Мощь тьмы удваивается за ${m(td)}. '
-        'Клеток под угрозой: $thr.';
-    String kind, tx;
+    String m(double x) => x.isFinite ? (x < 90 ? tx('{s} с', {'s': x.round()}) : tx('{m} мин', {'m': (x / 60).round()})) : '—';
+    final info = tx(
+      'Можно победить соседей: {beat} из {n}. Ближайшая победа и захват: {next}. Мощь тьмы удваивается за {td}. '
+      'Клеток под угрозой: {thr}.',
+      {
+        'beat': beat,
+        'n': front.length,
+        'next': best.isFinite ? (best < 1 ? tx('сейчас') : tx('через {t}', {'t': m(best)})) : tx('нет'),
+        'td': m(td),
+        'thr': thr,
+      },
+    );
+    String kind, text;
     if (beat == 0) {
       if (lost || heavy) {
         kind = 'dark';
-        tx = '▼ тьма поглощает мир';
+        text = tx('▼ тьма поглощает мир');
       } else {
         kind = 'warn';
-        tx = '■ соседи сильнее — нужно усилиться';
+        text = tx('■ соседи сильнее — нужно усилиться');
       }
     } else if (lost && best > td * 0.5) {
       kind = 'dark';
-      tx = '▼ тьма наступает быстрее добычи';
+      text = tx('▼ тьма наступает быстрее добычи');
     } else if (best <= td * 0.25 && !heavy) {
       kind = 'grow';
-      tx = '▲ мир растёт';
+      text = tx('▲ мир растёт');
     } else if (best <= td) {
       kind = 'stall';
-      tx = heavy ? '■ рост замедляется, тьма давит' : '■ рост замедляется';
+      text = heavy ? tx('■ рост замедляется, тьма давит') : tx('■ рост замедляется');
     } else {
       kind = 'warn';
-      tx = '▼ тьма развивается быстрее добычи';
+      text = tx('▼ тьма развивается быстрее добычи');
     }
-    final v = WorldTrend(kind, tx, info);
+    final v = WorldTrend(kind, text, info);
     _wtCache = (at: now, v: v);
     return v;
   }

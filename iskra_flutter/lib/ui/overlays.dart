@@ -11,6 +11,7 @@ import 'icons.dart';
 import 'panels.dart';
 import 'theme.dart';
 import 'widgets.dart';
+import '../l10n/l10n.dart';
 
 /* ---------- бой ---------- */
 class BattleOverlay extends StatelessWidget {
@@ -31,18 +32,18 @@ class BattleOverlay extends StatelessWidget {
           // продолжительные эффекты: (значок, подпись, осталось секунд, полезный ли);
           // на искре — слева под ней, на сущности — справа под ней
           final mine = <(Widget, String, double, bool)>[
-            if (b.shield > 0) (abilityIcon('veil', size: 16), 'Покров: урон по вам −50%', b.shield, true),
-            if (b.immune > 0) (abilityIcon('dark_shield', size: 16), 'Неуязвимость', b.immune, true),
-            if (b.haste > 0) (abilityIcon('haste', size: 16), 'Ускорение ходов', b.haste, true),
-            if (b.mend > 0) (abilityIcon('mend', size: 16), 'Восстановление здоровья', b.mend, true),
-            if (b.refl > 0) (abilityIcon('mirror', size: 16), 'Зеркало: удары отражаются', b.refl, true),
+            if (b.shield > 0) (abilityIcon('veil', size: 16), tx('Покров: урон по вам −50%'), b.shield, true),
+            if (b.immune > 0) (abilityIcon('dark_shield', size: 16), tx('Неуязвимость'), b.immune, true),
+            if (b.haste > 0) (abilityIcon('haste', size: 16), tx('Ускорение ходов'), b.haste, true),
+            if (b.mend > 0) (abilityIcon('mend', size: 16), tx('Восстановление здоровья'), b.mend, true),
+            if (b.refl > 0) (abilityIcon('mirror', size: 16), tx('Зеркало: удары отражаются'), b.refl, true),
           ];
           final foe = <(Widget, String, double, bool)>[
-            if (b.weak > 0) (abilityIcon('wither', size: 16), 'Враг ослаблен', b.weak, true),
-            if (b.dot > 0) (abilityIcon('ember', size: 16), 'Враг горит', b.dot, true),
-            if (b.dispel > 0) (abilityIcon('dispel', size: 16), 'Особенности врага отключены', b.dispel, true),
+            if (b.weak > 0) (abilityIcon('wither', size: 16), tx('Враг ослаблен'), b.weak, true),
+            if (b.dot > 0) (abilityIcon('ember', size: 16), tx('Враг горит'), b.dot, true),
+            if (b.dispel > 0) (abilityIcon('dispel', size: 16), tx('Особенности врага отключены'), b.dispel, true),
             if (b.started && !b.over && g.wardOn())
-              (traitIcon('ward', size: 16), 'Щит врага: урон по нему не проходит', 10 - f.wt % 10, false),
+              (traitIcon('ward', size: 16), tx('Щит врага: урон по нему не проходит'), 10 - f.wt % 10, false),
           ];
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -72,9 +73,9 @@ class BattleOverlay extends StatelessWidget {
                             key: const ValueKey('battle-fx'),
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Expanded(child: _fxGroup('Искра', mine, WrapAlignment.start, C.gold)),
+                              Expanded(child: _fxGroup(tx('Искра'), mine, WrapAlignment.start, C.gold)),
                               const SizedBox(width: 8),
-                              Expanded(child: _fxGroup('Сущность', foe, WrapAlignment.end, Color(Defs.tierColor[f.tier]!))),
+                              Expanded(child: _fxGroup(tx('Сущность'), foe, WrapAlignment.end, Color(Defs.tierColor[f.tier]!))),
                             ],
                           ),
                         ),
@@ -84,7 +85,7 @@ class BattleOverlay extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text('Враг', style: TextStyle(color: C.muted, fontSize: 12)),
+              Text(tx('Враг'), style: const TextStyle(color: C.muted, fontSize: 12)),
               Bar(
                 f.hp / f.maxHp,
                 color: Color(Defs.tierColor[f.tier]!),
@@ -113,32 +114,34 @@ class BattleOverlay extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              const Text('Искра', style: TextStyle(color: C.muted, fontSize: 12)),
+              Text(tx('Искра'), style: const TextStyle(color: C.muted, fontSize: 12)),
               Bar(b.hp / b.maxHp, color: C.ok, height: 14, label: '${math.max(0, b.hp.ceil())} / ${b.maxHp.round()}'),
               const SizedBox(height: 4),
               Bar(b.cd > 0 ? (full - b.cd) / full : 1, color: C.gold, height: 4),
               const SizedBox(height: 6),
-              Text('Свободная материя: ${Fmt.n(g.s.matter)}', style: const TextStyle(color: C.gold)),
+              Text(tx('Свободная материя: {n}', {'n': Fmt.n(g.s.matter)}), style: const TextStyle(color: C.gold)),
               const SizedBox(height: 6),
               Text(b.status, style: TextStyle(color: b.over ? (b.won ? C.ok : C.bad) : C.ink)),
               const SizedBox(height: 8),
               if (!b.started && !b.over) ...[
                 _forecast(g, b),
                 const SizedBox(height: 8),
-                ActBtn('Начать бой', () => ctl.act((g) => g.battleStart()), primary: true),
+                ActBtn(tx('Начать бой'), () => ctl.act((g) => g.battleStart()), primary: true),
               ],
               if (b.choice != null) _choice(g, b) else if (b.started && !b.over) _abilities(g, b),
               const SizedBox(height: 8),
               ActBtn(
-                b.over ? 'Закрыть' : 'Отступить',
+                b.over ? tx('Закрыть') : tx('Отступить'),
                 () => ctl.act((g) => g.closeBattle()),
                 danger: !b.over && b.started,
                 // во время боя отступление стоит половину штрафа сущности; до начала — бесплатно
                 right: b.over
                     ? null
                     : b.started
-                    ? '−${Fmt.n((f.pen * 0.5).floor())} материи${b.defend != null ? ' и клетка' : ''}'
-                    : 'без штрафа',
+                    ? (b.defend != null
+                          ? tx('−{n} материи и клетка', {'n': Fmt.n((f.pen * 0.5).floor())})
+                          : tx('−{n} материи', {'n': Fmt.n((f.pen * 0.5).floor())}))
+                    : tx('без штрафа'),
               ),
               const SizedBox(height: 4),
               _BattleLog(b.log),
@@ -229,14 +232,14 @@ class BattleOverlay extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: C.line),
         ),
-        child: const Text('пусто', style: TextStyle(color: C.muted, fontSize: 12)),
+        child: Text(tx('пусто'), style: const TextStyle(color: C.muted, fontSize: 12)),
       );
     }
     final d = Defs.abilities[a.id]!, info = g.actInfo('ab$i')!, col = Color(Defs.tierColor[d.tier]!);
     final can = info.ready && g.s.matter >= info.cost;
     final left = b.abCd[i];
     return Tooltip(
-      message: '${d.name}: ${g.abDesc(a)}; откат ${Fmt.x(d.cd)} с',
+      message: tx('{name}: {desc}; откат {cd} с', {'name': d.name, 'desc': g.abDesc(a), 'cd': Fmt.x(d.cd)}),
       child: InkWell(
         onTap: can ? () => ctl.act((g) => g.doAction('ab$i')) : null,
         borderRadius: BorderRadius.circular(10),
@@ -282,7 +285,7 @@ class BattleOverlay extends StatelessWidget {
                   ),
                 ),
               ),
-              Text('${info.cost.toInt()} мат.', style: const TextStyle(fontSize: 10, color: C.muted)),
+              Text(tx('{n} мат.', {'n': info.cost.toInt()}), style: const TextStyle(fontSize: 10, color: C.muted)),
             ],
           ),
         ),
@@ -297,29 +300,34 @@ class BattleOverlay extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('«${d.name}» уже есть. Можно повысить её уровень бесплатно или взять очки способностей.'),
+          Text(tx('«{name}» уже есть. Можно повысить её уровень бесплатно или взять очки способностей.', {'name': d.name})),
           const SizedBox(height: 6),
-          ActBtn('Повысить до ур. ${a.lvl + 1}', () => ctl.act((g) => g.resolveChoice('up')), primary: true),
+          ActBtn(tx('Повысить до ур. {n}', {'n': a.lvl + 1}), () => ctl.act((g) => g.resolveChoice('up')), primary: true),
           const SizedBox(height: 6),
-          ActBtn('Взять очки способностей', () => ctl.act((g) => g.resolveChoice('skip')), right: '+$os ОС'),
+          ActBtn(tx('Взять очки способностей'), () => ctl.act((g) => g.resolveChoice('skip')), right: tx('+{n} ОС', {'n': os})),
         ],
       );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('${d.name} — ${g.abDesc(AbilitySlot(ch.id))}. Все ячейки заняты: выберите, какую способность заменить.'),
+        Text(
+          tx('{name} — {desc}. Все ячейки заняты: выберите, какую способность заменить.', {
+            'name': d.name,
+            'desc': g.abDesc(AbilitySlot(ch.id)),
+          }),
+        ),
         for (var i = 0; i < g.s.abilities.length; i++)
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: ActBtn(
-              'Заменить «${Defs.abilities[g.s.abilities[i]!.id]!.name}», ур. ${g.s.abilities[i]!.lvl}',
+              tx('Заменить «{name}», ур. {n}', {'name': Defs.abilities[g.s.abilities[i]!.id]!.name, 'n': g.s.abilities[i]!.lvl}),
               () => ctl.act((g) => g.resolveChoice('$i')),
-              right: 'вернётся ${g.s.abilities[i]!.inv ~/ 2} ОС',
+              right: tx('вернётся {n} ОС', {'n': g.s.abilities[i]!.inv ~/ 2}),
             ),
           ),
         const SizedBox(height: 6),
-        ActBtn('Не брать', () => ctl.act((g) => g.resolveChoice('skip')), right: '+$os ОС'),
+        ActBtn(tx('Не брать'), () => ctl.act((g) => g.resolveChoice('skip')), right: tx('+{n} ОС', {'n': os})),
       ],
     );
   }
@@ -344,7 +352,7 @@ class _BattleLogState extends State<_BattleLog> {
         onPressed: () => setState(() => open = !open),
         style: TextButton.styleFrom(foregroundColor: C.muted, alignment: Alignment.centerLeft),
         icon: Icon(open ? Icons.expand_less : Icons.expand_more, size: 18),
-        label: Text(open ? 'Скрыть журнал боя' : 'Журнал боя'),
+        label: Text(open ? tx('Скрыть журнал боя') : tx('Журнал боя')),
       ),
       if (open)
         SizedBox(
@@ -372,24 +380,30 @@ class DefendOverlay extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Клетка под ударом!', style: h2(C.bad)),
+          Text(tx('Клетка под ударом!'), style: h2(C.bad)),
           const SizedBox(height: 8),
           Text(
-            '${t.foe} (${t.name.toLowerCase()}) мощью ${Fmt.n(c.might.ceil())} прорывает защиту вашей клетки '
-            '(${Fmt.n(g.cellDef(n).floor())}). Игра на паузе.',
+            tx('{foe} ({tier}) мощью {m} прорывает защиту вашей клетки ({d}). Игра на паузе.', {
+              'foe': t.foe,
+              'tier': t.name.toLowerCase(),
+              'm': Fmt.n(c.might.ceil()),
+              'd': Fmt.n(g.cellDef(n).floor()),
+            }),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Защитите клетку в бою — при победе сущность будет побеждена. Если отступить или проиграть, клетка перейдёт к тьме.',
-            style: TextStyle(color: C.muted),
+          Text(
+            tx(
+              'Защитите клетку в бою — при победе сущность будет побеждена. Если отступить или проиграть, клетка перейдёт к тьме.',
+            ),
+            style: const TextStyle(color: C.muted),
           ),
           Note('${lab.label} · ${g.fcMatter(fc)}', kind: lab.kind),
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: ActBtn('Бежать', () => ctl.act((g) => g.defendFlee()), danger: true)),
+              Expanded(child: ActBtn(tx('Бежать'), () => ctl.act((g) => g.defendFlee()), danger: true)),
               const SizedBox(width: 8),
-              Expanded(child: ActBtn('Защитить', () => ctl.act((g) => g.defendFight()), primary: true)),
+              Expanded(child: ActBtn(tx('Защитить'), () => ctl.act((g) => g.defendFight()), primary: true)),
             ],
           ),
         ],
@@ -417,58 +431,65 @@ class JumpOverlay extends StatelessWidget {
         children: [
           Text(
             defeat
-                ? 'Искра угасает — прыжок неизбежен'
+                ? tx('Искра угасает — прыжок неизбежен')
                 : advice
-                ? 'Тьма поглотила этот мир'
-                : 'Прыжок искры',
+                ? tx('Тьма поглотила этот мир')
+                : tx('Прыжок искры'),
             style: h2(defeat || advice ? C.bad : C.gold),
           ),
           if (advice)
             Text(
-              'Из ${g.s.worldMax} клеток осталось ${g.own.length}: здесь рост уже не вернуть. '
-              'Прыжок даст +${x2(gain)} к бонусу и новый мир, где искра станет сильнее.',
+              tx(
+                'Из {max} клеток осталось {n}: здесь рост уже не вернуть. '
+                'Прыжок даст +{gain} к бонусу и новый мир, где искра станет сильнее.',
+                {'max': g.s.worldMax, 'n': g.own.length, 'gain': x2(gain)},
+              ),
               style: const TextStyle(color: C.bad),
             ),
           if (defeat)
-            const Text(
-              'Материя ушла в минус: в этой области вселенной искре больше не на что опереться.',
-              style: TextStyle(color: C.bad),
+            Text(
+              tx('Материя ушла в минус: в этой области вселенной искре больше не на что опереться.'),
+              style: const TextStyle(color: C.bad),
             ),
           const SizedBox(height: 6),
-          const Text(
-            'Искра прыгает в новую область вселенной, сжигая все накопленные ресурсы на своё развитие. '
-            'Рост начнётся сначала, но уже с бонусами от текущего воплощения.',
+          Text(
+            tx(
+              'Искра прыгает в новую область вселенной, сжигая все накопленные ресурсы на своё развитие. '
+              'Рост начнётся сначала, но уже с бонусами от текущего воплощения.',
+            ),
           ),
           const SizedBox(height: 10),
-          Text('Итоги этого мира', style: h2()),
+          Text(tx('Итоги этого мира'), style: h2()),
           KV([
-            ('Время в мире', Fmt.time(g.s.worldTime)),
-            ('Рекорд клеток', '${g.s.worldMax}'),
-            ('Клеток сейчас', '${g.own.length}'),
-            ('Побеждено сущностей', '${g.s.wk}'),
-            ('Добыто материи', Fmt.n(g.s.we)),
-            ('Агрессивность', '×${x2(g.aggr)}'),
+            (tx('Время в мире'), Fmt.time(g.s.worldTime)),
+            (tx('Рекорд клеток'), '${g.s.worldMax}'),
+            (tx('Клеток сейчас'), '${g.own.length}'),
+            (tx('Побеждено сущностей'), '${g.s.wk}'),
+            (tx('Добыто материи'), Fmt.n(g.s.we)),
+            (tx('Агрессивность'), '×${x2(g.aggr)}'),
           ]),
           const SizedBox(height: 10),
-          Text('Что даст прыжок', style: h2()),
-          _change('Бонус искры', '×${x2(b0)}', '×${x2(b1)}'),
-          _change('Добыча от бонуса', '×${x2(inc(b0))}', '×${x2(inc(b1))}'),
-          _change('Сила в бою от бонуса', '×${x2(fight(b0))}', '×${x2(fight(b1))}'),
-          _change('Пульсары', '${g.s.pulsars}', '${g.s.pulsars + g.rebirthPulsars()}'),
-          _change('Сила тьмы', '×${x2(g.darkMul)}', '×${x2(Game.darkMulFor(g.s.rebirths + 1))}'),
-          _change('Скорость искры', '×${x2(g.sparkSpeed)}', '×${x2(1 + 0.15 * (g.s.rebirths + 1))}'),
-          _change('Новая область', null, '×${x2(g.s.nextAggr ?? 1)} — ${Game.aggrName(g.s.nextAggr ?? 1)}'),
+          Text(tx('Что даст прыжок'), style: h2()),
+          _change(tx('Бонус искры'), '×${x2(b0)}', '×${x2(b1)}'),
+          _change(tx('Добыча от бонуса'), '×${x2(inc(b0))}', '×${x2(inc(b1))}'),
+          _change(tx('Сила в бою от бонуса'), '×${x2(fight(b0))}', '×${x2(fight(b1))}'),
+          _change(tx('Пульсары'), '${g.s.pulsars}', '${g.s.pulsars + g.rebirthPulsars()}'),
+          _change(tx('Сила тьмы'), '×${x2(g.darkMul)}', '×${x2(Game.darkMulFor(g.s.rebirths + 1))}'),
+          _change(tx('Скорость искры'), '×${x2(g.sparkSpeed)}', '×${x2(1 + 0.15 * (g.s.rebirths + 1))}'),
+          _change(tx('Новая область'), null, '×${x2(g.s.nextAggr ?? 1)} — ${Game.aggrName(g.s.nextAggr ?? 1)}'),
           const SizedBox(height: 8),
-          const Text(
-            'Сгорит: клетки, материя, параметры персонажа, ОП, ОС и навыки (кроме Искрового удара). '
-            'Останется: бонус искры, ядра, артефакты, изученные технологии и пульсары, рекорды и учётная запись.',
-            style: TextStyle(color: C.muted, fontSize: 12),
+          Text(
+            tx(
+              'Сгорит: клетки, материя, параметры персонажа, ОП, ОС и навыки (кроме Искрового удара). '
+              'Останется: бонус искры, ядра, артефакты, изученные технологии и пульсары, рекорды и учётная запись.',
+            ),
+            style: const TextStyle(color: C.muted, fontSize: 12),
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              if (!defeat) ...[Expanded(child: ActBtn('Остаться', ctl.closeJump)), const SizedBox(width: 8)],
-              Expanded(child: ActBtn('Прыгнуть', ctl.doJump, primary: true)),
+              if (!defeat) ...[Expanded(child: ActBtn(tx('Остаться'), ctl.closeJump)), const SizedBox(width: 8)],
+              Expanded(child: ActBtn(tx('Прыгнуть'), ctl.doJump, primary: true)),
             ],
           ),
         ],
@@ -519,26 +540,30 @@ class ConflictOverlay extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Какой прогресс оставить?', style: h2()),
+          Text(tx('Какой прогресс оставить?'), style: h2()),
           const SizedBox(height: 6),
           Text(
             c.justLoggedIn
-                ? 'В учётной записи уже есть сохранение, и на этом устройстве тоже есть прогресс. Выберите, какое продолжить — второе будет заменено.'
-                : 'На сервере есть сохранение с другого устройства, которое новее, чем здесь. Выберите, какое продолжить — второе будет заменено.',
+                ? tx(
+                    'В учётной записи уже есть сохранение, и на этом устройстве тоже есть прогресс. Выберите, какое продолжить — второе будет заменено.',
+                  )
+                : tx(
+                    'На сервере есть сохранение с другого устройства, которое новее, чем здесь. Выберите, какое продолжить — второе будет заменено.',
+                  ),
           ),
           const SizedBox(height: 10),
           ActBtn(
-            'С сервера',
+            tx('С сервера'),
             () => onPick(true),
             right: c.serverData == null ? null : CloudSync.saveSummary(c.serverData!),
             primary: true,
           ),
           Text(
-            'сохранено ${when(c.server.saved > 0 ? c.server.saved : c.server.updated)}',
+            tx('сохранено {when}', {'when': when(c.server.saved > 0 ? c.server.saved : c.server.updated)}),
             style: const TextStyle(color: C.muted, fontSize: 12),
           ),
           const SizedBox(height: 8),
-          ActBtn('С этого устройства', () => onPick(false), right: CloudSync.saveSummary(ctl.game.s.toJson())),
+          ActBtn(tx('С этого устройства'), () => onPick(false), right: CloudSync.saveSummary(ctl.game.s.toJson())),
         ],
       ),
     );
@@ -555,26 +580,32 @@ class IntroOverlay extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Искра во тьме', style: h2(C.gold).copyWith(fontSize: 24)),
+        Text(tx('Искра во тьме'), style: h2(C.gold).copyWith(fontSize: 24)),
         const SizedBox(height: 8),
-        const Text('Вы — искра в мире шестигранников. Видно только одну клетку вокруг ваших владений, дальше — тьма.'),
+        Text(tx('Вы — искра в мире шестигранников. Видно только одну клетку вокруг ваших владений, дальше — тьма.')),
         const SizedBox(height: 6),
-        const Text(
-          'Нажмите на фиолетовую клетку рядом с искрой и атакуйте живущую в ней сущность. '
-          'После победы клетку можно захватить за материю, равную её мощи.',
+        Text(
+          tx(
+            'Нажмите на фиолетовую клетку рядом с искрой и атакуйте живущую в ней сущность. '
+            'После победы клетку можно захватить за материю, равную её мощи.',
+          ),
         ),
         const SizedBox(height: 6),
-        const Text(
-          'Клетки тьмы растут. Если мощь соседа станет выше защиты вашей клетки, тьма заберёт её вместе со строениями. '
-          'Искру потерять нельзя.',
+        Text(
+          tx(
+            'Клетки тьмы растут. Если мощь соседа станет выше защиты вашей клетки, тьма заберёт её вместе со строениями. '
+            'Искру потерять нельзя.',
+          ),
         ),
         const SizedBox(height: 6),
-        const Text(
-          'Стройте шахты и заводы, укрепляйте защиту, прокачивайте персонажа и собирайте способности. '
-          'Когда станет тесно — совершите прыжок искры и получите бонус.',
+        Text(
+          tx(
+            'Стройте шахты и заводы, укрепляйте защиту, прокачивайте персонажа и собирайте способности. '
+            'Когда станет тесно — совершите прыжок искры и получите бонус.',
+          ),
         ),
         const SizedBox(height: 12),
-        ActBtn('Начать', () => ctl.act((g) => g.s.introSeen = true), primary: true),
+        ActBtn(tx('Начать'), () => ctl.act((g) => g.s.introSeen = true), primary: true),
       ],
     ),
   );
@@ -589,9 +620,9 @@ class EraOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final g = ctl.game, e = g.eraNow, st = g.s.era!, col = e.kind == 'mixed' ? C.warn : C.kind(e.kind);
     final who = switch (e.kind) {
-      'good' => 'Эра на стороне искры',
-      'bad' => 'Эра на стороне тьмы',
-      _ => 'Смешанная эра',
+      'good' => tx('Эра на стороне искры'),
+      'bad' => tx('Эра на стороне тьмы'),
+      _ => tx('Смешанная эра'),
     };
     return Overlay2(
       key: const ValueKey('era-overlay'),
@@ -601,10 +632,10 @@ class EraOverlay extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Новая эра',
+          Text(
+            tx('Новая эра'),
             textAlign: TextAlign.center,
-            style: TextStyle(color: C.muted),
+            style: const TextStyle(color: C.muted),
           ),
           const SizedBox(height: 8),
           Icon(eraIcons[e.id] ?? Icons.hourglass_empty, size: 44, color: col),
@@ -618,9 +649,9 @@ class EraOverlay extends StatelessWidget {
           const SizedBox(height: 10),
           Text('${e.desc[0].toUpperCase()}${e.desc.substring(1)}.', textAlign: TextAlign.center),
           const SizedBox(height: 10),
-          KV([('Длительность', Fmt.time(st.dur)), ('Осталось', Fmt.clock(st.left))]),
+          KV([(tx('Длительность'), Fmt.time(st.dur)), (tx('Осталось'), Fmt.clock(st.left))]),
           const SizedBox(height: 12),
-          ActBtn('Понятно', ctl.closeEra, primary: true),
+          ActBtn(tx('Понятно'), ctl.closeEra, primary: true),
         ],
       ),
     );
