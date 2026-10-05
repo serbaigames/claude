@@ -1,6 +1,7 @@
 // Видео за награду из Рекламной сети Яндекса (Android).
-// Блок рекламы задаётся при сборке: --dart-define=ISKRA_AD_UNIT=R-M-XXXXXXX-Y;
-// по умолчанию — демонстрационный блок Яндекса, он показывает тестовое видео.
+// Блок рекламы «Искры» — R-M-20184590-1, в выпускной сборке он по умолчанию;
+// другой можно задать при сборке: --dart-define=ISKRA_AD_UNIT=R-M-XXXXXXX-Y.
+// В отладочной сборке — демонстрационный блок Яндекса (тестовое видео), чтобы не крутить настоящую рекламу.
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -8,7 +9,8 @@ import 'package:yandex_mobileads/mobile_ads.dart';
 
 import 'shop.dart';
 
-const adUnitId = String.fromEnvironment('ISKRA_AD_UNIT', defaultValue: 'demo-rewarded-yandex');
+const _adUnit = String.fromEnvironment('ISKRA_AD_UNIT');
+const adUnitId = _adUnit != '' ? _adUnit : (kReleaseMode ? 'R-M-20184590-1' : 'demo-rewarded-yandex');
 
 class YandexRewardedAds implements RewardedAds {
   YandexRewardedAds() {

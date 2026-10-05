@@ -64,7 +64,7 @@ jobs:
       - name: APK
         run: |
           # блок видео за награду Яндекса — переменная репозитория ISKRA_AD_UNIT (без неё — демонстрационный)
-          flutter build apk --release --dart-define=ISKRA_AD_UNIT=${{ vars.ISKRA_AD_UNIT || 'demo-rewarded-yandex' }}
+          flutter build apk --release --dart-define=ISKRA_AD_UNIT=${{ vars.ISKRA_AD_UNIT || 'R-M-20184590-1' }}
           mkdir -p ../out
           cp build/app/outputs/flutter-apk/app-release.apk "../out/iskra-${{ needs.meta.outputs.ver }}.apk"
       - name: Веб-сборка

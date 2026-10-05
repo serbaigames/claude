@@ -31,7 +31,7 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
-      - run: flutter build apk --release --dart-define=ISKRA_AD_UNIT=${{ vars.ISKRA_AD_UNIT || 'demo-rewarded-yandex' }}
+      - run: flutter build apk --release --dart-define=ISKRA_AD_UNIT=${{ vars.ISKRA_AD_UNIT || 'R-M-20184590-1' }}
       - uses: actions/upload-artifact@v4
         with:
           name: iskra-check-apk
