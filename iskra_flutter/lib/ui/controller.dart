@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/game.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
+import '../shop/shop.dart';
 import 'gfx.dart';
 import 'sound.dart';
 
@@ -30,7 +31,8 @@ class PrefsStore implements KeyValueStore {
 }
 
 class GameController extends ChangeNotifier {
-  GameController(this.prefs, {Uri? server}) : sound = Sound(prefs) {
+  GameController(this.prefs, {Uri? server, Shop? shop}) : sound = Sound(prefs), shop = shop ?? Shop(prefs) {
+    this.shop.addListener(_shopChanged);
     _boot();
     if (server != null) {
       final api = IskraApi(
@@ -51,6 +53,9 @@ class GameController extends ChangeNotifier {
 
   final SharedPreferences prefs;
   final Sound sound;
+
+  /// Стили Искры, покупки и ускорение за видео
+  final Shop shop;
   late Game game;
   CloudSync? sync;
 
@@ -150,8 +155,26 @@ class GameController extends ChangeNotifier {
     prefs.setString(saveKey, jsonEncode(game.s.toJson()));
   }
 
+  void _shopChanged() {
+    paintTick.value++;
+    notifyListeners();
+  }
+
+  /// Купить товар магазина; итог — в ленту
+  Future<void> buy(String id) async {
+    final r = await shop.buy(id);
+    if (r != null) log(r.$1, r.$2);
+  }
+
+  /// Ускорение добычи за видео (или сразу у поддержавших автора)
+  Future<void> boost() async {
+    final r = await shop.boost();
+    log(r.$1, r.$2);
+  }
+
   void tick(double dt) {
     game.now += dt;
+    game.boost = shop.boosted ? boostMul : 1;
     if (game.frame(dt)) {
       jumpDefeat = true;
       showJump = true;
@@ -275,6 +298,7 @@ class GameController extends ChangeNotifier {
     paintTick.dispose();
     uiAuto.dispose();
     sound.dispose();
+    shop.removeListener(_shopChanged);
     sync?.api.close();
     super.dispose();
   }

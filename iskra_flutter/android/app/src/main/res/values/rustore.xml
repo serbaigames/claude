@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ID приложения в консоли RuStore (раздел «Монетизация» → «Платежи»). Пока пусто — покупки выключены. -->
+    <string name="rustore_app_id" translatable="false"></string>
+</resources>

@@ -3,10 +3,18 @@
 // Сервер учётных записей и рейтингов — PocketBase с правилами из server/pocketbase, один на все платформы.
 // Адрес по умолчанию — https://api.iskraplay.ru/, другой задаётся при сборке (пустой — без сервера):
 //   flutter run --dart-define=ISKRA_SERVER=http://127.0.0.1:8090/
+// Магазин (Android): --dart-define=ISKRA_AD_UNIT=R-M-… — блок видео за награду Яндекса;
+// ISKRA_UNLOCK_ALL=true открывает все стили (для проверки).
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'shop/rustore_billing.dart';
+import 'shop/shop.dart';
+import 'shop/yandex_ads.dart';
 import 'ui/controller.dart';
 import 'ui/gfx.dart';
 import 'ui/home_screen.dart';
@@ -24,7 +32,20 @@ Future<void> main() async {
     DeviceOrientation.landscapeRight,
   ]);
   final prefs = await SharedPreferences.getInstance();
-  runApp(IskraApp(controller: GameController(prefs, server: serverUri())));
+  // покупки (RuStore) и видео за награду (Яндекс) — только в сборке для Android
+  final android = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  final shop = Shop(
+    prefs,
+    billing: android ? RuStoreBilling() : null,
+    ads: android && adUnitId.isNotEmpty ? YandexRewardedAds() : null,
+    unlockAll: const bool.fromEnvironment('ISKRA_UNLOCK_ALL'),
+  );
+  unawaited(shop.init());
+  runApp(
+    IskraApp(
+      controller: GameController(prefs, server: serverUri(), shop: shop),
+    ),
+  );
 }
 
 class IskraApp extends StatelessWidget {

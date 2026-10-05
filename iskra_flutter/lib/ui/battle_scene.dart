@@ -12,6 +12,7 @@ import 'package:flutter/scheduler.dart';
 import '../core/game.dart';
 import 'gfx.dart';
 import 'plasma_art.dart';
+import 'skins.dart';
 import 'theme.dart';
 
 const _tau = math.pi * 2;
@@ -310,7 +311,7 @@ class _ScenePainter extends CustomPainter {
     // искра
     final lost = fx.lostAt == null ? 1.0 : (1 - (t - fx.lostAt!) / 1.5).clamp(.25, 1.0);
     final rS = 44 * s * (fx.ageS < .4 ? 1 - .08 * math.sin(fx.ageS / .4 * math.pi) : 1) * lost;
-    paintSparkStar(canvas, S, rS, t, fx.charge);
+    paintSpark(canvas, S, rS, t, fx.charge);
     _shimmer(canvas, rS, t);
     final shieldUp = b.shield > 0 || b.immune > 0;
     if (shieldUp) {

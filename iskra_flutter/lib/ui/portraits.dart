@@ -10,14 +10,15 @@ import '../core/game.dart';
 import 'gfx.dart';
 import 'map_art.dart';
 import 'plasma_art.dart';
+import 'skins.dart';
 import 'theme.dart';
 
-/// Живой портрет: [PlasmaPortrait.spark] — звезда, вокруг которой по наклонным орбитам кружат ядра искры;
+/// Живой портрет: [PlasmaPortrait.spark] — Искра в своём стиле ([skin]), вокруг которой по наклонным орбитам кружат ядра искры;
 /// [PlasmaPortrait.entity] — чёрная дыра в цвете ранга, с джетами у эпических и легендарных;
 /// [PlasmaPortrait.cell] — своя клетка: строения-спутники по ячейкам ([slots], null — пустая ячейка),
 /// кольцо долей [ring] вокруг звезды, плашки [tagLeft] и [tagRight] сверху. Касание пустой ячейки — [onEmptySlot].
 class PlasmaPortrait extends StatefulWidget {
-  const PlasmaPortrait.spark({super.key, required this.cores, this.speed = 1})
+  const PlasmaPortrait.spark({super.key, required this.cores, this.speed = 1, this.skin})
     : tier = null,
       slots = null,
       ring = const [],
@@ -26,6 +27,7 @@ class PlasmaPortrait extends StatefulWidget {
       onEmptySlot = null;
   const PlasmaPortrait.entity({super.key, required String this.tier})
     : cores = 0,
+      skin = null,
       speed = 1,
       slots = null,
       ring = const [],
@@ -40,12 +42,16 @@ class PlasmaPortrait extends StatefulWidget {
     this.tagRight,
     this.onEmptySlot,
   }) : tier = null,
+       skin = null,
        cores = 0,
        speed = 1;
 
   final String? tier;
   final int cores;
   final double speed;
+
+  /// Стиль Искры для витрины магазина; null — выбранный игроком
+  final Skin? skin;
   final List<String?>? slots;
   final List<double> ring;
   final String? tagLeft, tagRight;
@@ -191,7 +197,7 @@ class _PortraitPainter extends CustomPainter {
     for (final (p, back) in sats) {
       if (back) sat(p, true);
     }
-    paintSparkStar(c, o, r, t, .15 + .1 * math.sin(t * 2), speed: 1.4 * speed);
+    paintSpark(c, o, r, t, .15 + .1 * math.sin(t * 2), speed: 1.4 * speed, skin: st.widget.skin);
     for (final (p, back) in sats) {
       if (!back) sat(p, false);
     }

@@ -279,10 +279,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             children: [
               res('Материя', Fmt.n(g.s.matter), color: C.gold),
               res(
-                'Добыча',
+                g.boost > 1 ? 'Добыча ×${Fmt.x(g.boost, 0)}' : 'Добыча',
                 g.s.paused ? 'пауза' : '+${Fmt.n1(g.income())}/с',
-                color: g.s.paused ? C.muted : C.ok,
-                tip: 'Суммарная добыча материи в секунду',
+                color: g.s.paused ? C.muted : (g.boost > 1 ? C.gold : C.ok),
+                tip: g.boost > 1 ? 'Добыча ускорена — подробности в окне Искры' : 'Суммарная добыча материи в секунду',
               ),
               res(
                 'Заводы',

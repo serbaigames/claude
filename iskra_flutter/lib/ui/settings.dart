@@ -4,19 +4,23 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/game.dart';
+import '../shop/shop.dart';
 import '../version.dart';
 import 'controller.dart';
 import 'gfx.dart';
 import 'panels.dart';
+import 'portraits.dart';
+import 'skins.dart';
 import 'sound.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
-enum SetTab { acc, app, stats, about, dev }
+enum SetTab { acc, app, shop, stats, about, dev }
 
 const _setTabs = {
   SetTab.acc: ('Аккаунт', Icons.account_circle_outlined),
   SetTab.app: ('Приложение', Icons.tune),
+  SetTab.shop: ('Магазин', Icons.storefront_outlined),
   SetTab.stats: ('Статистика', Icons.insights_outlined),
   SetTab.about: ('Об игре', Icons.info_outline),
   SetTab.dev: ('Развитие', Icons.favorite_border),
@@ -45,6 +49,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
         switch (tab) {
           SetTab.acc => AccountPanel(ctl),
           SetTab.app => AppSettings(ctl),
+          SetTab.shop => ShopView(ctl),
           SetTab.stats => StatsView(ctl.game),
           SetTab.about => const AboutView(),
           SetTab.dev => const SupportView(),
@@ -53,7 +58,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
     );
   }
 
-  /// Пять вкладок в одну строку: значок и подпись, выбранная подсвечена
+  /// Все вкладки в одну строку: значок и подпись, выбранная подсвечена
   Widget _bar() => Container(
     key: const ValueKey('settings-tabs'),
     decoration: BoxDecoration(
@@ -428,6 +433,140 @@ class AboutView extends StatelessWidget {
   );
 }
 
+/* ---------- магазин: ускорение, стили, поддержка автора ---------- */
+class ShopView extends StatelessWidget {
+  const ShopView(this.ctl, {super.key});
+  final GameController ctl;
+
+  @override
+  Widget build(BuildContext context) {
+    final shop = ctl.shop;
+    final left = shop.boostLeft;
+    String price(String id) => shop.prices[id] == null ? '' : ' · ${shop.prices[id]}';
+    final canBuy = shop.unavailable == null && !shop.busy;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _head('Ускорение добычи', Icons.bolt),
+        _card([
+          Text('Добыча материи ×${boostMul.toInt()} на ${boostTime.inMinutes} минут.'),
+          const SizedBox(height: 8),
+          if (shop.boosted)
+            Text(
+              'Действует ещё ${left.inMinutes}:${(left.inSeconds % 60).toString().padLeft(2, '0')}',
+              key: const ValueKey('boost-left'),
+              style: const TextStyle(color: C.ok, fontWeight: FontWeight.w700),
+            )
+          else if (shop.supporter || shop.ads != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.icon(
+                key: const ValueKey('boost'),
+                onPressed: shop.canBoost ? ctl.boost : null,
+                icon: Icon(shop.supporter ? Icons.bolt : Icons.ondemand_video),
+                label: Text(shop.supporter ? 'Включить' : 'Смотреть видео'),
+              ),
+            )
+          else
+            const Text('Видео за ускорение есть в версии для Android.', style: TextStyle(color: C.muted)),
+        ]),
+        _head('Стили Искры', Icons.palette_outlined),
+        if (shop.unavailable != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              shop.unavailable!,
+              key: const ValueKey('shop-unavailable'),
+              style: const TextStyle(color: C.muted),
+            ),
+          ),
+        LayoutBuilder(
+          builder: (context, box) {
+            final cols = box.maxWidth >= 640 ? 2 : 1, w = (box.maxWidth - 10 * (cols - 1)) / cols;
+            return Wrap(
+              spacing: 10,
+              children: [
+                for (final s in Skin.values)
+                  SizedBox(width: w, child: _skinCard(s, shop, canBuy ? () => ctl.buy(skinInfo[s]!.product!) : null, price)),
+              ],
+            );
+          },
+        ),
+        _head('Без рекламы + поддержать автора', Icons.favorite),
+        _card(border: shop.supporter ? C.gold.withValues(alpha: .6) : C.line, [
+          const Text(
+            'Ускорение добычи включается сразу, без видео. Покупка поддерживает автора: '
+            'сервер, новые эры, сущности и стили.',
+          ),
+          const SizedBox(height: 8),
+          if (shop.supporter)
+            const Text(
+              'Вы поддержали автора — спасибо!',
+              key: ValueKey('supporter'),
+              style: TextStyle(color: C.gold, fontWeight: FontWeight.w700),
+            )
+          else
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.icon(
+                key: const ValueKey('buy-supporter'),
+                onPressed: canBuy ? () => ctl.buy(supporterProduct) : null,
+                icon: const Icon(Icons.favorite),
+                label: Text('Купить${price(supporterProduct)}'),
+              ),
+            ),
+        ]),
+        if (shop.billing != null)
+          Center(
+            child: TextButton(
+              key: const ValueKey('restore'),
+              onPressed: shop.busy ? null : shop.restore,
+              child: const Text('Восстановить покупки'),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _skinCard(Skin s, Shop shop, VoidCallback? buy, String Function(String) price) {
+    final info = skinInfo[s]!, owns = shop.owns(s), on = shop.skin == s;
+    return _card(border: on ? info.accent.withValues(alpha: .8) : C.line, [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(width: 116, height: 116, child: PlasmaPortrait.spark(cores: 0, skin: s)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(info.title, style: h2(info.accent)),
+                const SizedBox(height: 2),
+                Text(info.about, style: const TextStyle(color: C.muted, fontSize: 13)),
+                const SizedBox(height: 8),
+                if (on)
+                  const Text(
+                    'Выбран',
+                    style: TextStyle(color: C.ok, fontWeight: FontWeight.w700),
+                  )
+                else
+                  FilledButton(
+                    key: ValueKey('skin-${s.name}'),
+                    onPressed: owns ? () => shop.setSkin(s) : buy,
+                    child: Text(owns ? 'Выбрать' : 'Купить${price(info.product!)}'),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ]);
+  }
+}
+
 /* ---------- развитие проекта ---------- */
 /// Перевод через СБП: ссылка из QR-кода (Т-Банк или Сбербанк). Пустая строка — показывается заглушка
 const donateUrl = 'https://t.tb.ru/c2c-qr-choose-bank?requisiteNumber=+79163956434&bankCode=100000000004';
@@ -442,8 +581,8 @@ class SupportView extends StatelessWidget {
       _head('Поддержать «Искру»', Icons.favorite_border),
       _card(const [
         Text(
-          '«Искра» — независимый проект одного автора. В игре нет рекламы, нет платных преимуществ и нет покупок, '
-          'которые делают одного игрока сильнее другого, и так останется.',
+          '«Искра» — независимый проект одного автора. Реклама в игре только по желанию: видео, за которое '
+          'добыча ускоряется на несколько минут. Платные стили меняют лишь вид Искры, а не силу.',
         ),
         SizedBox(height: 8),
         Text(

@@ -324,8 +324,11 @@ class Game {
   double get sparkMatter => own.length * incBonus;
   double get sparkSpeed => 1 + 0.15 * s.rebirths;
 
-  /// (база + шахты × бонус) × (1 + заводы %) × эра
-  double income() => incomeParts().total * eraV('inc') * techMul('income');
+  /// Ускорение добычи за видео (или у поддержавших автора): ×2 на время, не сохраняется в мире
+  double boost = 1;
+
+  /// (база + шахты × бонус) × (1 + заводы %) × эра × ускорение
+  double income() => incomeParts().total * eraV('inc') * techMul('income') * boost;
 
   /// Заводы: сумма процентов всех заводов в мире делится на число ваших клеток и даёт бонус ко всей добыче
   IncomeParts incomeParts() {

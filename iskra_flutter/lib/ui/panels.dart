@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../core/game.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
+import '../shop/shop.dart';
 import 'controller.dart';
 import 'icons.dart';
 import 'map_art.dart';
@@ -52,7 +53,7 @@ class CellPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final g = ctl.game, c = g.sel;
     if (c == null) return _overview(g);
-    if (c.spark) return _spark(g);
+    if (c.spark) return _spark(g, ctl);
     return c.own ? _own(g, c) : _dark(g, c);
   }
 
@@ -124,8 +125,8 @@ class CellPanel extends StatelessWidget {
     child: SizedBox(height: 150, child: p),
   );
 
-  Widget _spark(Game g) {
-    final x = g.incomeParts();
+  Widget _spark(Game g, GameController ctl) {
+    final x = g.incomeParts(), shop = ctl.shop, left = shop.boostLeft;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -141,6 +142,20 @@ class CellPanel extends StatelessWidget {
           ('Бонус прыжка', '×${Fmt.x(g.bonusMul, 2)}'),
         ]),
         const Note('Добыча базы = 0,5 × ядро × клетки × бонус × скорость. Искру нельзя потерять.'),
+        if (shop.boosted)
+          Note(
+            'Ускорение добычи ×${boostMul.toInt()}: ещё ${left.inMinutes}:${(left.inSeconds % 60).toString().padLeft(2, '0')}.',
+          )
+        else if (shop.supporter || shop.ads != null) ...[
+          const SizedBox(height: 8),
+          ActBtn(
+            shop.supporter ? 'Ускорить добычу ×${boostMul.toInt()}' : 'Видео: добыча ×${boostMul.toInt()}',
+            shop.canBoost ? ctl.boost : null,
+            key: const ValueKey('spark-boost'),
+            right: '${boostTime.inMinutes} мин',
+            primary: true,
+          ),
+        ],
       ],
     );
   }

@@ -26,7 +26,21 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- возврат в игру после оплаты в банковском приложении (RuStore Pay) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="iskrapay"/>
+            </intent-filter>
         </activity>
+        <!-- покупки RuStore: ID приложения в консоли RuStore — в res/values/rustore.xml -->
+        <meta-data
+            android:name="console_app_id_value"
+            android:value="@string/rustore_app_id" />
+        <meta-data
+            android:name="sdk_pay_scheme_value"
+            android:value="iskrapay" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

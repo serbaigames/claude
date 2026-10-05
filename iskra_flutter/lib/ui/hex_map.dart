@@ -13,6 +13,7 @@ import 'controller.dart';
 import 'gfx.dart';
 import 'map_art.dart';
 import 'plasma_art.dart';
+import 'skins.dart';
 import 'theme.dart';
 
 const _size = 34.0, _grid = _size * 2;
@@ -239,7 +240,7 @@ class _MapPainter extends CustomPainter {
     // содержимое своих клеток: схема и звёзды-колонии, на переходе — наплывом
     final cells = [for (final c in own) (c, scr(c))];
     for (final (c, p) in cells) {
-      if (c.spark) paintSparkStar(canvas, p, rc * (.34 + .06 * a), t, .15, rays: 30);
+      if (c.spark) paintSpark(canvas, p, rc * (.34 + .06 * a), t, .15, rays: 30);
     }
     void layer(double alpha, void Function() draw) {
       if (alpha <= 0) return;
