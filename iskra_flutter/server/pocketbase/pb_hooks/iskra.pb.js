@@ -131,7 +131,8 @@ routerAdd("GET", "/api/iskra/top", (e) => {
   if (!["matter", "cells", "kills"].includes(by)) return L.fail(e, 422, "Неизвестный рейтинг.");
   // limit: сколько мест отдать (по умолчанию 10, как ждёт веб-версия; приложение просит 100)
   const limit = Math.max(1, Math.min(100, Math.trunc(Number(q.limit)) || 10));
-  const rows = arrayOf(new DynamicModel({ login: "", v: 0.0 }));
+  // v: -0 — столбец дробный (0 был бы целым, и нецелая материя ломала бы запрос)
+  const rows = arrayOf(new DynamicModel({ login: "", v: -0 }));
   $app
     .db()
     .newQuery(

@@ -70,7 +70,7 @@ void main() {
 
     // устройство 1: играет и регистрируется
     final g1 = Game(random: math.Random(7))..newGame();
-    g1.s.earned = 1234;
+    g1.s.earned = 1234.5; // материя бывает нецелой
     g1.s.bestCells = 5;
     g1.s.kills['rare'] = 2;
     final sync1 = CloudSync(api, MemoryStore(), () => g1);
@@ -82,7 +82,7 @@ void main() {
 
     final top = await api.top('matter');
     expect(top.list.single.login, 'искра_тест');
-    expect(top.list.single.value, 1234);
+    expect(top.list.single.value, 1234.5);
     expect((await api.top('kills')).list.single.value, 6, reason: 'редкая = 3 очка');
 
     // устройство 2: новая игра, вход — сохранение подтягивается с сервера без вопросов
@@ -95,7 +95,7 @@ void main() {
     await sync2.login('Искра_ТЕСТ', 'пароль-123');
     expect(loaded, isNotNull);
     final st = GameState.fromJson(jsonDecode(loaded!) as Map<String, dynamic>);
-    expect(st.earned, 1234);
+    expect(st.earned, 1234.5);
     expect(g2.attach(st), isTrue);
 
     // устройство 2 сохраняет новее, устройство 1 получает конфликт и выбирает сервер
