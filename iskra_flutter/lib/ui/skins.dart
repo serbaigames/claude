@@ -60,7 +60,18 @@ class Skins {
 }
 
 /// Искра в выбранном стиле (или в [skin], если задан — для витрины магазина)
-void paintSpark(Canvas c, Offset o, double r, double t, double charge, {double speed = 1, int rays = 44, Skin? skin}) {
+void paintSpark(
+  Canvas c,
+  Offset o,
+  double r,
+  double t,
+  double charge, {
+  double speed = 1,
+  int rays = 44,
+  Skin? skin,
+  bool mini = false,
+}) {
+  _mini = mini;
   switch (skin ?? Skins.current) {
     case Skin.plasma:
       paintSparkStar(c, o, r, t, charge, speed: speed, rays: rays);
@@ -74,6 +85,9 @@ void paintSpark(Canvas c, Offset o, double r, double t, double charge, {double s
       _crystal(c, o, r, t, charge, speed);
   }
 }
+
+/// Упрощённая отрисовка: звёзды-колонии на карте — без мелких деталей, их всё равно не видно
+var _mini = false;
 
 int _n(int full) => math.max(1, (full * Gfx.density).round());
 
@@ -153,7 +167,7 @@ void _steampunk(Canvas c, Offset o, double r, double t, double charge, double sp
       );
     c.drawArc(ringRect, back ? math.pi : 0, math.pi, false, p);
     // деления на кольце бегут по кругу
-    for (var k = 0; k < 24; k++) {
+    for (var k = 0; k < (_mini ? 0 : 24); k++) {
       final a = (k / 24 * _tau + rot * .5) % _tau;
       if ((math.sin(a) < 0) != back) continue;
       final q = Offset(math.cos(a) * r * 1.35, math.sin(a) * r * .31);
@@ -162,7 +176,7 @@ void _steampunk(Canvas c, Offset o, double r, double t, double charge, double sp
     c.restore();
   }
 
-  ring(true);
+  if (!_mini) ring(true);
   c.save();
   c.clipPath(Path()..addOval(Rect.fromCircle(center: o, radius: R)));
   // глубина корпуса
@@ -178,9 +192,9 @@ void _steampunk(Canvas c, Offset o, double r, double t, double charge, double sp
       ),
   );
   // дальний слой механизма
-  _watchGear(c, o + Offset(-R * .42, -R * .38), R * .4, 16, -rot * .6, dim: .55);
-  _watchGear(c, o + Offset(R * .5, R * .3), R * .34, 14, rot * .7, dim: .55);
-  _watchGear(c, o + Offset(R * .35, -R * .55), R * .22, 10, -rot * 1.1, copper: true, dim: .55);
+  if (!_mini) _watchGear(c, o + Offset(-R * .42, -R * .38), R * .4, 16, -rot * .6, dim: .55);
+  if (!_mini) _watchGear(c, o + Offset(R * .5, R * .3), R * .34, 14, rot * .7, dim: .55);
+  if (!_mini) _watchGear(c, o + Offset(R * .35, -R * .55), R * .22, 10, -rot * 1.1, copper: true, dim: .55);
   // расплавленный металл льётся сверху в ванну на дне сферы
   final pourX = o.dx - R * .18, pourTop = o.dy - R, poolY = o.dy + R * .6;
   final wob = math.sin(t * 3) * R * .02;
@@ -200,7 +214,7 @@ void _steampunk(Canvas c, Offset o, double r, double t, double charge, double sp
         [0, .5, 1],
       ),
   );
-  for (var k = 0; k < 5; k++) {
+  for (var k = 0; k < (_mini ? 2 : 5); k++) {
     final u = (t * 1.4 + k / 5) % 1;
     plasmaGlow(c, Offset(pourX + wob * u, pourTop + (poolY - pourTop) * u), R * .07, const Color(0xFFFFD27A), .7);
   }
@@ -227,26 +241,28 @@ void _steampunk(Canvas c, Offset o, double r, double t, double charge, double sp
   // ближний слой: большое колесо, сцепленное с малым, и баланс
   final big = o + Offset(R * .12, -R * .08), small = big + _polar(2.6, R * .62);
   _watchGear(c, big, R * .52, 18, rot);
-  _watchGear(c, small, R * .26, 9, -rot * 2 + .17, copper: true);
-  final bal = o + Offset(R * .55, -R * .1), swing = math.sin(t * 5 * speed) * 1.2;
-  c.drawCircle(
-    bal,
-    R * .2,
-    Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = R * .035
-      ..color = const Color(0xFFE6C070),
-  );
-  c.drawLine(
-    bal + _polar(swing, R * .2),
-    bal - _polar(swing, R * .2),
-    Paint()
-      ..strokeWidth = R * .03
-      ..color = const Color(0xFFE6C070),
-  );
+  if (!_mini) _watchGear(c, small, R * .26, 9, -rot * 2 + .17, copper: true);
+  if (!_mini) {
+    final bal = o + Offset(R * .55, -R * .1), swing = math.sin(t * 5 * speed) * 1.2;
+    c.drawCircle(
+      bal,
+      R * .2,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = R * .035
+        ..color = const Color(0xFFE6C070),
+    );
+    c.drawLine(
+      bal + _polar(swing, R * .2),
+      bal - _polar(swing, R * .2),
+      Paint()
+        ..strokeWidth = R * .03
+        ..color = const Color(0xFFE6C070),
+    );
+  }
   // искры в местах зацепления: короткие вспышки
   final hits = [big + _polar(2.6, R * .48), o + Offset(-R * .1, -R * .55), o + Offset(R * .32, R * .22)];
-  for (var k = 0; k < hits.length; k++) {
+  for (var k = 0; k < (_mini ? 0 : hits.length); k++) {
     final ph = (t * (1.1 + k * .23) + k * .37) % 1;
     if (ph > .18) continue;
     final f = 1 - ph / .18, p = hits[k];
@@ -262,26 +278,28 @@ void _steampunk(Canvas c, Offset o, double r, double t, double charge, double sp
   }
   c.restore();
   // стекло корпуса: блики и кромка
-  c.drawCircle(
-    o,
-    R,
-    Paint()..shader = ui.Gradient.radial(o, R, const [Color(0x00FFFFFF), Color(0x00FFFFFF), Color(0x40CFE8FF)], [0, .78, 1]),
-  );
-  c.drawArc(
-    Rect.fromCircle(center: o, radius: R * .84),
-    math.pi * 1.08,
-    math.pi * .42,
-    false,
-    Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = R * .07
-      ..strokeCap = StrokeCap.round
-      ..color = const Color(0x55FFFFFF),
-  );
-  c.drawOval(
-    Rect.fromCenter(center: o + Offset(R * .4, R * .5), width: R * .22, height: R * .1),
-    Paint()..color = const Color(0x30FFFFFF),
-  );
+  if (!_mini) {
+    c.drawCircle(
+      o,
+      R,
+      Paint()..shader = ui.Gradient.radial(o, R, const [Color(0x00FFFFFF), Color(0x00FFFFFF), Color(0x40CFE8FF)], [0, .78, 1]),
+    );
+    c.drawArc(
+      Rect.fromCircle(center: o, radius: R * .84),
+      math.pi * 1.08,
+      math.pi * .42,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = R * .07
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0x55FFFFFF),
+    );
+    c.drawOval(
+      Rect.fromCenter(center: o + Offset(R * .4, R * .5), width: R * .22, height: R * .1),
+      Paint()..color = const Color(0x30FFFFFF),
+    );
+  }
   c.drawCircle(
     o,
     R,
@@ -295,10 +313,10 @@ void _steampunk(Canvas c, Offset o, double r, double t, double charge, double sp
         [0, .5, 1],
       ),
   );
-  for (var k = 0; k < 16; k++) {
+  for (var k = 0; k < (_mini ? 0 : 16); k++) {
     c.drawCircle(o + _polar(k * _tau / 16, R), r * .022, Paint()..color = const Color(0xFFFFE6A8));
   }
-  ring(false);
+  if (!_mini) ring(false);
 }
 
 /* ---------- готика: багровая сфера, скалы, пики и собор ---------- */
@@ -356,7 +374,7 @@ void _gothic(Canvas c, Offset o, double r, double t, double charge, double speed
   plasmaGlow(c, o, r * (3.2 + charge), const Color(0xFF6A0A1A), .25);
   plasmaGlow(c, o, r * (2.1 + charge), const Color(0xFFD0203A), .2 + .2 * charge);
   // пепел и угли поднимаются от сферы
-  for (var k = 0; k < _n(10); k++) {
+  for (var k = 0; k < (_mini ? 0 : _n(10)); k++) {
     final u = (t * .14 + k / 10) % 1, x = math.sin(k * 2.7 + t * .5) * r * (.6 + .5 * u);
     plasmaGlow(c, o + Offset(x, R * .4 - u * r * 2.4), r * .07, const Color(0xFFFF4A3A), .6 * math.sin(u * math.pi));
   }
@@ -423,7 +441,7 @@ void _gothic(Canvas c, Offset o, double r, double t, double charge, double speed
     ..blendMode = BlendMode.plus
     ..color = const Color(0xFFFF4A2A).withValues(alpha: (.45 + .35 * math.sin(t * 2)).clamp(0, 1));
   final cr = Seeded(5);
-  for (var i = 0; i < 5; i++) {
+  for (var i = 0; i < (_mini ? 2 : 5); i++) {
     var p = _polar(cr() * _tau, R * (.2 + .6 * cr()));
     final path = Path()..moveTo(p.dx, p.dy);
     var a = cr() * _tau;
@@ -435,7 +453,7 @@ void _gothic(Canvas c, Offset o, double r, double t, double charge, double speed
     c.drawPath(path, crack);
   }
   // багровый туман плывёт по сфере
-  for (var k = 0; k < 3; k++) {
+  for (var k = 0; k < (_mini ? 0 : 3); k++) {
     final x = ((t * .08 + k * .37) % 1) * R * 3 - R * 1.5;
     _puff(c, Offset(x, R * (-.1 + .3 * k)), R * .55, const Color(0xFFB01A2A), .22);
   }
@@ -487,7 +505,7 @@ void _bio(Canvas c, Offset o, double r, double t, double charge, double speed) {
     ..strokeWidth = math.max(.7, r * .022)
     ..strokeCap = StrokeCap.round
     ..color = const Color(0x99B8FFCF);
-  final nc = _n(36);
+  final nc = _mini ? 14 : _n(36);
   for (var i = 0; i < nc; i++) {
     final a = i * _tau / nc, b = _membrane(a, rr, tt), sw = .35 * math.sin(tt * 4 + i * .8);
     final p0 = o + _polar(a, b), p1 = o + _polar(a + sw * .12, b + r * .14), p2 = o + _polar(a + sw * .25, b + r * .24);
@@ -519,12 +537,12 @@ void _bio(Canvas c, Offset o, double r, double t, double charge, double speed) {
   c.clipPath(mem);
   // рибосомы
   final rib = Paint()..color = const Color(0x99E6FFE0);
-  for (var k = 0; k < _n(26); k++) {
+  for (var k = 0; k < (_mini ? 0 : _n(26)); k++) {
     final a = k * 2.39996 + tt * .05, d = r * .8 * math.sqrt(((k * 53) % 26) / 26);
     c.drawCircle(o + _polar(a, d), math.max(.6, r * .018), rib);
   }
   // вакуоли
-  for (var k = 0; k < 3; k++) {
+  for (var k = 0; k < (_mini ? 0 : 3); k++) {
     final p = o + _polar(k * 2.1 + tt * .12, r * .52);
     c.drawCircle(p, r * (.13 + .03 * k), Paint()..color = const Color(0x55DFFFF4));
     c.drawCircle(
@@ -606,7 +624,7 @@ void _crystal(Canvas c, Offset o, double r, double t, double charge, double spee
   plasmaGlow(c, o, r * (3 + charge * 1.5), const Color(0xFF5AB4FF), .2 + .22 * charge);
   // радужные лучи преломления
   final nr = _n(12);
-  for (var i = 0; i < nr; i++) {
+  for (var i = 0; i < (_mini ? 0 : nr); i++) {
     final a = rot * .5 + i * _tau / nr + .2 * math.sin(t * .8 + i),
         len = r * (1.5 + .5 * math.sin(t * 1.7 + i * 2.3) + charge * .6);
     final col = HSVColor.fromAHSV(1, (i * 360 / nr + t * 20) % 360, .55, 1).toColor();
@@ -647,6 +665,7 @@ void _crystal(Canvas c, Offset o, double r, double t, double charge, double spee
   }
 
   for (final (p, back) in orbit) {
+    if (_mini) break;
     if (back) shard(p, true);
   }
   // самоцвет: шестигранник, внешние и внутренние грани освещены вращающимся светом
@@ -704,6 +723,7 @@ void _crystal(Canvas c, Offset o, double r, double t, double charge, double spee
   c.drawRect(Rect.fromCenter(center: g, width: math.max(1, r * .03), height: gl * 2), glint);
   plasmaGlow(c, g, gl * .6, const Color(0xFFFFFFFF), .6);
   for (final (p, back) in orbit) {
+    if (_mini) break;
     if (!back) shard(p, false);
   }
 }
@@ -758,27 +778,17 @@ const fieldLooks = {
 
 FieldLook get fieldLook => fieldLooks[Skins.current]!;
 
-/// Оттенок фона карты под стиль
-void paintFieldTint(Canvas c, Rect area) {
-  final tint = fieldLook.tint;
-  if (tint == null) return;
-  c.drawRect(
-    area,
-    Paint()
-      ..color = tint
-      ..blendMode = BlendMode.color,
-  );
-}
-
 /// Узор внутри своей клетки (вызывается под обрезкой по территории)
 void paintCellDecor(Canvas c, Offset p, double rc, double t, int seed) {
+  // узор — украшение: в лёгком режиме его нет, на среднем качестве — в каждой второй клетке
+  if (Gfx.level == GfxLevel.low || (Gfx.level == GfxLevel.medium && seed.isOdd)) return;
   switch (Skins.current) {
     case Skin.plasma:
       return;
     case Skin.steampunk:
       // большая тусклая шестерня под клеткой и пар из клапана
       final o = p + _polar(seed * 1.7, rc * .3);
-      final g = _gear(o, rc * .62, rc * .54, 14, (seed.isEven ? 1 : -1) * t * .15 + seed);
+      final g = _gear(o, rc * .62, rc * .54, 10, (seed.isEven ? 1 : -1) * t * .15 + seed);
       c.drawPath(
         g,
         Paint()
@@ -804,7 +814,6 @@ void paintCellDecor(Canvas c, Offset p, double rc, double t, int seed) {
       final crack = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = math.max(1, rc * .025)
-        ..blendMode = BlendMode.plus
         ..color = const Color(0xFFFF3A2A).withValues(alpha: .25 + .2 * math.sin(t * 1.5 + seed));
       for (var i = 0; i < 2; i++) {
         var q = p + _polar(r() * _tau, rc * .5 * r());
@@ -817,11 +826,11 @@ void paintCellDecor(Canvas c, Offset p, double rc, double t, int seed) {
         }
         c.drawPath(path, crack);
       }
-      _puff(c, p + Offset(math.sin(t * .3 + seed) * rc * .3, 0), rc * .6, const Color(0xFF8A0A1A), .18);
+      if (seed % 3 == 0) _puff(c, p + Offset(math.sin(t * .3 + seed) * rc * .3, 0), rc * .7, const Color(0xFF8A0A1A), .2);
     case Skin.bio:
       // ткань: соседние клетки-пузырьки с ядрышками
       final r = Seeded(seed * 17 + 3);
-      for (var i = 0; i < 4; i++) {
+      for (var i = 0; i < 3; i++) {
         final q = p + _polar(r() * _tau + t * .05, rc * (.25 + .4 * r())),
             rr = rc * (.16 + .1 * r()) * (1 + .06 * math.sin(t * 2 + i));
         c.drawCircle(
@@ -865,19 +874,10 @@ void paintChannel(Canvas c, Offset p0, Offset p1, double rc, double t, double ph
         p0,
         p1,
         Paint()
-          ..strokeWidth = rc * .1
-          ..strokeCap = StrokeCap.round
-          ..color = const Color(0xFF5A3418),
+          ..strokeWidth = rc * .07
+          ..color = const Color(0xFF8A5424),
       );
-      c.drawLine(
-        p0,
-        p1,
-        Paint()
-          ..strokeWidth = rc * .04
-          ..strokeCap = StrokeCap.round
-          ..color = const Color(0xFFB8743A),
-      );
-      for (final u in [.2, .5, .8]) {
+      for (final u in [.5]) {
         final q = Offset.lerp(p0, p1, u)!, n = (p1 - p0).direction + math.pi / 2;
         c.drawLine(
           q + _polar(n, rc * .07),
@@ -994,7 +994,7 @@ void paintWallDecor(Canvas c, Offset p0, Offset p1, Offset out, double rc, doubl
 void paintFieldAmbient(Canvas c, Size size, double t) {
   final skin = Skins.current;
   if (skin == Skin.plasma) return;
-  final n = _n(26), r = Seeded(4242);
+  final n = _n(16), r = Seeded(4242);
   for (var i = 0; i < n; i++) {
     final x0 = r() * size.width, y0 = r() * size.height, sp = .5 + r(), ph = r() * _tau;
     switch (skin) {
@@ -1025,6 +1025,6 @@ void paintColony(Canvas c, Offset p, double r, double t) {
   if (Skins.current == Skin.plasma) {
     paintSparkStar(c, p, r, t, .1, rays: 18, flares: false);
   } else {
-    paintSpark(c, p, r * .85, t, 0, speed: .6);
+    paintSpark(c, p, r * .85, t, 0, speed: .6, mini: true);
   }
 }

@@ -89,6 +89,7 @@ class _SceneFx {
   double stunUntil = -1;
   ui.Image? bg, grain;
   Size? bgSize;
+  Color? bgTint;
   final motes = (() {
     final r = Seeded(5);
     return List.generate(26, (_) => [r(), r(), .4 + r() * 1.4]);
@@ -273,7 +274,6 @@ class _ScenePainter extends CustomPainter {
     final bgDst = Rect.fromLTWH(ox, oy, w * 1.08, h * 1.08),
         bgSrc = Rect.fromLTWH(0, 0, bg.width.toDouble(), bg.height.toDouble());
     canvas.drawImageRect(bg, bgSrc, bgDst, Paint()..filterQuality = FilterQuality.low);
-    paintFieldTint(canvas, bgDst);
 
     // сущность: линза, джеты, диск, рамка, барьер
     final collapse = fx.wonAt == null ? 1.0 : (1 - (t - fx.wonAt!) / 1.2).clamp(0.0, 1.0);
@@ -539,10 +539,12 @@ class _ScenePainter extends CustomPainter {
 
   /* ---------- фон ---------- */
   void _ensureBg(Size size) {
-    if (fx.bg != null && fx.bgSize == size) return;
+    final tint = fieldLook.tint;
+    if (fx.bg != null && fx.bgSize == size && fx.bgTint == tint) return;
+    fx.bgTint = tint;
     fx.bg?.dispose();
     fx.bgSize = size;
-    fx.bg = buildNebula(Size(size.width * 1.08, size.height * 1.08), dpr);
+    fx.bg = buildNebula(Size(size.width * 1.08, size.height * 1.08), dpr, tint: tint);
     if (fx.grain == null) {
       final px = Uint8List(128 * 128 * 4);
       for (var i = 0; i < px.length; i += 4) {

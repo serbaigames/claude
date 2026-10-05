@@ -61,7 +61,8 @@ final _rays = (() {
 })();
 
 /// Фон туманности размером [size] (логические пиксели), отрисованный один раз в картинку
-ui.Image buildNebula(Size size, double dpr, {int seed = 9001}) {
+/// [tint] — оттенок под стиль Искры, вшивается в картинку один раз
+ui.Image buildNebula(Size size, double dpr, {int seed = 9001, Color? tint}) {
   final W = size.width, H = size.height, k = math.min(2.0, dpr);
   final rec = ui.PictureRecorder();
   final c = Canvas(rec)..scale(k);
@@ -106,6 +107,14 @@ ui.Image buildNebula(Size size, double dpr, {int seed = 9001}) {
       ..blendMode = BlendMode.plus;
     c.drawRect(Rect.fromLTWH(x - L, y - .4, L * 2, .8), p);
     c.drawRect(Rect.fromLTWH(x - .4, y - L, .8, L * 2), p);
+  }
+  if (tint != null) {
+    c.drawRect(
+      Rect.fromLTWH(0, 0, W, H),
+      Paint()
+        ..color = tint
+        ..blendMode = BlendMode.color,
+    );
   }
   return rec.endRecording().toImageSync((W * k).ceil(), (H * k).ceil());
 }

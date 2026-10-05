@@ -54,12 +54,15 @@ class _HexMapState extends State<HexMap> {
   Size _size = Size.zero;
   ui.Image? _bg;
   Size? _bgSize;
+  Color? _bgTint;
 
   ui.Image _nebula(Size size, double dpr) {
-    if (_bg == null || _bgSize != size) {
+    final tint = fieldLook.tint;
+    if (_bg == null || _bgSize != size || _bgTint != tint) {
+      _bgTint = tint;
       _bg?.dispose();
       _bgSize = size;
-      _bg = buildNebula(size, dpr, seed: 37);
+      _bg = buildNebula(size, dpr, seed: 37, tint: tint);
     }
     return _bg!;
   }
@@ -191,7 +194,6 @@ class _MapPainter extends CustomPainter {
     canvas.clipRect(Offset.zero & size);
     final bg = nebula(size);
     canvas.drawImageRect(bg, Rect.fromLTWH(0, 0, bg.width.toDouble(), bg.height.toDouble()), Offset.zero & size, Paint());
-    paintFieldTint(canvas, Offset.zero & size);
     _stars(canvas, size, c0, z);
     final look = fieldLook;
 
@@ -225,7 +227,8 @@ class _MapPainter extends CustomPainter {
       canvas.drawPath(land, Paint()..color = look.land.withValues(alpha: .09));
       for (final c in own) {
         final p = scr(c);
-        for (var i = 0; i < (5 * Gfx.density).ceil(); i++) {
+        // у стилей свой узор в клетке, поэтому сгустков меньше
+        for (var i = 0; i < ((Skins.current == Skin.plasma ? 5 : 2) * Gfx.density).ceil(); i++) {
           final u = t * .4 + i * 1.7 + c.q, d = rc * .45 * math.sin(t * .7 + i);
           plasmaGlow(canvas, p + Offset(math.cos(u) * d, math.sin(u * 1.3) * d), rc * .5, look.glow, .08);
         }
