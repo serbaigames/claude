@@ -84,13 +84,15 @@ class Bal {
   static const mineCost = 60.0, mineRate = 0.5, mineGrow = 1.7, facCost = 90.0, facGrow = 1.75;
   static const bonusPow = 0.6; // сила бонуса прыжка в добыче: (1 + бонус)^0,6
   static const bonusFightPow = 0.3; // сила бонуса прыжка в бою: здоровье и урон × (1 + бонус)^0,3
-  static const foeHp = 2.5, foeAtk = 0.5, foeReward = 1.0, defCost = 8.0, defGrow = 1.35;
+  // Враги: здоровье и удар в одном масштабе с искрой — бой ~15 ваших ударов и ~8 ударов врага, а не 40 против 20
+  static const foeHp = 1.0, foeAtk = 1.6, foeReward = 1.0, defCost = 8.0, defGrow = 1.35;
   static const devMin = 1.008, devMax = 1.028, towerCost = 12.0, towerGrow = 1.8;
   static const growthRate = 0.5; // тьма растёт вдвое медленнее
   static const aggrMin = 0.7, aggrMax = 1.6; // агрессивность мира
   static const legendChance = 0.01;
   static const earlyMul = 1.6; // сущности сильнее в 1,6 раза во всех мирах
   // Сила тьмы растёт с прыжками: 1 + a × прыжки^p (×1,4 после 10 прыжков, ×2,2 после 30)
+  static const atkCost = 5.0; // атака стоит 5 материи × Медитацию
   static const startMatter = 100.0; // материи в начале игры и после каждого прыжка
   static const darkJumpA = 0.04, darkJumpP = 1.0;
   static const dotT = 6.0, mendT = 6.0; // длительность метки и восстановления, с
