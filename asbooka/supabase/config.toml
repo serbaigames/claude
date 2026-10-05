@@ -1,0 +1,22 @@
+# Настройки для Supabase CLI (supabase link / db push / functions deploy).
+project_id = "asbooka"
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["asbooka://auth"]
+
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+
+[functions.caldav-connect]
+verify_jwt = false
+
+[functions.caldav-sync]
+verify_jwt = false
+
+[functions.yandex-auth]
+verify_jwt = false
+
+[functions.sms-hook]
+verify_jwt = false
