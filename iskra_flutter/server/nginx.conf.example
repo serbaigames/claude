@@ -26,7 +26,7 @@ server {
     include snippets/iskra-security.conf;
 
     # Файлы, которые меняются с каждым выпуском
-    location ~ ^/(index\.html|flutter_bootstrap\.js|flutter_service_worker\.js|version\.json|main\.dart\.js|loader\.js)$ {
+    location ~ /(index\.html|flutter_bootstrap\.js|flutter_service_worker\.js|version\.json|main\.dart\.js|loader\.js|releases\.json|landing\.js|landing\.css|spark\.js)$ {
         include snippets/iskra-security.conf; add_header Cache-Control "no-cache" always;
     }
     # Движок игры: без типа application/wasm браузер его не запустит (в старых mime.types его нет)
@@ -35,5 +35,6 @@ server {
 
     # Учётные записи и рейтинги — на отдельном сервере (server/pocketbase), здесь только сама игра
 
+    location /play/ { try_files $uri $uri/ /play/index.html; }
     location / { try_files $uri $uri/ /index.html; }
 }

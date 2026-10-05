@@ -68,10 +68,8 @@ jobs:
           cp build/app/outputs/flutter-apk/app-release.apk "../out/iskra-${{ needs.meta.outputs.ver }}.apk"
       - name: Веб-сборка
         run: |
-          flutter build web --release --no-web-resources-cdn
-          mkdir -p ../web-pkg
-          cp -r build/web/. ../web-pkg/
-          cp server/site.htaccess ../web-pkg/.htaccess
+          flutter build web --release --no-web-resources-cdn --base-href /play/
+          tool/build_site.sh ../web-pkg
           cd ../web-pkg && zip -qr "../out/iskra-web-${{ needs.meta.outputs.ver }}.zip" .
       - uses: actions/upload-artifact@v4
         with:

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Искра — мир шестигранников</title>
+  <meta name="description" content="«Искра» — стратегия о маленькой искре во тьме бесконечного мира шестигранников. Играйте в браузере или скачайте для Android, Windows и iOS.">
+  <meta name="theme-color" content="#141026">
+  <meta property="og:title" content="Искра — мир шестигранников">
+  <meta property="og:description" content="Захватывайте клетки, сражайтесь с сущностями тьмы, изучайте технологии и совершайте прыжки в новые области вселенной.">
+  <meta property="og:image" content="play/icons/Icon-512.png">
+  <link rel="icon" type="image/png" href="play/favicon.png">
+  <link rel="apple-touch-icon" href="play/icons/Icon-192.png">
+  <link rel="stylesheet" href="landing.css">
+</head>
+<body>
+  <!-- Первый экран: анимация искры на всю ширину, название и кнопка «Играть» -->
+  <header class="hero" id="top">
+    <canvas id="spark" aria-hidden="true"></canvas>
+    <nav class="nav">
+      <a class="logo" href="#top"><span class="dot"></span>Искра</a>
+      <div class="links">
+        <a href="#download">Скачать</a>
+        <a href="#releases">Выпуски</a>
+        <a href="#top100">Рейтинги</a>
+        <a href="#support">Развитие</a>
+      </div>
+    </nav>
+    <div class="hero-text">
+      <p class="kicker">Стратегия в мире шестигранников</p>
+      <h1>Искра</h1>
+      <p class="lead">Маленькая искра во тьме бесконечного мира. Захватывайте клетки, сражайтесь с сущностями тьмы,
+        изучайте технологии и совершайте прыжки в новые области вселенной.</p>
+      <div class="cta">
+        <a class="btn play" href="play/">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>Играть
+        </a>
+        <a class="btn ghost" href="#download">Скачать</a>
+      </div>
+      <p class="ver">Текущая версия <b data-ver>—</b> · в браузере без установки, прогресс общий для всех устройств</p>
+    </div>
+    <a class="scroll" href="#about" aria-label="Подробнее"><span></span></a>
+  </header>
+
+  <main>
+    <section id="about" class="section">
+      <h2>Что ждёт искру</h2>
+      <div class="features">
+        <article class="card feat">
+          <div class="ico" style="--c:#f2b441"><svg viewBox="0 0 24 24"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"/></svg></div>
+          <h3>Мир шестигранников</h3>
+          <p>Захватывайте клетки тьмы, стройте шахты, заводы и башни, укрепляйте границы — тьма растёт каждую секунду.</p>
+        </article>
+        <article class="card feat">
+          <div class="ico" style="--c:#ef6b90"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+          <h3>Бои с сущностями</h3>
+          <p>Низшие, редкие, эпические и легендарные противники с особенностями. Восемнадцать способностей и их сборки.</p>
+        </article>
+        <article class="card feat">
+          <div class="ico" style="--c:#5fb2e6"><svg viewBox="0 0 24 24"><path d="M9 2h6v2h-1v5.5l5.6 9.7A2 2 0 0 1 17.9 22H6.1a2 2 0 0 1-1.7-2.8L10 9.5V4H9z"/></svg></div>
+          <h3>Технологии и прыжки</h3>
+          <p>Пульсары открывают дерево технологий, а прыжок переносит искру в новую область — сильнее, но и тьма злее.</p>
+        </article>
+        <article class="card feat">
+          <div class="ico" style="--c:#a88be0"><svg viewBox="0 0 24 24"><path d="M6 2h12v5l-4 5 4 5v5H6v-5l4-5-4-5z"/></svg></div>
+          <h3>Двадцать четыре эры</h3>
+          <p>Эры сменяют друг друга и меняют правила: одни помогают искре, другие — тьме.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="download" class="section">
+      <h2>Скачать</h2>
+      <p class="sub">Версия <b data-ver>—</b>. Учётная запись и прогресс общие: начните в браузере — продолжайте на телефоне.</p>
+      <div class="downloads">
+        <a class="card dl" data-dl="apk">
+          <div class="ico" style="--c:#5cc28d"><svg viewBox="0 0 24 24"><path d="M7 9h10v8a1 1 0 0 1-1 1h-1v3h-2v-3h-2v3H9v-3H8a1 1 0 0 1-1-1zm-2 0h1.5v6H5zm12.5 0H19v6h-1.5zM8 8a4 4 0 0 1 8 0zm2-2.2a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2zm4 0a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2z"/></svg></div>
+          <div><h3>Android</h3><p>APK-файл. Разрешите установку из неизвестных источников.</p></div>
+        </a>
+        <a class="card dl" data-dl="win">
+          <div class="ico" style="--c:#5fb2e6"><svg viewBox="0 0 24 24"><path d="M3 5.5l7.5-1v7H3zm8.5-1.2L21 3v8.5h-9.5zM3 12.5h7.5v7L3 18.5zm8.5 0H21V21l-9.5-1.3z"/></svg></div>
+          <div><h3>Windows</h3><p>Zip-архив для Windows 10/11. Распакуйте и запустите iskra.exe.</p></div>
+        </a>
+        <a class="card dl" data-dl="ios">
+          <div class="ico" style="--c:#ece6fa"><svg viewBox="0 0 24 24"><path d="M16.4 12.6c0-2.5 2-3.6 2.1-3.7a4.6 4.6 0 0 0-3.6-2c-1.5-.2-3 .9-3.7.9-.8 0-2-.9-3.2-.8A4.8 4.8 0 0 0 4 9.5c-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8s2.1-1.2 2.9-2.4a10 10 0 0 0 1.3-2.7 4.1 4.1 0 0 1-2.3-4zM14 5.3A4.2 4.2 0 0 0 15 2a4.3 4.3 0 0 0-2.8 1.5 4 4 0 0 0-1 3.1A3.6 3.6 0 0 0 14 5.3z"/></svg></div>
+          <div><h3>iOS</h3><p>Неподписанный IPA: ставится через Sideloadly или AltStore со своим Apple ID.</p></div>
+        </a>
+        <a class="card dl" data-dl="web">
+          <div class="ico" style="--c:#f2b441"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 6h-3a15.7 15.7 0 0 0-1.4-3.6A8 8 0 0 1 18.9 8zM12 4c.8 1.2 1.5 2.5 1.9 4h-3.8c.4-1.5 1.1-2.8 1.9-4zM4.3 14a8.2 8.2 0 0 1 0-4h3.4a16.5 16.5 0 0 0 0 4zm.8 2h3a15.7 15.7 0 0 0 1.4 3.6A8 8 0 0 1 5.1 16zm3-8h-3a8 8 0 0 1 4.4-3.6C8.9 5.5 8.4 6.7 8.1 8zM12 20c-.8-1.2-1.5-2.5-1.9-4h3.8c-.4 1.5-1.1 2.8-1.9 4zm2.3-6H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4zm.2 5.6c.6-1.1 1.1-2.3 1.4-3.6h3a8 8 0 0 1-4.4 3.6zm1.8-5.6a16.5 16.5 0 0 0 0-4h3.4a8.2 8.2 0 0 1 0 4z"/></svg></div>
+          <div><h3>Веб-версия</h3><p>Архив сайта для своего хостинга. Играть можно и прямо здесь — кнопкой «Играть».</p></div>
+        </a>
+      </div>
+      <p class="sub small">Все сборки и прошлые версии — на <a data-all-releases href="https://github.com/serbaigames/claude/releases">странице выпусков</a>.</p>
+    </section>
+
+    <section id="releases" class="section">
+      <h2>Выпуски</h2>
+      <div id="release-current"></div>
+      <div id="release-old"></div>
+    </section>
+
+    <section id="top100" class="section">
+      <h2>Рейтинги игроков</h2>
+      <div class="tabs" role="tablist">
+        <button role="tab" data-by="matter" aria-selected="true">Материя</button>
+        <button role="tab" data-by="cells">Клетки</button>
+        <button role="tab" data-by="kills">Сущности</button>
+      </div>
+      <p class="sub small" id="top-hint">Материя, добытая за всё время</p>
+      <div class="card table" id="top-table"><p class="muted">Загрузка…</p></div>
+      <p class="sub small">Рейтинг обновляется при каждом сохранении на сервере. Чтобы попасть в него, войдите в игре в учётную запись.</p>
+    </section>
+  </main>
+
+  <!-- Плашка о развитии проекта — в самом низу -->
+  <section id="support" class="support">
+    <div class="support-in">
+      <div class="heart" aria-hidden="true">♥</div>
+      <div>
+        <h2>Развитие проекта</h2>
+        <p>«Искра» — независимый проект одного автора. В игре нет рекламы, нет платных преимуществ и нет покупок,
+          которые делают одного игрока сильнее другого, и так останется.</p>
+        <p>Если игра вам нравится, можно поддержать проект и автора добровольным пожертвованием любого размера:
+          это помогает оплачивать сервер учётных записей и рейтингов, выпускать сборки для разных устройств
+          и находить время на новые эры, технологии, сущности и способности.</p>
+        <p class="muted" id="donate">Реквизиты для поддержки появятся здесь в ближайшем обновлении.</p>
+      </div>
+    </div>
+    <footer class="foot">
+      <span>© <span id="year">2026</span> «Искра»</span>
+      <a href="play/">Играть</a>
+      <a href="#top">Наверх</a>
+    </footer>
+  </section>
+
+  <script src="spark.js"></script>
+  <script src="landing.js"></script>
+</body>
+</html>

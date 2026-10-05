@@ -1,5 +1,5 @@
 # «Искра» (Flutter) — настройки для Apache (обычный виртуальный хостинг).
-# Лежит в корне сайта под именем .htaccess, рядом с index.html.
+# Лежит в корне сайта под именем .htaccess: лендинг в корне, игра в каталоге play/.
 # Нужны модули mod_rewrite, mod_headers, mod_expires, mod_deflate (есть почти везде).
 
 AddDefaultCharset utf-8
@@ -35,7 +35,7 @@ AddType font/otf                  .otf
 
 <IfModule mod_headers.c>
   # Эти файлы меняются с каждым выпуском — браузер должен их перепроверять
-  <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter_service_worker\.js|version\.json|main\.dart\.js|loader\.js)$">
+  <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter_service_worker\.js|version\.json|main\.dart\.js|loader\.js|releases\.json|landing\.js|landing\.css|spark\.js)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
 

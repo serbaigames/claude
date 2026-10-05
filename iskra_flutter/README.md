@@ -22,8 +22,17 @@ flutter run --dart-define=ISKRA_SERVER=http://127.0.0.1:8090/
 ```
 
 Как поставить сервер на VPS и перенести аккаунты со старого PHP-сервера — в `server/pocketbase/README.md`.
-Без сервера игра работает, прогресс хранится только на устройстве. Веб-сборка — это только `build/web/`
-(и `.htaccess`), её можно выложить на любой хостинг.
+Без сервера игра работает, прогресс хранится только на устройстве.
+
+Сайт iskraplay.ru: в корне лендинг (`landing/`: описание, кнопка «Играть», выпуски, ссылки на сборки, рейтинги),
+игра в каталоге `/play/`. Собрать как в релизе:
+
+```bash
+flutter build web --release --no-web-resources-cdn --base-href /play/
+tool/build_site.sh ../web-pkg   # лендинг + play/ + шрифты + releases.json из lib/version.dart + .htaccess
+```
+
+Архив `iskra-web-<версия>.zip` из релиза устроен так же: его содержимое целиком выкладывается в корень сайта.
 
 Веб-движку Flutter (CanvasKit) нужны от сервера две вещи, иначе вместо игры белый экран:
 файлы `.wasm` с типом `application/wasm` и `'wasm-unsafe-eval'` в `script-src`, если сайт отдаёт заголовок
