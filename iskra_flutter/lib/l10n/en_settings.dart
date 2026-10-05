@@ -98,7 +98,6 @@ const enSettings = <String, String>{
   'Звёздная плазма': 'Star Plasma',
   'Звезда с короной и протуберанцами. Стиль по умолчанию.': 'A star with a corona and prominences. The default style.',
   'Стимпанк': 'Steampunk',
-  'Латунное сердце: шестерни, заклёпки, топка и пар.': 'A brass heart: gears, rivets, a furnace and steam.',
   'Готика': 'Gothic',
   'Биология': 'Biology',
   'Кристалл': 'Crystal',

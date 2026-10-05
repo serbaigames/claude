@@ -385,10 +385,11 @@ const enCore = <String, String>{
   'Звёздная плазма': 'Star Plasma',
   'Звезда с короной и протуберанцами. Стиль по умолчанию.': 'A star with a corona and prominences. The default style.',
   'Стимпанк': 'Steampunk',
-  'Латунное сердце: шестерни, заклёпки, топка и пар.': 'A brass heart: gears, rivets, a furnace and steam.',
+  'Часовой механизм в стеклянной сфере: шестерни, искры и льющийся металл.':
+      'Clockwork in a glass sphere: gears, sparks and molten metal.',
   'Готика': 'Gothic',
-  'Роза-витраж в каменной оправе с шипами, свет сквозь цветное стекло.':
-      'A stained-glass rose in a thorny stone frame, light through colored glass.',
+  'Багровая сфера в кольце скал и пиков, на вершине — собор с горящими окнами.':
+      'A crimson sphere ringed by crags and spires, crowned by a cathedral with glowing windows.',
   'Биология': 'Biology',
   'Живая клетка: дышащая мембрана, ядро, митохондрии и реснички.':
       'A living cell: breathing membrane, nucleus, mitochondria and cilia.',
