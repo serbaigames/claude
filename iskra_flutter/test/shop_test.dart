@@ -91,7 +91,7 @@ void main() {
     expect(shop.canBoost, isFalse);
     expect(ads.shown, 2);
 
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'iskra-lang': 'ru'});
     final p2 = await SharedPreferences.getInstance();
     final s2 = Shop(p2, billing: FakeBilling(), ads: ads);
     await s2.init();

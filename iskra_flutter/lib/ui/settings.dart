@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/game.dart';
+import '../l10n/l10n.dart';
 import '../shop/shop.dart';
 import '../version.dart';
 import 'controller.dart';
@@ -149,6 +150,16 @@ class AppSettings extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _head('Язык', Icons.translate),
+        _card([
+          SegmentedButton<Lang>(
+            key: const ValueKey('lang'),
+            showSelectedIcon: false,
+            segments: [for (final l in Lang.values) ButtonSegment(value: l, label: Text(l.title))],
+            selected: {lang},
+            onSelectionChanged: (v) => ctl.setLang(v.first),
+          ),
+        ]),
         _head('Графика и производительность', Icons.speed),
         _card([
           SegmentedButton<GfxLevel>(

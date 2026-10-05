@@ -4,9 +4,11 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/game.dart';
+import '../l10n/l10n.dart';
 import '../net/api.dart';
 import '../net/cloud_sync.dart';
 import '../shop/shop.dart';
@@ -84,6 +86,27 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Язык интерфейса. По умолчанию — русский, если язык устройства русский (или белорусский, украинский, казахский), иначе английский
+  static const langKey = 'iskra-lang';
+  void setLang(Lang l) {
+    if (lang == l) return;
+    lang = l;
+    prefs.setString(langKey, l.name);
+    notifyListeners();
+    // перерисовать всё дерево виджетов, сохранив их состояние (открытые окна, вкладки, прокрутку)
+    void mark(Element e) {
+      e.markNeedsBuild();
+      e.visitChildren(mark);
+    }
+
+    WidgetsBinding.instance.rootElement?.visitChildren(mark);
+  }
+
+  static Lang deviceLang() {
+    final code = PlatformDispatcher.instance.locale.languageCode;
+    return const {'ru', 'be', 'uk', 'kk'}.contains(code) ? Lang.ru : Lang.en;
+  }
+
   /// Окно новой эры: показывается при смене эры во время игры
   bool showEra = false;
   void _eraChanged() {
@@ -108,6 +131,8 @@ class GameController extends ChangeNotifier {
   void _boot() {
     Gfx.level = Gfx.parse(prefs.getString(gfxKey));
     uiAuto.value = prefs.getString(uiKey) != '1';
+    final savedLang = prefs.getString(langKey);
+    lang = savedLang == null ? deviceLang() : Lang.parse(savedLang);
     game = _newGameObject();
     final raw = prefs.getString(saveKey);
     if (raw == null || !_attach(raw)) game.newGame();
