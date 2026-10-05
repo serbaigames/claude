@@ -84,7 +84,7 @@ void main() {
     // громкость музыки сохраняется
     ctl.sound.setMusic(0.25);
     expect(prefs.getDouble('iskra-vol-music'), 0.25);
-    for (final (t, key) in [('shop', 'shop-unavailable'), ('stats', 'stats'), ('about', 'app-version'), ('dev', 'donate-qr')]) {
+    for (final (t, key) in [('shop', 'shop-unavailable'), ('stats', 'stats'), ('about', 'app-version'), ('dev', 'support-text')]) {
       await tester.ensureVisible(find.byKey(ValueKey('set-$t')));
       await tester.tap(find.byKey(ValueKey('set-$t')));
       await tester.pump(const Duration(milliseconds: 100));
