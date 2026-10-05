@@ -273,6 +273,7 @@ class _ScenePainter extends CustomPainter {
     final bgDst = Rect.fromLTWH(ox, oy, w * 1.08, h * 1.08),
         bgSrc = Rect.fromLTWH(0, 0, bg.width.toDouble(), bg.height.toDouble());
     canvas.drawImageRect(bg, bgSrc, bgDst, Paint()..filterQuality = FilterQuality.low);
+    paintFieldTint(canvas, bgDst);
 
     // сущность: линза, джеты, диск, рамка, барьер
     final collapse = fx.wonAt == null ? 1.0 : (1 - (t - fx.wonAt!) / 1.2).clamp(0.0, 1.0);

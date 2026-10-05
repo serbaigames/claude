@@ -191,7 +191,9 @@ class _MapPainter extends CustomPainter {
     canvas.clipRect(Offset.zero & size);
     final bg = nebula(size);
     canvas.drawImageRect(bg, Rect.fromLTWH(0, 0, bg.width.toDouble(), bg.height.toDouble()), Offset.zero & size, Paint());
+    paintFieldTint(canvas, Offset.zero & size);
     _stars(canvas, size, c0, z);
+    final look = fieldLook;
 
     final own = <Cell>[], dark = <Cell>[];
     for (final key in g.vis) {
@@ -220,13 +222,14 @@ class _MapPainter extends CustomPainter {
       }
       canvas.save();
       canvas.clipPath(land);
-      canvas.drawPath(land, Paint()..color = C.gold.withValues(alpha: .09));
+      canvas.drawPath(land, Paint()..color = look.land.withValues(alpha: .09));
       for (final c in own) {
         final p = scr(c);
         for (var i = 0; i < (5 * Gfx.density).ceil(); i++) {
           final u = t * .4 + i * 1.7 + c.q, d = rc * .45 * math.sin(t * .7 + i);
-          plasmaGlow(canvas, p + Offset(math.cos(u) * d, math.sin(u * 1.3) * d), rc * .5, const Color(0xFFF2AA3C), .08);
+          plasmaGlow(canvas, p + Offset(math.cos(u) * d, math.sin(u * 1.3) * d), rc * .5, look.glow, .08);
         }
+        if (!c.spark) paintCellDecor(canvas, p, rc, t, (c.q * 31 + c.r * 17).abs());
       }
       canvas.restore();
     }
@@ -243,6 +246,7 @@ class _MapPainter extends CustomPainter {
     for (final (c, p) in cells) {
       if (c.spark) paintSpark(canvas, p, rc * (.34 + .06 * a), t, .15, rays: 30);
     }
+    paintFieldAmbient(canvas, size, t);
     void layer(double alpha, void Function() draw) {
       if (alpha <= 0) return;
       if (alpha >= 1) return draw();
@@ -301,22 +305,13 @@ class _MapPainter extends CustomPainter {
         }
       }
     }
-    final line = Paint()
-      ..strokeWidth = rc * .06
-      ..strokeCap = StrokeCap.round
-      ..blendMode = BlendMode.plus
-      ..color = const Color(0x59FFC86E);
     for (final c in g.own) {
       for (final n in g.neighbors(c)) {
         if (!n.own || n.key.compareTo(c.key) < 0) continue;
         // от ближнего к Искре — к дальнему
         final far = (dist[n.key] ?? 99) >= (dist[c.key] ?? 99);
         final p0 = scr(far ? c : n), p1 = scr(far ? n : c);
-        canvas.drawLine(p0, p1, line);
-        for (var j = 0; j < 2; j++) {
-          final u = (t * .6 + j * .5 + c.q * .13) % 1;
-          plasmaGlow(canvas, Offset.lerp(p0, p1, u)!, rc * .1, const Color(0xFFFFE6AA), .9);
-        }
+        paintChannel(canvas, p0, p1, rc, t, c.q * .13);
       }
     }
   }
@@ -335,8 +330,8 @@ class _MapPainter extends CustomPainter {
         final col = hot
             ? const Color(0xFFEF5A82)
             : n != null
-            ? const Color(0xFFFFBE64)
-            : C.gold;
+            ? Color.lerp(fieldLook.wall, Colors.white, .15)!
+            : fieldLook.wall;
         final al = hot ? .6 + .4 * math.sin(t * 6) : (n != null ? .55 : .25);
         final wall = Paint()
           ..strokeWidth = math.max(1.0, (hot ? 3 : 2) * k)
@@ -344,6 +339,7 @@ class _MapPainter extends CustomPainter {
           ..blendMode = BlendMode.plus
           ..color = col.withValues(alpha: al);
         canvas.drawLine(p0, p1, wall);
+        paintWallDecor(canvas, p0, p1, Offset(math.cos(a0), math.sin(a0)), rc, t, n != null);
         if (n != null) {
           canvas.drawLine(
             p0,
@@ -410,7 +406,7 @@ class _MapPainter extends CustomPainter {
   // Своя клетка на схеме: свечение, число защиты, узлы строений по кругу и уровень
   void _scheme(Canvas canvas, Game g, Cell c, Offset p, double rc, double fs, double t) {
     final threat = g.threatened(c);
-    plasmaGlow(canvas, p, rc * .3, threat ? const Color(0xFFFF6E8C) : const Color(0xFFFFC86E), .35);
+    plasmaGlow(canvas, p, rc * .3, threat ? const Color(0xFFFF6E8C) : Color.lerp(fieldLook.glow, Colors.white, .3)!, .35);
     final dv = g.cellDef(c).floor();
     _text(
       canvas,
@@ -469,7 +465,7 @@ class _MapPainter extends CustomPainter {
     for (final (q, back, type) in sats) {
       if (back) paintBuilding(canvas, type, q, rc * .08 * ss, t);
     }
-    paintSparkStar(canvas, p, r, t + c.q * 2, .1, rays: 18, flares: false);
+    paintColony(canvas, p, r, t + c.q * 2);
     paintStatRing(canvas, p, r * 1.2, 2, [c.m, c.e, c.f]);
     for (final (q, back, type) in sats) {
       if (!back) paintBuilding(canvas, type, q, rc * .11 * ss, t);
