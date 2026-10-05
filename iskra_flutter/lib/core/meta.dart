@@ -277,13 +277,20 @@ extension GameMeta on Game {
   }
 
   /* ---------- прыжок искры ---------- */
-  // Прибавка к бонусу: 0,02 × рекорд клеток^1,5 × агрессивность^2,5 — длинный мир выгоднее серии быстрых сбросов
-  double rebirthGain() => jsRound(0.02 * math.pow(s.worldMax, 1.5) * math.pow(aggr, 2.5) * 100) / 100;
+  // Прибавка к бонусу: 0,08 × рекорд клеток × агрессивность^2,5 — большой мир выгоднее серии быстрых сбросов
+  double rebirthGain() => jsRound(0.08 * s.worldMax * math.pow(aggr, 2.5) * 100) / 100;
+
+  /// Пульсары за прыжок: 1 + рекорд клеток / 5
+  int rebirthPulsars() => 1 + s.worldMax ~/ 5;
+
+  /// Стоит предложить прыжок: тьма отняла больше 60% рекордной области (или всё, кроме искры)
+  bool get jumpAdvised => hasTech('jump') && s.worldMax >= 3 && own.length <= math.max(1, s.worldMax * 0.4);
 
   void rebirth() {
     s.lastWorld = s.worldTime;
     s.bonus = jsRound((s.bonus + rebirthGain()) * 100) / 100;
     s.rebirths++;
+    s.pulsars += rebirthPulsars();
     // Персонаж, очки и способности начинаются заново; остаются бонус, скорость искры, ядро и артефакты
     for (final p in Defs.params) {
       s.char[p.id] = 1;

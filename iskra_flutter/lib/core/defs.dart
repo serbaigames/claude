@@ -80,16 +80,19 @@ class BuildingDef {
 
 /// Коэффициенты баланса (набор C8 из веб-версии)
 class Bal {
-  static const mineCost = 30.0, mineGrow = 1.7, facCost = 45.0, facGrow = 1.75, bonusPow = 0.75;
-  static const foeHp = 2.5, foeAtk = 0.5, foeReward = 2.5, defCost = 8.0, defGrow = 1.35;
+  // шахта окупается ~2 мин (60 материи за 0,5/с), а не за 25 с — первый мир не превращается в снежный ком
+  static const mineCost = 60.0, mineRate = 0.5, mineGrow = 1.7, facCost = 90.0, facGrow = 1.75;
+  static const bonusPow = 0.6; // сила бонуса прыжка в добыче: (1 + бонус)^0,6
+  static const bonusFightPow = 0.3; // сила бонуса прыжка в бою: здоровье и урон × (1 + бонус)^0,3
+  static const foeHp = 2.5, foeAtk = 0.5, foeReward = 1.0, defCost = 8.0, defGrow = 1.35;
   static const devMin = 1.008, devMax = 1.028, towerCost = 12.0, towerGrow = 1.8;
   static const growthRate = 0.5; // тьма растёт вдвое медленнее
   static const aggrMin = 0.7, aggrMax = 1.6; // агрессивность мира
   static const legendChance = 0.01;
   static const earlyMul = 1.6; // сущности сильнее в 1,6 раза во всех мирах
-  // Сила тьмы растёт с прыжками: 1 + a × прыжки^p (×2 после 3 прыжков, ×5 после 10, ×10 после 20)
+  // Сила тьмы растёт с прыжками: 1 + a × прыжки^p (×1,4 после 10 прыжков, ×2,2 после 30)
   static const startMatter = 100.0; // материи в начале игры и после каждого прыжка
-  static const darkJumpA = 0.282, darkJumpP = 1.151;
+  static const darkJumpA = 0.04, darkJumpP = 1.0;
   static const dotT = 6.0, mendT = 6.0; // длительность метки и восстановления, с
   static const ptGrow = 1.015; // каждое следующее ОП/ОС дороже на 1,5%
   static const abilitySlots = 4;

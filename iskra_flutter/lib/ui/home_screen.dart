@@ -408,6 +408,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           _sqBtn(
             Icon(Icons.rocket_launch_outlined, size: 20, color: jump ? C.gold : C.muted),
             () => jump ? ctl.openJump() : setState(() => tab = MenuTab.tech),
+            on: g.jumpAdvised,
             tip: jump ? 'Прыжок искры' : 'Прыжок: нужна технология',
           ),
         ],
@@ -705,44 +706,52 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   /// Окно пункта меню поверх карты; нажатие мимо окна или на крестик закрывает его
+  /// Строка балансов остаётся видна над окном: окно открывается под ней
   Widget _window(MenuTab t) => Positioned.fill(
-    child: GestureDetector(
-      onTap: _closeWindow,
-      child: ColoredBox(
-        color: const Color(0x99080514),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: GestureDetector(
-            onTap: () {},
-            child: Container(
-              key: ValueKey('window-${t.name}'),
-              constraints: const BoxConstraints(maxWidth: 560),
-              margin: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-              decoration: BoxDecoration(
-                color: C.panel,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: C.line),
-                boxShadow: const [BoxShadow(color: Color(0x80000000), blurRadius: 18)],
-              ),
-              // крестик отдельной строкой сверху, чтобы не наезжать на кнопки в заголовке окна
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  SizedBox(
-                    height: 34,
-                    child: IconButton(
-                      tooltip: 'Закрыть',
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.close, size: 20, color: C.muted),
-                      onPressed: _closeWindow,
-                    ),
+    child: Column(
+      children: [
+        ColoredBox(color: const Color(0xF20B0816), child: _topBar(ctl.game)),
+        Expanded(child: _windowBody(t)),
+      ],
+    ),
+  );
+
+  Widget _windowBody(MenuTab t) => GestureDetector(
+    onTap: _closeWindow,
+    child: ColoredBox(
+      color: const Color(0x99080514),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: GestureDetector(
+          onTap: () {},
+          child: Container(
+            key: ValueKey('window-${t.name}'),
+            constraints: const BoxConstraints(maxWidth: 560),
+            margin: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+            decoration: BoxDecoration(
+              color: C.panel,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: C.line),
+              boxShadow: const [BoxShadow(color: Color(0x80000000), blurRadius: 18)],
+            ),
+            // крестик отдельной строкой сверху, чтобы не наезжать на кнопки в заголовке окна
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                SizedBox(
+                  height: 34,
+                  child: IconButton(
+                    tooltip: 'Закрыть',
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.close, size: 20, color: C.muted),
+                    onPressed: _closeWindow,
                   ),
-                  Flexible(
-                    child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(14, 0, 14, 16), child: panelFor(t, ctl)),
-                  ),
-                ],
-              ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(14, 0, 14, 16), child: panelFor(t, ctl)),
+                ),
+              ],
             ),
           ),
         ),

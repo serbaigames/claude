@@ -95,6 +95,8 @@ class GameController extends ChangeNotifier {
 
   bool jumpDefeat = false; // материя ушла в минус — окно прыжка без кнопки «Остаться»
   bool showJump = false;
+  bool jumpAdvice = false; // окно прыжка открыто подсказкой: тьма отняла почти всю область
+  int _advisedWorld = -1; // мир (worldStart), в котором подсказка уже показана
   bool _noSave = false;
   double _panelT = 0, _saveT = 0, _cloudT = 0;
 
@@ -154,6 +156,14 @@ class GameController extends ChangeNotifier {
       jumpDefeat = true;
       showJump = true;
       save();
+      notifyListeners();
+    }
+    // тьма отняла почти всю область — один раз за мир сами предлагаем прыжок
+    if (!showJump && game.b == null && game.def == null && _advisedWorld != game.s.worldStart && game.jumpAdvised) {
+      _advisedWorld = game.s.worldStart;
+      jumpDefeat = false;
+      jumpAdvice = true;
+      showJump = true;
       notifyListeners();
     }
     sound.setBattle(game.b != null);
@@ -229,6 +239,7 @@ class GameController extends ChangeNotifier {
       return;
     }
     jumpDefeat = false;
+    jumpAdvice = false;
     showJump = true;
     notifyListeners();
   }
@@ -242,6 +253,7 @@ class GameController extends ChangeNotifier {
   void doJump() {
     showJump = false;
     jumpDefeat = false;
+    jumpAdvice = false;
     act((g) => g.rebirth());
     save();
   }
