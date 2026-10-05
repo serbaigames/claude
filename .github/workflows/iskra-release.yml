@@ -70,11 +70,17 @@ jobs:
         run: |
           flutter build web --release --no-web-resources-cdn --base-href /play/
           tool/build_site.sh ../web-pkg
-          cd ../web-pkg && zip -qr "../out/iskra-web-${{ needs.meta.outputs.ver }}.zip" .
+          mkdir -p ../site
+          cd ../web-pkg && zip -qr "../site/iskra-web-${{ needs.meta.outputs.ver }}.zip" .
       - uses: actions/upload-artifact@v4
         with:
           name: android-web
           path: out/*
+      # Архив сайта не публикуется: он уходит в закрытый черновик выпуска (см. release)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: site/*
 
   windows:
     needs: meta
@@ -136,7 +142,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: out
+          pattern: '{android-web,windows,ios}'
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.meta.outputs.tag }}
@@ -145,3 +156,12 @@ jobs:
           body_path: iskra_flutter/RELEASE_NOTES.md
           prerelease: true
           files: out/*
+      # Сборка для сайта iskraplay.ru — в черновике выпуска: черновики видят только участники репозитория с правом записи
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: iskra-site-v${{ needs.meta.outputs.ver }}
+          target_commitish: ${{ github.sha }}
+          name: Сайт iskraplay.ru ${{ needs.meta.outputs.ver }} (закрыто)
+          body: Архив сайта iskraplay.ru — распаковать в корень сайта. Черновик не публиковать.
+          draft: true
+          files: site/*
