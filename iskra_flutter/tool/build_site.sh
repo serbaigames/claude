@@ -7,7 +7,7 @@ out="${1:?каталог назначения}"
 rm -rf "$out"
 mkdir -p "$out/play" "$out/fonts"
 cp -r build/web/. "$out/play/"
-cp landing/index.html landing/landing.css landing/landing.js landing/spark.js "$out/"
+cp landing/index.html landing/landing.css landing/landing.js landing/spark.js landing/donate-qr.png "$out/"
 cp assets/fonts/*.ttf "$out/fonts/"
 # Раньше игра жила в корне: браузеры с её service worker получат этот, и он сам себя удалит
 cp build/web/flutter_service_worker.js "$out/"

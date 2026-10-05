@@ -1,6 +1,7 @@
 // Окно «Настройки»: вкладки сверху (как в рейтингах), под ними разделы выбранной вкладки.
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/game.dart';
 import '../version.dart';
@@ -428,8 +429,8 @@ class AboutView extends StatelessWidget {
 }
 
 /* ---------- развитие проекта ---------- */
-/// Реквизиты для поддержки: (название, значение). Пока пусто — показывается заглушка
-const donateDetails = <(String, String)>[];
+/// Перевод через СБП: ссылка из QR-кода (Т-Банк или Сбербанк). Пустая строка — показывается заглушка
+const donateUrl = 'https://t.tb.ru/c2c-qr-choose-bank?requisiteNumber=+79163956434&bankCode=100000000004';
 
 class SupportView extends StatelessWidget {
   const SupportView({super.key});
@@ -459,24 +460,47 @@ class SupportView extends StatelessWidget {
       ]),
       _head('Реквизиты', Icons.account_balance_wallet_outlined),
       _card([
-        if (donateDetails.isEmpty)
+        if (donateUrl.isEmpty)
           const Text(
             'Реквизиты для поддержки появятся здесь в ближайшем обновлении.',
             key: ValueKey('donate-empty'),
             style: TextStyle(color: C.muted),
           )
-        else
-          for (final (k, v) in donateDetails)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(k, style: const TextStyle(color: C.muted, fontSize: 12)),
-                  SelectableText(v, style: const TextStyle(fontWeight: FontWeight.w700)),
-                ],
+        else ...[
+          const Text(
+            'Перевести через Т-Банк или Сбербанк',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 10),
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                'assets/images/donate_qr.png',
+                key: const ValueKey('donate-qr'),
+                width: 200,
+                height: 200,
+                filterQuality: FilterQuality.none,
               ),
             ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Наведите камеру телефона на код. На телефоне можно сразу нажать кнопку ниже и выбрать банк.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: C.muted, fontSize: 12),
+          ),
+          const SizedBox(height: 10),
+          Center(
+            child: FilledButton.icon(
+              key: const ValueKey('donate-open'),
+              onPressed: () => launchUrl(Uri.parse(donateUrl), mode: LaunchMode.externalApplication),
+              icon: const Icon(Icons.favorite),
+              label: const Text('Перевести'),
+            ),
+          ),
+        ],
       ]),
       const Text(
         'Спасибо, что играете!',

@@ -3,8 +3,6 @@
 (() => {
   const API = 'https://api.iskraplay.ru/api/iskra/';
   const GH = 'https://github.com/serbaigames/claude/releases';
-  // Реквизиты для поддержки: [название, значение]. Пока пусто — показывается заглушка
-  const DONATE = [];
 
   const $ = (s, el = document) => el.querySelector(s);
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -95,9 +93,6 @@
     top(b.dataset.by);
   }));
 
-  if (DONATE.length) {
-    $('#donate').outerHTML = `<div class="donate-list">${DONATE.map(([k, v]) => `<div><small>${esc(k)}</small>${esc(v)}</div>`).join('')}</div>`;
-  }
   $('#year').textContent = new Date().getFullYear();
   releases();
   top('matter');
