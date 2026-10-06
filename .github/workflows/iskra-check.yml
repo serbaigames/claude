@@ -31,6 +31,16 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+      - name: Ключ подписи для RuStore
+        env:
+          KS: ${{ secrets.ISKRA_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ISKRA_KEYSTORE_PASSWORD }}
+        run: |
+          # без секретов APK подписывается отладочным ключом (годится для ручной установки, не для магазина)
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > android/iskra-upload.jks
+            printf 'storeFile=iskra-upload.jks\nstorePassword=%s\nkeyAlias=iskra\nkeyPassword=%s\n' "$KS_PASS" "$KS_PASS" > android/key.properties
+          fi
       - run: flutter build apk --release --dart-define=ISKRA_AD_UNIT=${{ vars.ISKRA_AD_UNIT || 'R-M-20184590-1' }}
       - uses: actions/upload-artifact@v4
         with:

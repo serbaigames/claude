@@ -61,6 +61,16 @@ jobs:
           unzip -qo /tmp/pb.zip pocketbase -d /tmp/pb
           echo "ISKRA_POCKETBASE=/tmp/pb/pocketbase" >> "$GITHUB_ENV"
       - run: flutter test
+      - name: Ключ подписи для RuStore
+        env:
+          KS: ${{ secrets.ISKRA_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ISKRA_KEYSTORE_PASSWORD }}
+        run: |
+          # без секретов APK подписывается отладочным ключом (годится для ручной установки, не для магазина)
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > android/iskra-upload.jks
+            printf 'storeFile=iskra-upload.jks\nstorePassword=%s\nkeyAlias=iskra\nkeyPassword=%s\n' "$KS_PASS" "$KS_PASS" > android/key.properties
+          fi
       - name: APK
         run: |
           # блок видео за награду Яндекса — переменная репозитория ISKRA_AD_UNIT (без неё — демонстрационный)
