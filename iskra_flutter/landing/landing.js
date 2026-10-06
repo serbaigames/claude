@@ -22,10 +22,10 @@
     for (const k in f) f[k] = [f[k][0], base + f[k][1]];
     return f;
   };
-  // Android с 0.6.0 — в RuStore (APK подписан ключом магазина), раньше — APK с GitHub
+  // Android с 0.6.1 — в RuStore (APK подписан ключом магазина), раньше — APK с GitHub
   const fileLinks = (v) => {
     const f = files(v);
-    if (newer(v, '0.6.0')) f.apk = ['RuStore', RUSTORE];
+    if (newer(v, '0.6.1')) f.apk = ['RuStore', RUSTORE];
     return `<div class="files">${['apk', 'win'].filter((k) => f[k])
       .map((k) => `<a href="${f[k][1]}">${f[k][0]}</a>`).join('')}<a href="${GH}/tag/iskra-v${v}">Страница выпуска</a></div>`;
   };

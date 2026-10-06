@@ -1,7 +1,7 @@
 name: iskra
 description: "Искра — мир шестигранников. Flutter-версия браузерной игры."
 publish_to: 'none'
-version: 0.6.0+9
+version: 0.6.1+10
 
 environment:
   sdk: ^3.13.5
