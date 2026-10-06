@@ -286,9 +286,12 @@ const enCore = <String, String>{
   'Ячеек способностей теперь 4: одна способность убрана, очки возвращены.':
       'Ability slots are now 4: one ability removed, points refunded.',
   // version.dart
+  '6 октября 2026': 'October 6, 2026',
   '5 октября 2026': 'October 5, 2026',
   '3 октября 2026': 'October 3, 2026',
   '2 октября 2026': 'October 2, 2026',
+  'Версия для Android теперь в RuStore. Старую версию, скачанную с сайта или GitHub, перед установкой нужно удалить; прогресс сохранится, если войти в учётную запись.': 'The Android version is now on RuStore. Uninstall the old version downloaded from the website or GitHub first; your progress is kept if you sign in to your account.',
+  'На сайте появилась страница политики конфиденциальности.': 'The website now has a privacy policy page.',
   'Магазин в настройках: видео за награду удваивает добычу материи на 10 минут; покупка «Без рекламы + поддержать автора» включает ускорение без видео (Android, RuStore).': 'Shop in settings: a rewarded video doubles matter income for 10 minutes; the "No ads + support the author" purchase turns the boost on without video (Android, RuStore).',
   'Четыре платных стиля искры: стимпанк, готика, биология и кристалл. Стиль меняет искру, захваченные клетки, каналы, границы и фон поля.': 'Four paid Spark styles: steampunk, gothic, bio and crystal. A style changes the Spark, captured cells, channels, borders and the field background.',
   'Английский язык: переключатель «Русский / English» в «Настройки → Приложение».':

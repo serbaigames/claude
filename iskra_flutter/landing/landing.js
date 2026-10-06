@@ -3,6 +3,7 @@
 (() => {
   const API = 'https://api.iskraplay.ru/api/iskra/';
   const GH = 'https://github.com/serbaigames/claude/releases';
+  const RUSTORE = 'https://www.rustore.ru/catalog/app/games.serbai.iskra';
 
   const $ = (s, el = document) => el.querySelector(s);
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -21,8 +22,10 @@
     for (const k in f) f[k] = [f[k][0], base + f[k][1]];
     return f;
   };
+  // Android с 0.6.0 — в RuStore (APK подписан ключом магазина), раньше — APK с GitHub
   const fileLinks = (v) => {
     const f = files(v);
+    if (newer(v, '0.6.0')) f.apk = ['RuStore', RUSTORE];
     return `<div class="files">${['apk', 'win'].filter((k) => f[k])
       .map((k) => `<a href="${f[k][1]}">${f[k][0]}</a>`).join('')}<a href="${GH}/tag/iskra-v${v}">Страница выпуска</a></div>`;
   };
