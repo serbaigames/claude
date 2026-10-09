@@ -1,0 +1,5 @@
+DirectoryIndex index.php
+# Напрямую открыть можно только index.php
+<FilesMatch "^(?!index\.php$).+">
+  Require all denied
+</FilesMatch>

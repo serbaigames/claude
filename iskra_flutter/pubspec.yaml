@@ -1,0 +1,43 @@
+name: iskra
+description: "Искра — мир шестигранников. Flutter-версия браузерной игры."
+publish_to: 'none'
+version: 0.6.1+10
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  audioplayers: ^6.8.1
+  flutter:
+    sdk: flutter
+  flutter_rustore_pay: ^11.1.1
+  http: ^1.6.0
+  shared_preferences: ^2.5.5
+  yandex_mobileads: ^8.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/icons/
+    - assets/audio/
+
+  # Шрифты веб-версии (SIL OFL 1.1, тексты лицензий в assets/fonts)
+  fonts:
+    - family: PT Sans
+      fonts:
+        - asset: assets/fonts/PTSans-Regular.ttf
+        - asset: assets/fonts/PTSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/PTSans-Italic.ttf
+          style: italic
+    - family: Philosopher
+      fonts:
+        - asset: assets/fonts/Philosopher-Regular.ttf
+        - asset: assets/fonts/Philosopher-Bold.ttf
+          weight: 700

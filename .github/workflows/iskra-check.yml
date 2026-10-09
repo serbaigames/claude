@@ -1,0 +1,66 @@
+# Проверка сборок «Искры» без выпуска: Android (APK для проверки на телефоне) и iOS.
+# Запускается пушем в рабочие ветки Claude с изменениями в iskra_flutter/ или вручную из вкладки Actions.
+name: iskra-check
+
+on:
+  push:
+    branches: ['claude/project-thread-y61thg']
+    paths: ['iskra_flutter/**', '.github/workflows/iskra-check.yml']
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.47.6'
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: iskra_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - name: Ключ подписи для RuStore
+        env:
+          KS: ${{ secrets.ISKRA_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ISKRA_KEYSTORE_PASSWORD }}
+        run: |
+          # без секретов APK подписывается отладочным ключом (годится для ручной установки, не для магазина)
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > android/iskra-upload.jks
+            printf 'storeFile=iskra-upload.jks\nstorePassword=%s\nkeyAlias=iskra\nkeyPassword=%s\n' "$KS_PASS" "$KS_PASS" > android/key.properties
+          fi
+      - run: flutter build apk --release --dart-define=ISKRA_AD_UNIT=${{ vars.ISKRA_AD_UNIT || 'R-M-20184590-1' }}
+      - name: Сертификат подписи APK
+        run: $(ls -d $ANDROID_HOME/build-tools/*/ | tail -1)apksigner verify --print-certs build/app/outputs/flutter-apk/app-release.apk | grep -E "DN|SHA-256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iskra-check-apk
+          path: iskra_flutter/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 7
+
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: iskra_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign

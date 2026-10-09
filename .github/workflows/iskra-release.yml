@@ -1,0 +1,178 @@
+# Релиз Flutter-версии «Искры»: Android (APK), веб, Windows (zip) и iOS (неподписанный IPA).
+# Запускается изменением iskra_flutter/RELEASE_NOTES.md в ветке (тег — iskra-v<версия из pubspec.yaml>),
+# тегом iskra-v* или вручную из вкладки Actions.
+name: iskra-release
+
+on:
+  push:
+    tags: ['iskra-v*']
+    branches: ['claude/project-thread-ioiybu', 'main', 'master']
+    paths: ['iskra_flutter/RELEASE_NOTES.md']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Тег релиза, например iskra-v0.3.0'
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_VERSION: '3.47.6'
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.t.outputs.tag }}
+      ver: ${{ steps.t.outputs.ver }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: t
+        name: Тег релиза
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then t="${{ github.event.inputs.tag }}"
+          elif [ "${{ github.ref_type }}" = tag ]; then t="${{ github.ref_name }}"
+          else t="iskra-v$(sed -n 's/^version: *\([^+]*\).*/\1/p' iskra_flutter/pubspec.yaml)"; fi
+          echo "tag=$t" >> "$GITHUB_OUTPUT"
+          echo "ver=${t#iskra-v}" >> "$GITHUB_OUTPUT"
+
+  android-web:
+    needs: meta
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: iskra_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: PocketBase для проверки клиента сервера
+        run: |
+          curl -fsSL -o /tmp/pb.zip https://github.com/pocketbase/pocketbase/releases/download/v0.40.4/pocketbase_0.40.4_linux_amd64.zip
+          unzip -qo /tmp/pb.zip pocketbase -d /tmp/pb
+          echo "ISKRA_POCKETBASE=/tmp/pb/pocketbase" >> "$GITHUB_ENV"
+      - run: flutter test
+      - name: Ключ подписи для RuStore
+        env:
+          KS: ${{ secrets.ISKRA_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ISKRA_KEYSTORE_PASSWORD }}
+        run: |
+          # без секретов APK подписывается отладочным ключом (годится для ручной установки, не для магазина)
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > android/iskra-upload.jks
+            printf 'storeFile=iskra-upload.jks\nstorePassword=%s\nkeyAlias=iskra\nkeyPassword=%s\n' "$KS_PASS" "$KS_PASS" > android/key.properties
+          fi
+      - name: APK
+        run: |
+          # блок видео за награду Яндекса — переменная репозитория ISKRA_AD_UNIT (без неё — демонстрационный)
+          flutter build apk --release --dart-define=ISKRA_AD_UNIT=${{ vars.ISKRA_AD_UNIT || 'R-M-20184590-1' }}
+          mkdir -p ../out
+          cp build/app/outputs/flutter-apk/app-release.apk "../out/iskra-${{ needs.meta.outputs.ver }}.apk"
+      - name: Веб-сборка
+        run: |
+          flutter build web --release --no-web-resources-cdn --base-href /play/
+          tool/build_site.sh ../web-pkg
+          mkdir -p ../site
+          cd ../web-pkg && zip -qr "../site/iskra-web-${{ needs.meta.outputs.ver }}.zip" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-web
+          path: out/*
+      # Архив сайта не публикуется: он уходит в закрытый черновик выпуска (см. release)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: site/*
+
+  windows:
+    needs: meta
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: iskra_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - name: Архив
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force ../out | Out-Null
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "../out/iskra-windows-${{ needs.meta.outputs.ver }}.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: out/*
+
+  ios:
+    needs: meta
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: iskra_flutter
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+      - name: Неподписанный IPA
+        run: |
+          mkdir -p ../out Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qr "../out/iskra-ios-${{ needs.meta.outputs.ver }}-unsigned.ipa" Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: out/*
+
+  release:
+    needs: [meta, android-web, windows, ios]
+    # релиз выходит, даже если упала сборка Windows или iOS: в нём будет то, что собралось
+    if: ${{ !cancelled() && needs.android-web.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          pattern: '{android-web,windows,ios}'
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Искра ${{ needs.meta.outputs.tag }}
+          body_path: iskra_flutter/RELEASE_NOTES.md
+          prerelease: true
+          files: out/*
+      # Сборка для сайта iskraplay.ru — в черновике выпуска: черновики видят только участники репозитория с правом записи
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: iskra-site-v${{ needs.meta.outputs.ver }}
+          target_commitish: ${{ github.sha }}
+          name: Сайт iskraplay.ru ${{ needs.meta.outputs.ver }} (закрыто)
+          body: Архив сайта iskraplay.ru — распаковать в корень сайта. Черновик не публиковать.
+          draft: true
+          files: site/*

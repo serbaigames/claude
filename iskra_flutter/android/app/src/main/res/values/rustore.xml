@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ID приложения в консоли RuStore (число из адреса console.rustore.ru/apps/…). Пусто — покупки выключены. -->
+    <string name="rustore_app_id" translatable="false">2063766259</string>
+</resources>
