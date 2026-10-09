@@ -7,6 +7,7 @@ import 'en_core.dart';
 import 'en_panels.dart';
 import 'en_screens.dart';
 import 'en_settings.dart';
+import 'en_tutorial.dart';
 
 enum Lang {
   ru('Русский'),
@@ -23,7 +24,7 @@ Lang lang = Lang.ru;
 
 bool get isEn => lang == Lang.en;
 
-final _en = <String, String>{...enCore, ...enPanels, ...enScreens, ...enSettings};
+final _en = <String, String>{...enCore, ...enPanels, ...enScreens, ...enSettings, ...enTutorial};
 
 /// Перевод строки интерфейса на текущий язык
 String tx(String ru, [Map<String, Object?> args = const {}]) {

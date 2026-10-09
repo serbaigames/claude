@@ -14,6 +14,7 @@ import '../net/cloud_sync.dart';
 import '../shop/shop.dart';
 import 'gfx.dart';
 import 'sound.dart';
+import 'tutorial.dart';
 
 class FeedItem {
   final String text, kind;
@@ -55,6 +56,12 @@ class GameController extends ChangeNotifier {
 
   final SharedPreferences prefs;
   final Sound sound;
+
+  /// Обучение новичка: шаги, подсказки и подсветка
+  late final Tutor tutor = Tutor(prefs);
+
+  /// Клетка, которую обучение подсвечивает на карте
+  String? tutorCell;
 
   /// Стили Искры, покупки и ускорение за видео
   final Shop shop;
@@ -135,7 +142,16 @@ class GameController extends ChangeNotifier {
     lang = savedLang == null ? deviceLang() : Lang.parse(savedLang);
     game = _newGameObject();
     final raw = prefs.getString(saveKey);
-    if (raw == null || !_attach(raw)) game.newGame();
+    final loaded = raw != null && _attach(raw);
+    if (!loaded) game.newGame();
+    if (!tutor.known) {
+      // сохранение старше обучения: игрок уже освоился
+      if (loaded && game.s.introSeen) {
+        tutor.finish();
+      } else {
+        tutor.start(game);
+      }
+    }
   }
 
   Game _newGameObject() => Game()
@@ -164,6 +180,7 @@ class GameController extends ChangeNotifier {
       return;
     }
     save();
+    if (!tutor.done && Tutor.veteran(game)) tutor.finish();
     log(tx('Загружен прогресс с сервера.'), 'info');
     notifyListeners();
   }
@@ -220,6 +237,7 @@ class GameController extends ChangeNotifier {
     _panelT += dt;
     if (_panelT > 0.3) {
       _panelT = 0;
+      tutor.update(game);
       notifyListeners();
     }
     _saveT += dt;
@@ -245,6 +263,25 @@ class GameController extends ChangeNotifier {
   void act(void Function(Game g) f) {
     f(game);
     game.refresh();
+    tutor.update(game);
+    notifyListeners();
+  }
+
+  /// Шаг-пояснение обучения прочитан
+  void tutorNext() {
+    tutor.next();
+    notifyListeners();
+  }
+
+  /// Пропустить обучение
+  void tutorSkip() {
+    tutor.finish();
+    notifyListeners();
+  }
+
+  /// Пройти обучение заново (из настроек)
+  void tutorRestart() {
+    tutor.start(game);
     notifyListeners();
   }
 
@@ -311,6 +348,7 @@ class GameController extends ChangeNotifier {
     _noSave = true;
     prefs.remove(saveKey);
     game = _newGameObject()..newGame();
+    tutor.start(game);
     _noSave = false;
     save();
     sync?.cloudSave(force: true);

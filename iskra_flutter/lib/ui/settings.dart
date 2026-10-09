@@ -13,6 +13,7 @@ import 'portraits.dart';
 import 'skins.dart';
 import 'sound.dart';
 import 'theme.dart';
+import 'tutorial.dart';
 import 'widgets.dart';
 
 enum SetTab { acc, app, shop, stats, about, dev }
@@ -159,6 +160,17 @@ class AppSettings extends StatelessWidget {
             selected: {lang},
             onSelectionChanged: (v) => ctl.setLang(v.first),
           ),
+        ]),
+        _head(tx('Обучение'), Icons.school_outlined),
+        _card([
+          Text(
+            ctl.tutor.done
+                ? tx('Обучение пройдено. Его можно пройти ещё раз: подсказки покажут каждый шаг с первого боя до прыжка.')
+                : tx('Идёт обучение: шаг {n} из {t}.', {'n': ctl.tutor.stage + 1, 't': Tutor.total}),
+            style: const TextStyle(color: C.muted, fontSize: 13),
+          ),
+          const SizedBox(height: 8),
+          ActBtn(tx('Пройти обучение заново'), ctl.tutorRestart, key: const ValueKey('tutor-restart')),
         ]),
         _head(tx('Графика и производительность'), Icons.speed),
         _card([

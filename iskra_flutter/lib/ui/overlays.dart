@@ -126,22 +126,25 @@ class BattleOverlay extends StatelessWidget {
               if (!b.started && !b.over) ...[
                 _forecast(g, b),
                 const SizedBox(height: 8),
-                ActBtn(tx('Начать бой'), () => ctl.act((g) => g.battleStart()), primary: true),
+                ctl.tutor.mark('battle-start', ActBtn(tx('Начать бой'), () => ctl.act((g) => g.battleStart()), primary: true)),
               ],
-              if (b.choice != null) _choice(g, b) else if (b.started && !b.over) _abilities(g, b),
+              if (b.choice != null) _choice(g, b) else if (b.started && !b.over) ctl.tutor.mark('battle-abil', _abilities(g, b)),
               const SizedBox(height: 8),
-              ActBtn(
-                b.over ? tx('Закрыть') : tx('Отступить'),
-                () => ctl.act((g) => g.closeBattle()),
-                danger: !b.over && b.started,
-                // во время боя отступление стоит половину штрафа сущности; до начала — бесплатно
-                right: b.over
-                    ? null
-                    : b.started
-                    ? (b.defend != null
-                          ? tx('−{n} материи и клетка', {'n': Fmt.n((f.pen * 0.5).floor())})
-                          : tx('−{n} материи', {'n': Fmt.n((f.pen * 0.5).floor())}))
-                    : tx('без штрафа'),
+              ctl.tutor.mark(
+                'battle-close',
+                ActBtn(
+                  b.over ? tx('Закрыть') : tx('Отступить'),
+                  () => ctl.act((g) => g.closeBattle()),
+                  danger: !b.over && b.started,
+                  // во время боя отступление стоит половину штрафа сущности; до начала — бесплатно
+                  right: b.over
+                      ? null
+                      : b.started
+                      ? (b.defend != null
+                            ? tx('−{n} материи и клетка', {'n': Fmt.n((f.pen * 0.5).floor())})
+                            : tx('−{n} материи', {'n': Fmt.n((f.pen * 0.5).floor())}))
+                      : tx('без штрафа'),
+                ),
               ),
               const SizedBox(height: 4),
               _BattleLog(b.log),

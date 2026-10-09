@@ -50,6 +50,9 @@ class CellPanel extends StatelessWidget {
   const CellPanel(this.ctl, {super.key});
   final GameController ctl;
 
+  /// Метка обучения у кнопки (только у той, на которую оно указывает)
+  Widget _tutMark(String? id, Widget w) => id == null ? w : ctl.tutor.mark(id, w);
+
   @override
   Widget build(BuildContext context) {
     final g = ctl.game, c = g.sel;
@@ -305,12 +308,15 @@ class CellPanel extends StatelessWidget {
               ],
             ),
           ),
-          Tooltip(
-            message: '${l > 0 ? tx('Улучшить') : tx('Построить')}: $next',
-            child: ActBtn(
-              '+',
-              !full && g.s.matter >= cost ? () => ctl.act((g) => g.build(c.key, b.id)) : null,
-              right: Fmt.n(cost),
+          _tutMark(
+            b.id == 'mine' ? 'build-mine' : null,
+            Tooltip(
+              message: '${l > 0 ? tx('Улучшить') : tx('Построить')}: $next',
+              child: ActBtn(
+                '+',
+                !full && g.s.matter >= cost ? () => ctl.act((g) => g.build(c.key, b.id)) : null,
+                right: Fmt.n(cost),
+              ),
             ),
           ),
           if (l > 0) ...[
@@ -507,11 +513,14 @@ class _CharPanelState extends State<CharPanel> {
             const Spacer(),
             _ModeBtn(opMode, (m) => setState(() => opMode = m)),
             const SizedBox(width: 6),
-            ActBtn(
-              tx('Купить +{n}', {'n': ob.n}),
-              ob.n > 0 && g.s.matter >= ob.cost ? () => ctl.act((g) => g.buyOp(opMode)) : null,
-              right: Fmt.n(ob.cost),
-              primary: true,
+            ctl.tutor.mark(
+              'op-buy',
+              ActBtn(
+                tx('Купить +{n}', {'n': ob.n}),
+                ob.n > 0 && g.s.matter >= ob.cost ? () => ctl.act((g) => g.buyOp(opMode)) : null,
+                right: Fmt.n(ob.cost),
+                primary: true,
+              ),
             ),
           ],
         ),
@@ -1093,6 +1102,9 @@ class _TechPanelState extends State<TechPanel> {
   final view = TransformationController();
   double? _fitFor;
 
+  /// Кнопку «Прыжка» подсвечивает обучение
+  Widget _techMark(String id, Widget w) => id == 'jump' ? widget.ctl.tutor.mark('tech-jump', w) : w;
+
   GameController get ctl => widget.ctl;
 
   @override
@@ -1293,11 +1305,15 @@ class _TechPanelState extends State<TechPanel> {
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            t.name,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: open ? C.ink : C.muted),
+          // длинное название не выталкивает кнопку за край узла
+          Flexible(
+            child: Text(
+              t.name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: open ? C.ink : C.muted),
+            ),
           ),
           if (t.ranks > 1) ...[
             const SizedBox(height: 3),
@@ -1326,26 +1342,29 @@ class _TechPanelState extends State<TechPanel> {
           else if (!open)
             Text(tx('закрыто'), style: const TextStyle(color: C.muted, fontSize: 12))
           else
-            SizedBox(
-              height: 32,
-              child: FilledButton(
-                onPressed: can ? () => ctl.act((g) => g.researchTech(t.id)) : null,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  backgroundColor: C.goldBg,
-                  foregroundColor: C.gold,
-                  side: BorderSide(color: can ? C.gold.withValues(alpha: 0.45) : C.line),
-                ),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(r == 0 ? tx('Изучить') : tx('Ранг {n}', {'n': r + 1}), style: const TextStyle(fontSize: 12)),
-                      const SizedBox(width: 4),
-                      Text('$cost', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                      const Icon(pulsarIcon, size: 13),
-                    ],
+            _techMark(
+              t.id,
+              SizedBox(
+                height: 32,
+                child: FilledButton(
+                  onPressed: can ? () => ctl.act((g) => g.researchTech(t.id)) : null,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    backgroundColor: C.goldBg,
+                    foregroundColor: C.gold,
+                    side: BorderSide(color: can ? C.gold.withValues(alpha: 0.45) : C.line),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(r == 0 ? tx('Изучить') : tx('Ранг {n}', {'n': r + 1}), style: const TextStyle(fontSize: 12)),
+                        const SizedBox(width: 4),
+                        Text('$cost', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        const Icon(pulsarIcon, size: 13),
+                      ],
+                    ),
                   ),
                 ),
               ),

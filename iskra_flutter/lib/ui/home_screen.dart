@@ -15,6 +15,7 @@ import 'icons.dart';
 import 'overlays.dart';
 import 'panels.dart';
 import 'theme.dart';
+import 'tutorial.dart';
 import 'widgets.dart';
 import '../l10n/l10n.dart';
 
@@ -130,6 +131,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final g = ctl.game;
     final block = ctl.artPick != null ? _artPickBlock(g) : _cellBlock(g);
+    final tv = _tutorView(g);
+    ctl.tutorCell = tv?.cell;
+    final card = tv == null ? null : TutorCard(view: tv, stage: ctl.tutor.stage, onNext: ctl.tutorNext, onSkip: ctl.tutorSkip);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -178,11 +182,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   ),
                                 ),
                               ),
+                              if (card != null && tab == null && g.b == null) card,
                               Padding(padding: const EdgeInsets.fromLTRB(8, 6, 8, 0), child: _feed()),
                             ],
                           ),
                         ),
-                        Positioned(left: 8, bottom: 8, child: _timeColumn(g)),
+                        Positioned(left: 8, bottom: 8, child: ctl.tutor.mark('time', _timeColumn(g))),
                         if (block != null)
                           // блок между столбиками кнопок времени (слева) и масштаба (справа), кнопки не сдвигает
                           Positioned(
@@ -193,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 560), child: block),
                             ),
                           ),
-                        if (tab != null) _window(tab!),
+                        if (tab != null) _window(tab!, hint: card),
                       ],
                     ),
                   ),
@@ -212,10 +217,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 setState(() => conflict = null);
                 _conflictDone?.complete(v);
               }),
+            // в бою подсказка сверху экрана, поверх окна боя
+            if (card != null && g.b != null) Positioned(left: 0, right: 0, top: 0, child: SafeArea(child: card)),
+            if (tv != null)
+              Positioned.fill(
+                child: TutorHighlight(tutor: ctl.tutor, target: tv.target, repaint: ctl.paintTick),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  /// Подсказка обучения, если сейчас её ничто не перекрывает
+  TutView? _tutorView(Game g) {
+    if (conflict != null || guestAsk || ctl.showJump || ctl.showEra || ctl.artPick != null) return null;
+    if (g.def != null && g.b == null) return null;
+    return ctl.tutor.view(g, tab);
   }
 
   Widget _guestOverlay() => Overlay2(
@@ -413,11 +431,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ),
           const SizedBox(width: 8),
-          _sqBtn(
-            Icon(Icons.rocket_launch_outlined, size: 20, color: jump ? C.gold : C.muted),
-            () => jump ? ctl.openJump() : setState(() => tab = MenuTab.tech),
-            on: g.jumpAdvised,
-            tip: jump ? tx('Прыжок искры') : tx('Прыжок: нужна технология'),
+          ctl.tutor.mark(
+            'jump',
+            _sqBtn(
+              Icon(Icons.rocket_launch_outlined, size: 20, color: jump ? C.gold : C.muted),
+              () => jump ? ctl.openJump() : setState(() => tab = MenuTab.tech),
+              on: g.jumpAdvised,
+              tip: jump ? tx('Прыжок искры') : tx('Прыжок: нужна технология'),
+            ),
           ),
         ],
       ),
@@ -563,13 +584,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
       ];
       buttons = [
-        ActBtn(
-          tx('Укрепить'),
-          g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null,
-          right: Fmt.n(dc),
-          primary: danger,
+        ctl.tutor.mark(
+          'fortify',
+          ActBtn(
+            tx('Укрепить'),
+            g.s.matter >= dc ? () => ctl.act((g) => g.fortify(c.key)) : null,
+            right: Fmt.n(dc),
+            primary: danger,
+          ),
         ),
-        open(tx('Развитие'), MenuTab.cell),
+        ctl.tutor.mark('develop', open(tx('Развитие'), MenuTab.cell)),
       ];
     } else if (!c.alive) {
       final cost = c.might.ceil(), lack = g.s.matter < cost;
@@ -581,7 +605,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
       ];
       buttons = [
-        ActBtn(tx('Захватить'), lack ? null : () => ctl.act((g) => g.capture(c.key)), right: Fmt.n(cost), primary: true),
+        ctl.tutor.mark(
+          'capture',
+          ActBtn(tx('Захватить'), lack ? null : () => ctl.act((g) => g.capture(c.key)), right: Fmt.n(cost), primary: true),
+        ),
         open(tx('Клетка'), MenuTab.cell),
       ];
     } else {
@@ -593,7 +620,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         line(tx('мощь {m} · {fc}', {'m': Fmt.n(c.might.ceil()), 'fc': g.fcMatter(fc)}), size: 12),
       ];
       buttons = [
-        ActBtn(tx('Атаковать'), () => ctl.act((g) => g.startBattle(g.foeFromCell(c), c.key)), primary: true),
+        ctl.tutor.mark(
+          'attack',
+          ActBtn(tx('Атаковать'), () => ctl.act((g) => g.startBattle(g.foeFromCell(c), c.key)), primary: true),
+        ),
         open(tx('Клетка'), MenuTab.cell),
       ];
     }
@@ -677,39 +707,42 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               children: [
                 for (final t in tabs)
                   Expanded(
-                    child: InkWell(
-                      key: ValueKey('menu-${t.name}'),
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () {
-                        if (ctl.artPick != null) ctl.cancelArtPick();
-                        ctl.sound.play(tab == t ? 'close' : 'open');
-                        setState(() => tab = tab == t ? null : t);
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        decoration: BoxDecoration(
-                          color: tab == t ? C.gold.withValues(alpha: 0.18) : null,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(_tabIcons[t], size: 22, color: tab == t ? C.gold : C.muted),
-                            const SizedBox(height: 2),
-                            // у всех пунктов один размер шрифта и равная ширина; длинные подписи — в две строки
-                            Text(
-                              t == MenuTab.char ? tx('Параметры\nискры') : tx(tabTitles[t]!),
-                              maxLines: 2,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 10,
-                                height: 1.15,
-                                letterSpacing: -0.1,
-                                color: tab == t ? C.ink : C.muted,
+                    child: _menuMark(
+                      t,
+                      InkWell(
+                        key: ValueKey('menu-${t.name}'),
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () {
+                          if (ctl.artPick != null) ctl.cancelArtPick();
+                          ctl.sound.play(tab == t ? 'close' : 'open');
+                          setState(() => tab = tab == t ? null : t);
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 1),
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          decoration: BoxDecoration(
+                            color: tab == t ? C.gold.withValues(alpha: 0.18) : null,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(_tabIcons[t], size: 22, color: tab == t ? C.gold : C.muted),
+                              const SizedBox(height: 2),
+                              // у всех пунктов один размер шрифта и равная ширина; длинные подписи — в две строки
+                              Text(
+                                t == MenuTab.char ? tx('Параметры\nискры') : tx(tabTitles[t]!),
+                                maxLines: 2,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  height: 1.15,
+                                  letterSpacing: -0.1,
+                                  color: tab == t ? C.ink : C.muted,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -722,6 +755,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
+  /// Пункты меню, на которые указывает обучение
+  Widget _menuMark(MenuTab t, Widget child) => switch (t) {
+    MenuTab.char => ctl.tutor.mark('menu-char', child),
+    MenuTab.tech => ctl.tutor.mark('menu-tech', child),
+    _ => child,
+  };
+
   void _closeWindow() {
     ctl.sound.play('close');
     setState(() => tab = null);
@@ -729,10 +769,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   /// Окно пункта меню поверх карты; нажатие мимо окна или на крестик закрывает его
   /// Строка балансов остаётся видна над окном: окно открывается под ней
-  Widget _window(MenuTab t) => Positioned.fill(
+  Widget _window(MenuTab t, {Widget? hint}) => Positioned.fill(
     child: Column(
       children: [
         ColoredBox(color: const Color(0xF20B0816), child: _topBar(ctl.game)),
+        // подсказка обучения — между строкой балансов и окном, чтобы не закрывать его
+        ?hint,
         Expanded(child: _windowBody(t)),
       ],
     ),

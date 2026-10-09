@@ -280,6 +280,26 @@ class _MapPainter extends CustomPainter {
           ..color = C.gold.withValues(alpha: .6 + .4 * pulse),
       );
     }
+
+    // клетка, на которую указывает обучение: расходящееся кольцо
+    final hint = g.cell(ctl.tutorCell);
+    if (hint != null && hint != sel && g.vis.contains(hint.key)) {
+      final p = scr(hint), w = (t * .8) % 1;
+      canvas.drawPath(
+        hexPath(p, rc * (.9 + .35 * w)),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..color = C.violet.withValues(alpha: .9 * (1 - w)),
+      );
+      canvas.drawPath(
+        hexPath(p, rc * .9),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5
+          ..color = Colors.white.withValues(alpha: .55 + .35 * math.sin(t * 4)),
+      );
+    }
   }
 
   void _stars(Canvas canvas, Size size, Offset cam, double z) {
